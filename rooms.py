@@ -30,6 +30,9 @@ class Room():
                               self.d(r, 'SO') != None) else None
         self.bag_objects = [x for x in self.d(r, 'BO').split()] if (
                               self.d(r, 'BO') != None) else None
+
+    def __str__(self):
+        # Here I write some return statement which gives what I want it to give.
         
 def processor(filename):
     rooms = dict()
