@@ -45,6 +45,16 @@ def processor(filename):
                 except NameError:
                     print('No name entered; information will be ignored.')
     return rooms
+    
+def linker(filename, rooms):
+    with open(filename) as f:
+        info = f.readlines()
+        for x in info:
+            y = x.split('')
+            for i in range(1,len(y)):
+                rooms(y[0]).links[i] = i.rstrip() if i != 'None' else None
+    return
+            
                         
                            
 #Testing.                            
