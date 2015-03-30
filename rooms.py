@@ -6,36 +6,47 @@
 __author__ = "David Vaillant"
 
 class Room():
-    codes = dict(
-        {'NA':'name'},
-        {'EN':'entry_desc'},
-        {'RE':'reentry_desc'},
-        {'EX':'examine_desc'},
-        {'SO':'static_obj'}
-                )
-    def __init__(self):
-        self.name = ''
-        self.entry_desc = ''
-        self.examine_desc = ''
-        self.reextry_desc = ''
-        self.scene_objects = []
-        self.bag_objects = []
+    codes = {
+        '#NA':'name',
+        '#EN':'entry_desc',
+        '#RE':'reentry_desc',
+        '#EX':'examine_desc',
+        '#SO':'static_obj',
+        '#BO':'bag_obj'
+            }
+    def d(self, room_dict, i):
+        try:
+            return room_dict[i]
+        except:
+            return None
+        
+    def __init__(self, r):
+        self.links = [None, None, None, None]
+        self.name = self.d(r, 'NA')
+        self.entry_desc = self.d(r, 'EN')
+        self.examine_desc = self.d(r, 'EX')
+        self.reentry_desc = self.d(r, 'RE')
+        self.scene_objects = [x for x in self.d(r, 'SO').split()] if (
+                              self.d(r, 'SO') != None) else None
+        self.bag_objects = [x for x in self.d(r, 'BO').split()] if (
+                              self.d(r, 'BO') != None) else None
         
 def processor(filename):
     rooms = dict()
-    with open('filename') as f:
+    with open(filename) as f:
         info = f.readlines()
         for x in info:
             if '#NA' in x:
-                rooms.append(x[:3]:{'name':x[3:]})
-                marker = x[:2]
-            if x[:2] in keys(rooms.codes()):
+                marker = x[4:].rstrip()
+                rooms[marker]=({'NA':marker})
+            if x[:3] in Room.codes.keys():
                 try:
-                    rooms(marker).append(rooms.codes(x[:2]):x[3:])
+                    rooms[marker][x[1:3]] = x[4:].rstrip()
                 except NameError:
                     print('No name entered; information will be ignored.')
     return rooms
-                            
+                        
+                           
 #Testing.                            
-fn = input("Enter filename: ")
-print(processor(fn))
+#fn = input("Enter filename: ")
+print(processor('test.txt'))
