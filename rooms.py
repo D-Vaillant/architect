@@ -32,8 +32,8 @@ class Room():
                               self.d(r, 'BO') != None) else None
 
     def __str__(self):
-        # Here I write some return statement which gives what I want it to give.
-        
+        return 'This room is named ' + self.name + '.'
+    
 def processor(filename):
     rooms = dict()
     with open(filename) as f:
