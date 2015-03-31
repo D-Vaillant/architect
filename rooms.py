@@ -18,7 +18,7 @@ class Room():
         try:
             return room_dict[i]
         except:
-            return None
+            return ''
         
     def __init__(self, r):
         self.links = [None, None, None, None]
@@ -27,22 +27,40 @@ class Room():
         self.examine_desc = self.d(r, 'EX')
         self.reentry_desc = self.d(r, 'RE')
         self.scene_objects = [x for x in self.d(r, 'SO').split()] if (
-                              self.d(r, 'SO') != None) else None
+                              self.d(r, 'SO') != '') else ['']
         self.bag_objects = [x for x in self.d(r, 'BO').split()] if (
-                              self.d(r, 'BO') != None) else None
+                              self.d(r, 'BO') != '') else ['']
+        self.is_visited = False
+                              
+    def on_entry(self):
+        if self.is_visited: print(self.reentry_desc)
+        else:
+            print(self.entry_desc)
+            self.is_visited = True
+        return
+    
 
     def __str__(self):
         return 'This room is named ' + self.name + '.'
+    
+def room_main(room_desc, room_links):
+    r_d = processor(room_desc)
+    r = {}
+    for x in r_d.keys():
+        r[x] = Room(r_d[x])
+    linker(room_links, r)
+    return r
     
 def processor(filename):
     rooms = dict()
     with open(filename) as f:
         info = f.readlines()
         for x in info:
-            if '#NA' in x:
+            if '//' in x: pass
+            elif '#NA' in x:
                 marker = x[4:].rstrip()
                 rooms[marker]=({'NA':marker})
-            if x[:3] in Room.codes.keys():
+            elif x[:3] in Room.codes.keys():
                 try:
                     rooms[marker][x[1:3]] = x[4:].rstrip()
                 except NameError:
@@ -53,13 +71,18 @@ def linker(filename, rooms):
     with open(filename) as f:
         info = f.readlines()
         for x in info:
-            y = x.split('')
-            for i in range(1,len(y)):
-                rooms(y[0]).links[i] = i.rstrip() if i != 'None' else None
+            if '//' in x: pass
+            elif x != '':
+                y = x.split(', ')
+                if y[0] in rooms.keys():
+                    for i in range(1,5):
+                        rooms[y[0]].links[i-1] = y[i].rstrip() \
+                            if y[i].lower() != 'none' \
+                            else None
     return
             
                         
                            
 #Testing.                            
 #fn = input("Enter filename: ")
-print(processor('test.txt'))
+#print(processor('test.txt'))

@@ -1,0 +1,42 @@
+// this part is ignored by the processor (hopefully)
+// NA is name, EN is entry, RE is reentry
+
+#NA initial
+#EN yo yo yo
+#RE hurray
+
+#NA robots
+#EN A large robot stands there, judgingly.
+#RE The robot still stands.
+
+#NA a silent brook
+#EN Past the robot is a brook. It is quiet.
+#RE The brook calms you.
+
+#NA a burbling stream
+#EN The brook has grown; it is now a stream, burbling at you.
+#RE Burble burble.
+
+#NA closer to the source
+
+#NA the waterfall
+
+#NA behind the waterfall
+
+#NA the cold caves
+
+#NA the wooded entrance
+#EN The woods loom terrifyingly.
+#RE Loom loom.
+
+#NA hope springs abundant
+#EN This place is actually pretty nice.
+#RE There are cats sleeping.
+
+#NA a pit
+
+#NA death
+#EN It is too cold here.
+#RE You should not have come back.
+
+#NA the illumination
