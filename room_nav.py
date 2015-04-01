@@ -11,9 +11,11 @@ class Room_Navigator():
                     ' ` for previous page and - for next page.\n' + \
                     '\'m\' returns to this screen.\n' + \
                     'Pages: ' }
+                    
     entry2_codes = {'r':'room'}
 
     def __init__(self, d):
+        self.room_dicts = d
         self.pages = self.dict_to_pages(d)
         self.default_loc = ['r',[None,None]]
         self.loc = dc(self.default_loc)
@@ -22,7 +24,9 @@ class Room_Navigator():
         for x in self.pages.keys():
             self.menu_r.add(x)
         self.page_count = max(self.menu_r)+1
-        
+    
+    # Converts a dictionary created by rooms.processor into page dictionaries
+    # usable by Room_Navigator.
     def dict_to_pages(self, d):
         i = -1
         j = -1
@@ -37,16 +41,21 @@ class Room_Navigator():
 
         return f
 
+    # Converts a value from the page dictionary into a string representation
+    # of a page.
     def page_displayer(self, page_num):
+        pg = ''
         for x in range(max(self.pages[page_num].keys())+1):
-            print(str(x) + ' ' + self.pages[page_num][x])
-        return
+            pg = pg + (str(x) + ' ' + self.pages[page_num][x] + '\n')
+        return pg
 
-
+    # Deprecated. 
+    '''
     def room_displayer(self, pg_rn):
         page_num, room_num = pg_rn
         print(self.pages[page_num][room_num])
-
+    '''
+    
     def prompt_exe(self, chr):
         if chr == 'q': return
         if chr.isdigit(): chr = int(chr)
@@ -70,24 +79,28 @@ class Room_Navigator():
                     self.loc[1][0] = '!'
                     return
             elif self.loc[1][0] in self.menu_r:
-                if chr == '`':
-                    self.loc[1][0] = (self.loc[1][0]-1) % self.page_count
-                    print('Moving to page ' + str(self.loc[1][0]) + '.')
-                    return
-                elif chr == '-':
-                    self.loc[1][0] = (self.loc[1][0]+1) % self.page_count
-                    print('Moving to page ' + str(self.loc[1][0]) + '.')
-                    return
-                elif chr == 'm':
-                    self.loc[1][0] = None
-                    print('Returning to room menu.')
-                    return
-                elif chr in self.pages[self.loc[1][0]].keys():
-                    self.loc[1][1] = chr
-                    return
-                else:
-                    self.loc[1][1] = '!'
-                    print('Invalid entry.')
+                if self.loc[1][1] == None:
+                    if chr == '`':
+                        self.loc[1][0] = (self.loc[1][0]-1) % self.page_count
+                        return
+                    elif chr == '-':
+                        self.loc[1][0] = (self.loc[1][0]+1) % self.page_count
+                        return
+                    elif chr == '':
+                        return
+                    elif chr == 'm':
+                        self.loc[1][0] = None
+                        print('Returning to room menu.')
+                        return
+                    elif chr in self.pages[self.loc[1][0]].keys():
+                        self.loc[1][1] = chr
+                        return
+                    else:
+                        self.loc[1][1] = '!'
+                        print('Invalid entry.')
+                        return
+                elif self.loc[1][1] in self.pages[self.loc[1][0]].keys():
+                    self.loc[1][1] = None
                     return
         return
         
@@ -103,17 +116,20 @@ class Room_Navigator():
                 print(self.entry2_msgs['r'] + str(self.menu_r)[1:-1])                   
                 return
             elif self.loc[1][0] == '!':
-                self.loc[1][0] == None
+                self.loc[1][0] = None
                 return
             else:
                 if self.loc[1][1] == None:
-                    self.page_displayer(self.loc[1][0])
+                    print()
+                    print("<- [`]   Page {}   [-] ->\n".format(self.loc[1][0]))
+                    print(self.page_displayer(self.loc[1][0]))
                     return
                 elif self.loc[1][1] == '!':
                     self.loc[1][1] = None
                     return
                 elif self.loc[1][1] in self.pages[self.loc[1][0]].keys():
-                    print(self.room_displayer(self.loc[1]))
+                    print(Room(self.room_dicts[self.pages[self.loc[1][0]]
+                                              [self.loc[1][1]]]))
                     return
                 return
             return
