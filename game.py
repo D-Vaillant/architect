@@ -2,9 +2,10 @@ from rooms import *
 
 class Game():
     cardinals = {'w':0, 's':1, 'n':2, 'e':3}
-    beginning = 'Welcome to the test!'
+
     
     def __init__(self, data):
+        self.beginning = 'Welcome to the test!' 
         self.rooms = data
         self.loc = self.rooms['initial']
         

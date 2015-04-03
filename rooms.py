@@ -14,11 +14,12 @@ class Room():
         '#SO':'static_obj',
         '#BO':'bag_obj'
             }
+            
     def d(self, room_dict, i):
         try:
             return room_dict[i]
         except:
-            return ''
+            return 'N/A'
         
     def __init__(self, r):
         self.links = [None, None, None, None]
@@ -39,16 +40,20 @@ class Room():
             self.is_visited = True
         return
     
-
-    def __str__(self):
-        return 'This room is named ' + self.name + '.'
+    def __str__(self):  
+        str = "Name: " + self.name + ".\n"
+        str = str + "First entry message: " + self.entry_desc + "\n"
+        str = str + "Reentry message: " + self.reentry_desc + "\n"
+        str = str + "On examine: " + self.examine_desc + "\n"
     
-def room_main(room_desc, room_links):
+        return str  
+        
+def room_main(room_desc, room_links = ''):
     r_d = processor(room_desc)
     r = {}
     for x in r_d.keys():
         r[x] = Room(r_d[x])
-    linker(room_links, r)
+    if room_links != '': linker(room_links, r)
     return r
     
 def processor(filename):
@@ -85,4 +90,8 @@ def linker(filename, rooms):
                            
 #Testing.                            
 #fn = input("Enter filename: ")
-#print(processor('test.txt'))
+'''
+day = room_main('desc.txt')
+for x in day:
+    print(day[x])
+'''

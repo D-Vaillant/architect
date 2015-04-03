@@ -1,6 +1,8 @@
 from rooms import processor, Room
 from copy import deepcopy as dc
 
+__author__ = "David Vaillant
+"
 #class Navigator():
     #Abstraction of Room_Navigator, for use in other projects.
     
@@ -49,17 +51,11 @@ class Room_Navigator():
             pg = pg + (str(x) + ' ' + self.pages[page_num][x] + '\n')
         return pg
 
-    # Deprecated. 
-    '''
-    def room_displayer(self, pg_rn):
-        page_num, room_num = pg_rn
-        print(self.pages[page_num][room_num])
-    '''
     
     def prompt_exe(self, chr):
         if chr == 'q': return
         if chr.isdigit(): chr = int(chr)
-        
+        '''
         if self.loc[0] == None:
             if chr in self.menu_0: 
                 self.loc[0] = chr
@@ -68,40 +64,41 @@ class Room_Navigator():
                 print('Invalid entry.')
                 self.loc[0] = '!'
                 return
-        if self.loc[0] == 'r': 
-            if self.loc[1][0] == None:
-                if chr == '':
+        '''
+        #if self.loc[0] == 'r': 
+        if self.loc[1][0] == None:
+            if chr == '':
+                return
+            if chr in self.menu_r:
+                self.loc[1][0] = chr
+            else:
+                print('Invalid entry.')
+                self.loc[1][0] = '!'
+                return
+        elif self.loc[1][0] in self.menu_r:
+            if self.loc[1][1] == None:
+                if chr == '`':
+                    self.loc[1][0] = (self.loc[1][0]-1) % self.page_count
                     return
-                if chr in self.menu_r:
-                    self.loc[1][0] = chr
+                elif chr == '-':
+                    self.loc[1][0] = (self.loc[1][0]+1) % self.page_count
+                    return
+                elif chr == '':
+                    return
+                elif chr == 'm':
+                    self.loc[1][0] = None
+                    print('Returning to room menu.')
+                    return
+                elif chr in self.pages[self.loc[1][0]].keys():
+                    self.loc[1][1] = chr
+                    return
                 else:
+                    self.loc[1][1] = '!'
                     print('Invalid entry.')
-                    self.loc[1][0] = '!'
                     return
-            elif self.loc[1][0] in self.menu_r:
-                if self.loc[1][1] == None:
-                    if chr == '`':
-                        self.loc[1][0] = (self.loc[1][0]-1) % self.page_count
-                        return
-                    elif chr == '-':
-                        self.loc[1][0] = (self.loc[1][0]+1) % self.page_count
-                        return
-                    elif chr == '':
-                        return
-                    elif chr == 'm':
-                        self.loc[1][0] = None
-                        print('Returning to room menu.')
-                        return
-                    elif chr in self.pages[self.loc[1][0]].keys():
-                        self.loc[1][1] = chr
-                        return
-                    else:
-                        self.loc[1][1] = '!'
-                        print('Invalid entry.')
-                        return
-                elif self.loc[1][1] in self.pages[self.loc[1][0]].keys():
-                    self.loc[1][1] = None
-                    return
+            elif self.loc[1][1] in self.pages[self.loc[1][0]].keys():
+                self.loc[1][1] = None
+                return
         return
         
     def loc_exe(self):
@@ -128,8 +125,9 @@ class Room_Navigator():
                     self.loc[1][1] = None
                     return
                 elif self.loc[1][1] in self.pages[self.loc[1][0]].keys():
-                    print(Room(self.room_dicts[self.pages[self.loc[1][0]]
-                                              [self.loc[1][1]]]))
+                    print(self.room_dicts[self.pages[self.loc[1][0]]
+                                              [self.loc[1][1]]])
+                    print('Hit any key to return to the page menu.')
                     return
                 return
             return
