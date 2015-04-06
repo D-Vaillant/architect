@@ -47,8 +47,8 @@ class Room_Navigator():
     # of a page.
     def page_displayer(self, page_num):
         pg = ''
-        for x in range(max(self.pages[page_num].keys())+1):
-            pg = pg + (str(x) + ' ' + self.pages[page_num][x] + '\n')
+        for index, obj in enumerate(self.pages[page_num].keys()):
+            pg = pg + (str(index) + ' ' + obj + '\n')
         return pg
 
     

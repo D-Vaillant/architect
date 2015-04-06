@@ -85,6 +85,7 @@ class God_Game():
             print("That's not the name of a room.")
         return
         
+
     def mirror(self, target, dir):
         if dir == 0: dir = 3
         elif dir == 1: dir = 2
@@ -96,8 +97,10 @@ class God_Game():
         if filename == '':
             filename = input("Please enter a name for the link file: ")
         with open(filename, 'a') as f:
+            s = "// Format: NAME, WEST, SOUTH, NORTH, EAST\n// " + \
+                "\"none\" is used when there is nothing in a direction.\n\n"
             for x in self.link_library.keys():
-                s = x
+                s = s + x
                 for y in range(4):
                     tmp = self.link_library[x][y]
                     s = s + ', ' + tmp if tmp != None else s + ', none'
