@@ -17,8 +17,10 @@ class Game():
             print('I can\'t go that way.')
         
     def prompt_exe(self, i):
-        if i in self.cardinals.keys():
+        if i[0] in self.cardinals.keys():
             self.move(i)
+        elif i[0] in ['west', 'south', 'north', 'east']:
+            self.move(i[0][0])
         else:
             return
     
@@ -27,7 +29,7 @@ class Game():
         prompt = ''
         while (prompt != 'q'):
             x = input('> ')
-            prompt = x[0].lower() if x != '' else ''
+            prompt = x.lower().split() if x != '' else ''
             self.prompt_exe(prompt)
     
     
