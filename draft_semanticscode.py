@@ -31,7 +31,7 @@ class Syntactics():
         
     def remove_item(target, item):
         typ = 'props' if item.isProp else 'items'
-        getattr(target, typ+_here').remove(item)
+        getattr(target, typ+'_here').remove(item)
     
     def change_var(target, attribute, new_desc):
         getattr(target, attribute) = new_desc
