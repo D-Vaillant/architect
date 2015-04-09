@@ -33,14 +33,23 @@ class Thing():
         '#GD':'ground_desc'
         }
     def __init__(self, itemD):
-        self.name = itemD['NA']
-        self.alias = itemD['AL']
-        self.examine_desc = itemD['EX']
-        self.ground_desc = itemD['GD']
-        self.on_acquire = itemD['OA']
-        self.action_dict = {act:mcode for act, mcode in itemD['AC'].items()}
+        self.name = itemD['NA'] if 'NA' in itemD.keys() else ''
+        self.alias = itemD['AL'] if 'AL' in itemD.keys() else 'thing'
+        self.examine_desc = itemD['EX'] if 'EX' in itemD.keys() else ''
+        self.ground_desc = itemD['GD'] if 'GD' in itemD.keys() else ''
+        self.on_acquire = itemD['OA'] if 'OA' in itemD.keys() else 'pass'
+        self.action_dict = {act:mcode for act, mcode in itemD['AC'].items()} \
+                            if 'AC' in itemD.keys() else {}
         self.isProp = True if itemD['TY'] == 'prop' else False
-        
+
+    def safety(self, proposedInput, attributeType, source):
+        if type(source) == str: valve = ''
+        elif type(source) == dict: valve = {}
+
+        if attributeType in source.keys():
+           return x
+        else:
+            return valve
        
     
 # reads an object text file and returns a set of object dicts
@@ -75,14 +84,13 @@ def obj_reader(filename = ''):
         return obj_list
     
 # takes an object metadict and returns a dict of props and a dict of items
-def obj_processor(obj_list = []):
-    if obj_list == []:
-        obj_reader()
+def obj_processor(filename = '', D = {}):
+    obj_list = obj_reader(filename)
     props = dict()
     items = dict()
     for j in obj_list:
         x = Thing(j)
-        key = x.alias
+        key = x.name
         if x.isProp:
             props[key] = x
         else:
