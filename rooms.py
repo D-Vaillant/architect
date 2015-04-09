@@ -11,8 +11,8 @@ class Room():
         '#EN':'entry_desc',
         '#RE':'reentry_desc',
         '#EX':'examine_desc',
-        '#SO':'static_obj',
-        '#BO':'bag_obj'
+        '#IL':'item_location',
+        '#PL':'prop_location'
             }
             
     def d(self, room_dict, i):
@@ -27,9 +27,9 @@ class Room():
         self.entry_desc = self.d(r, 'EN')
         self.examine_desc = self.d(r, 'EX')
         self.reentry_desc = self.d(r, 'RE')
-        self.scene_objects = [x for x in self.d(r, 'SO').split()] if (
+        self.items_here = [x for x in self.d(r, 'IO').split()] if (
                               self.d(r, 'SO') != '') else ['']
-        self.bag_objects = [x for x in self.d(r, 'BO').split()] if (
+        self.props_here = [x for x in self.d(r, 'PR').split()] if (
                               self.d(r, 'BO') != '') else ['']
         self.is_visited = False
                               
@@ -48,15 +48,15 @@ class Room():
     
         return str  
         
-def room_main(room_desc, room_links = ''):
-    r_d = processor(room_desc)
+def room_processor(room_desc, room_links = ''):
+    r_d = room_reader(room_desc)
     r = {}
     for x in r_d.keys():
         r[x] = Room(r_d[x])
-    if room_links != '': linker(room_links, r)
+    if room_links != '': link_reader(room_links, r)
     return r
     
-def processor(filename):
+def room_reader(filename):
     rooms = dict()
     with open(filename) as f:
         info = f.readlines()
@@ -72,7 +72,7 @@ def processor(filename):
                     print('No name entered; information will be ignored.')
     return rooms
     
-def linker(filename, rooms):
+def link_reader(filename, rooms):
     with open(filename) as f:
         info = f.readlines()
         for x in info:

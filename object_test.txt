@@ -1,0 +1,46 @@
+// Example object page.
+// NA: name, EX: examine desc, OA: mcode for on acquire, TY: item or prop
+// AC: mcode for various actions. new line for each action
+// int:nameCODEparameter
+// sys:CODEparameter
+// prop:nameCODEparameter
+// int:name-#, remove # of name from inventory
+// sys:!test, print test to screen
+// prop:name+name2, put prop name in room name2. _ is current room.
+
+
+
+#NA A shiny bauble
+#AL bauble
+#EX A small, blue sphere made of solid polished glass.
+#GD There is a tiny blue bauble on the ground.
+#OA pass
+#AC throw, inv:A shiny bauble-1, sys:!The bauble shatters into pieces, prp:Glass shards+_
+#AC tap, sys:!Tap tap. It sounds like solid glass.
+#TY item
+
+#NA A worn key
+#AL key
+#EX An slightly rusted key. Hopefully it still works.
+#GD A battered-looking key is lying here.
+#OA rom:The house's entrance&NInside of the house.
+#TY item
+
+#NA An old painting
+#EX The old man's face glares at you accusingly. Are those eyes following you?
+#GD A tattered painting hangs on the wall.
+#TY prop
+
+#NA A notebook
+#AL notebook
+#EX The notebook is filled with translations of hieroglyphs. There's some space in the back for notes.
+#GD A black notebook sits on the ground.
+#TY item
+#OA pass
+
+#NA A battered door
+#AL door
+#EX The door looks weak, but not weak enough to knock down. Unfortunately. It is locked.
+#GD A sad-looking door guards the house.
+#TY prop
+#AC unlock, ift:A worn key@_>rom:_&Inside of the house., ift:A worn key@_>rom:_#EXThe door looks weak, but not weak enough to knock down. Unfortunately.

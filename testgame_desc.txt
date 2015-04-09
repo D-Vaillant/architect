@@ -1,17 +1,22 @@
 // Things for the test_game.
 
+~R
 #NA initial 
 #EN The green grass meadows softly. The sky is blue and all around you grass blooms. To your north you see a strange house.
 #RE You return to the meadow.
+#IL A shiny bauble
 
 #NA The house's entrance.
 #EN A rickety old house stands in front of you, dead north. There is a door.
 #RE The house is still there.
+#IL A worn key
 
 #NA Inside of the house.
 #EN The house is barren: no furniture, drapes in tatters. To your west there is a staircase down.
 #RE The house is still barren.
+#PL An old painting
 
 #NA The basement.
 #EN The walls are covered with strange writings.
 #RE The writings are still there. 
+#IL A notebook

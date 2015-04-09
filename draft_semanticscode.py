@@ -14,12 +14,28 @@ class Syntactics():
         getattr(self, tierI+"_func")(type, instructions)
         return
         
+    def sys_func():
+    
+    
     def inv_func(type, instruct):
         return
         
     def rom_func(type, instruct):
 
     def obj_func(type, instruct):
+    
+    def add_item(target, item):
+        typ = 'props' if item.isProp else 'items'
+        getattr(target, typ+'_here').append(item)
+        return
+        
+    def remove_item(target, item):
+        typ = 'props' if item.isProp else 'items'
+        getattr(target, typ+_here').remove(item)
+    
+    def change_var(target, attribute, new_desc):
+        getattr(target, attribute) = new_desc
+        return        
         
     def link(source, dir, dest, e = True):
         if e:
