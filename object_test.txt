@@ -15,8 +15,8 @@
 #EX A small, blue sphere made of solid polished glass.
 #GD There is a tiny blue bauble on the ground.
 #OA pass
-#AC throw, inv:A shiny bauble-1, sys:!The bauble shatters into pieces, prp:Glass shards+_
-#AC tap, sys:!Tap tap. It sounds like solid glass.
+#AC throw{inv:A shiny bauble-1{sys:!The bauble shatters into pieces.{prp:Glass shards+_
+#AC tap{sys:!Tap tap. It sounds like solid glass.
 #TY item
 
 #NA A worn key
@@ -43,4 +43,4 @@
 #EX The door looks weak, but not weak enough to knock down. Unfortunately. It is locked.
 #GD A sad-looking door guards the house.
 #TY prop
-#AC unlock, ift:A worn key@_>rom:_&Inside of the house., ift:A worn key@_>rom:_#EXThe door looks weak, but not weak enough to knock down. Unfortunately.
+#AC unlock{ift:A worn key@_>rom:_&Inside of the house}rom:_#EXThe door looks weak, but not weak enough to knock down. Unfortunately.

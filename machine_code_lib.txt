@@ -35,3 +35,6 @@ ift: Conditional. Runs machine code if condition is met.
     _=room>MCODE: MCODE runs if current room is given one.
     item@room>MCODE: MCODE runs if item is at a room.
     item@_>MCODE: MCODE runs if item is in inventory
+
+General:
+    MCODE1}MCODE2: Run MCODE1, then MCODE2.

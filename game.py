@@ -1,5 +1,5 @@
 from rooms import *
-from collections import Counter
+from inventory import Inventory
 
 class Game():
     cardinals = {'w':0, 's':1, 'n':2, 'e':3}
@@ -12,6 +12,7 @@ class Game():
         self.props = tdata['props']
         self.items = tdata['items']
         self.loc = self.rooms['initial']
+        self.inventory = Inventory()
         
     def move(self, dir):
         try:
