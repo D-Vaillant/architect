@@ -8,7 +8,18 @@ class Engine():
     def __init__(self, rdata, tdata):
         G = Game(rdata, tdata)
         return
-        
+
+    def move(self, dir):
+      
+        try:
+            self.G.loc = self.G.rooms[self.G.loc.links[self.G.cardinals[dir]]]
+            self.G.loc.on_entry()
+        except:
+            print('I can\'t go that way.')
+            
+    def act(self, command):
+        return       
+
     def sem_code(self, words):
         type_code = words[:3]
         finder = re.search('[!]', words)

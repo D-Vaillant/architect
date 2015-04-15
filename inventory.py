@@ -76,16 +76,22 @@ def obj_reader(filename = ''):
             # For actions: machine codes are separated by '{'.
             # Creates a list tmp; tmp[0] is the action name.
             elif x[:3] == '#AC':
+                # Use { to split up various parts of the plaintext into
+                # individual mcode commands.
                 tmp = x[4:].rstrip().split('{')
                 
                 # Creates an empty dict if this is the first action.
                 if 'AC' not in marker.keys():
                     marker['AC'] = {}
+                # Add associated machine code to action dictionary.
                 marker['AC'][tmp[0]] = tmp[1:]
                 
+            # For other properties, strip away trailing whitespace and 
+            # add property code : property description to object dictionary.
             elif x[:3] in Thing.codes.keys():
                 try:
                     marker[x[1:3]] = x[4:].rstrip()
+                # If no name has been entered before a property, raise Error.
                 except NameError:
                     print("No name entered; information discarded.")
         return obj_list
@@ -97,19 +103,15 @@ def obj_processor(obj_list = []):
     if type(obj_list) == str:
         obj_list = obj_reader(obj_list)
 
-    props = dict()
-    items = dict()
+    things = dict()
     obj_list = obj_putter(obj_list)
      
     # iterates over 
     for j in obj_list:
         x = Thing(j)
         key = x.name
-        if x.isProp:
-            props[key] = x
-        else:
-            items[key] = x
-    return props, items
+        things[key] = x
+    return things
     
 def obj_putter(fileIn = '', fileOut = ''):
     sourceList = obj_reader(fileIn) if type(fileIn) is str else fileIn
