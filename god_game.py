@@ -3,7 +3,7 @@ from room_nav import *
 
 __author__ = "David Vaillant"
 
-data = room_main('desc.txt', 'links.txt')
+data = room_processor('testgame_desc.txt')
 
 class God_Game():
     cardinals = {'w':0, 's':1, 'n':2, 'e':3}
@@ -58,8 +58,8 @@ class God_Game():
         if i == '?':
             print("Commands:\n Link rooms - l\n Open room navigator - r\n " +
                   "Return to game prompt - q \n ")
-        elif i == 'l':
-            self.create_link()
+        elif i == 'l': self.create_link()
+        elif i == 'w': self.warp()
         elif i == 'r':
             self.R.main()
         else: pass
@@ -85,6 +85,14 @@ class God_Game():
             print("That's not the name of a room.")
         return
         
+    def warp(self):
+        dest = input('Enter a room name: ')
+        if dest not in self.rooms.keys():
+            print("Room not found.")
+            return
+        else:
+            self.loc = self.rooms[dest]
+            return
 
     def mirror(self, target, dir):
         if dir == 0: dir = 3

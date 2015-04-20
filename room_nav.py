@@ -1,10 +1,12 @@
-from rooms import processor, Room
+from rooms import Room
 from copy import deepcopy as dc
 
-__author__ = "David Vaillant
-"
+
+__author__ = "David Vaillant"
+
 #class Navigator():
-    #Abstraction of Room_Navigator, for use in other projects.
+    # Abstraction of Room_Navigator, for use in other projects.
+    # Currently not in use.
     
 class Room_Navigator():
     entry_msg = 'Navigator started. Type \'q\' to quit.\n'

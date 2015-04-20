@@ -1,23 +1,23 @@
-from collections import defaultdict
+#from collections import defaultdict
 __author__ = "David Vaillant"
 
 class Inventory():
     def passer():
         return 'pass'
 
-    def __init__(self):
-        self.collection = {}
+    def __init__(self, default = {}):
+        self.holding = default
         
     def add_item(self, x):
-        if x not in self.collection.keys():
-            self.collection[x] = 1
+        if x not in self.holding.keys():
+            self.holding[x] = 1
         else:
-            self.collection[x] += 1
+            self.holding[x] += 1
         return
         
     def remove_item(self, x):
-        if x in self.collection.keys():
-            self.collection[x] = max(x-1, 0)
+        if x in self.holding.keys():
+            self.holding[x] = max(x-1, 0)
         else:
             print("Warning: Trying to remove a non-existent object.")
             return

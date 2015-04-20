@@ -6,16 +6,17 @@
 __author__ = "David Vaillant"
 
 class Room():
+    ''' Room class. '''
     codes = {
         '#NA':'name',
         '#EN':'entry_desc',
         '#RE':'reentry_desc',
         '#EX':'examine_desc',
         '#IL':'item_location',
-        '#PL':'prop_location'
             }
             
     def d(self, room_dict, i):
+    ''' Used in __init__ as error exception. '''
         try:
             return room_dict[i]
         except:
@@ -27,13 +28,12 @@ class Room():
         self.entry_desc = self.d(r, 'EN')
         self.examine_desc = self.d(r, 'EX')
         self.reentry_desc = self.d(r, 'RE')
-        self.items_here = [x for x in self.d(r, 'IO').split()] if (
-                              self.d(r, 'SO') != '') else ['']
-        self.props_here = [x for x in self.d(r, 'PR').split()] if (
-                              self.d(r, 'BO') != '') else ['']
+        self.holding = [x for x in self.d(r, 'IL').split()] if (
+                              self.d(r, 'IL') != '') else ['']
         self.is_visited = False
                               
     def on_entry(self):
+    ''' Runs whenever a room is entered. '''
         if self.is_visited: print(self.reentry_desc)
         else:
             print(self.entry_desc)

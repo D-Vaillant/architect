@@ -46,12 +46,15 @@ def link_reader(filename, rooms):
                             else None
     return
     
+    
 # reads an object text file and returns a set of object dicts
 def obj_reader(filename = ''):
-    obj_list = []
-    
+    # default behavior: prompt user for file location
     if filename == '':
         filename = input("Enter a filename: ")
+
+    obj_list = []
+    
     # reads the text file and creates the dictionary
     with open(filename) as f:
         info = f.readlines()
@@ -60,19 +63,30 @@ def obj_reader(filename = ''):
             if '//' in x: pass
             
             # NA marks an object name; creates a new object dictionary and
-            # adds it to the list, marking the current working object dict
+            # adds it to the set, marking the current working object dict
             if x[:3] == '#NA':
                 marker = {'NA':x[4:].rstrip()}
                 obj_list.append(marker)
                 
+            # For actions: machine codes are separated by '{'.
+            # Creates a list tmp; tmp[0] is the action name.
             elif x[:3] == '#AC':
-                tmp = x[4:].rstrip().split(', ')
+                # Use { to split up various parts of the plaintext into
+                # individual mcode commands.
+                tmp = x[4:].rstrip().split('{')
+                
+                # Creates an empty dict if this is the first action.
                 if 'AC' not in marker.keys():
                     marker['AC'] = {}
+                # Add associated machine code to action dictionary.
                 marker['AC'][tmp[0]] = tmp[1:]
+                
+            # For other properties, strip away trailing whitespace and 
+            # add property code : property description to object dictionary.
             elif x[:3] in Thing.codes.keys():
                 try:
                     marker[x[1:3]] = x[4:].rstrip()
+                # If no name has been entered before a property, raise Error.
                 except NameError:
                     print("No name entered; information discarded.")
         return obj_list
@@ -81,13 +95,28 @@ def obj_reader(filename = ''):
 def obj_processor(obj_list = []):
     if obj_list == []:
         obj_reader()
-    props = dict()
-    items = dict()
+    if type(obj_list) == str:
+        obj_list = obj_reader(obj_list)
+
+    things = dict()
+    obj_list = obj_putter(obj_list)
+     
+    # iterates over 
     for j in obj_list:
         x = Thing(j)
-        key = x.alias
-        if x.isProp:
-            props[key] = x
-        else:
-            items[key] = x
-    return props, items
+        key = x.name
+        things[key] = x
+    return things
+    
+def obj_putter(fileIn = '', fileOut = ''):
+    sourceList = obj_reader(fileIn) if type(fileIn) is str else fileIn
+    for ele in sourceList:
+        for code in Thing.codes:
+            if code[1:] not in ele.keys():
+                ele[code[1:]] = {} if code == '#AC' \
+                                else 'pass'
+    if fileOut != '':
+        with open(fileOut, 'a') as f:
+            pass
+            # write the object file properly. unimplemented
+    return sourceList
