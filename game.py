@@ -1,5 +1,5 @@
-from rooms import *
-from inventory import *
+from rooms import Room
+from object_source import Inventory, Thing
 
 class Game():
     cardinals = {'w':0, 's':1, 'n':2, 'e':3}
@@ -40,7 +40,7 @@ class Game():
             self.move(i)
         elif i[0] in ['west', 'south', 'north', 'east']:
             self.move(i[0][0])
-        elif i[0] in self.actions:
+        elif i[0] in self.action:
             self.act(i)
         else:
             return

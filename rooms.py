@@ -16,7 +16,7 @@ class Room():
             }
             
     def d(self, room_dict, i):
-    ''' Used in __init__ as error exception. '''
+        ''' Used in __init__ as error exception. '''
         try:
             return room_dict[i]
         except:
@@ -33,7 +33,7 @@ class Room():
         self.is_visited = False
                               
     def on_entry(self):
-    ''' Runs whenever a room is entered. '''
+        ''' Runs whenever a room is entered. '''
         if self.is_visited: print(self.reentry_desc)
         else:
             print(self.entry_desc)

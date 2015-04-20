@@ -1,6 +1,12 @@
 from rooms import Room
 from inventory import Thing
 
+class File_Processor():
+    def __init__(filename = ''):
+        self.file_loc = filename
+
+    def __enter__(self):
+        
 def file_processor(filename = ''):
     if filename = '':
         filename = input("Enter a filename: ")
@@ -47,8 +53,9 @@ def link_reader(filename, rooms):
     return
     
     
-# reads an object text file and returns a set of object dicts
 def obj_reader(filename = ''):
+''' reads an object text file and returns a set of object dicts '''
+
     # default behavior: prompt user for file location
     if filename == '':
         filename = input("Enter a filename: ")

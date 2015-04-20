@@ -1,49 +1,28 @@
-from rooms import *
-from room_nav import *
+from rooms import Room
+from room_nav import Room_Navigator
+from game import Game
+
 
 __author__ = "David Vaillant"
 
 data = room_processor('testgame_desc.txt')
 
-class God_Game():
-    cardinals = {'w':0, 's':1, 'n':2, 'e':3}
-    
-    def __init__(self, data):
+class God_Game(Game):
+    ''' Extension of Game class. Allows on-the-fly creation of links between
+        rooms and general testing of the data file loaded. ''' 
+
+    def __init__(self, rdata, tdata):
         self.euclid = True
-        self.beginning = 'Welcome to the test!' 
-        self.rooms = data
-        self.loc = self.rooms['initial']
+        super(God_Game, self).__init__(rdata, tdata)
         self.link_library = {x:self.rooms[x].links for x in self.rooms}
         self.R = Room_Navigator(data)
-        
-    ''' It is not clear that this is necessary.    
-    def update_link_library(self):
-        self.link_library = {}
-        for x in self.rooms:
-            self.link_library[x] = self.rooms[x].links
-    '''
-    
-    def move(self, dir):
-        try:
-            self.loc = self.rooms[self.loc.links[self.cardinals[dir]]]
-            self.loc.on_entry()
-        except:
-            print('I can\'t go that way.')
-   
-    def main(self):
-        print(self.beginning)
-        prompt = ''
-        while (prompt != 'q'):
-            x = input('> ')
-            prompt = x[0].lower() if x != '' else ''
-            self.prompt_exe(prompt)
       
     def prompt_exe(self, i):
-        if i in self.cardinals.keys():
-            self.move(i)
+        if len(i) < 1: return
         elif i == '!':
             self.god_prompter()
-        else: pass
+        else:
+            super().prompt_exe(i)
         return
         
     def god_prompter(self):
@@ -92,6 +71,7 @@ class God_Game():
             return
         else:
             self.loc = self.rooms[dest]
+            self.loc.on_entry()
             return
 
     def mirror(self, target, dir):
@@ -112,7 +92,7 @@ class God_Game():
                 for y in range(4):
                     tmp = self.link_library[x][y]
                     s = s + ', ' + tmp if tmp != None else s + ', none'
-                f.write(s + '\n')
+            f.write(s + '\n')
         return
             
         
