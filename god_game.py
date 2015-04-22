@@ -91,7 +91,7 @@ class God_Game(Game):
                 s = s + x
                 for y in range(4):
                     tmp = self.link_library[x][y]
-                    s = s + ', ' + tmp if tmp != None else s + ', none'
+                    s = s + ' | ' + tmp if tmp != None else s + ' | none'
             f.write(s + '\n')
         return
             

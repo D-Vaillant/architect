@@ -1,3 +1,7 @@
+''' file_processor.py: Contains the File_Processor class, which is run in a
+        with structure and outputs an Room data dictionary and a Thing data 
+        dictionary. '''
+
 from rooms import Room
 from inventory import Thing
 
@@ -8,6 +12,7 @@ class File_Processor():
     def __enter__(self):
         
 def file_processor(filename = ''):
+    ''' Most general sort of processor. '''
     if filename = '':
         filename = input("Enter a filename: ")
     
@@ -15,6 +20,9 @@ def file_processor(filename = ''):
         info = f.readlines()
 
 def room_processor(room_desc, room_links = ''):
+    ''' Takes a room dictionary and creates a dictionary from the names of
+        rooms to the Room class instances. If a link dictionary is provided,
+        runs the link* process. '''
     r_d = room_reader(room_desc)
     r = {}
     for x in r_d.keys():

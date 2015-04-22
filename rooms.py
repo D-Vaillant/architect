@@ -23,12 +23,15 @@ class Room():
             return 'N/A'
         
     def __init__(self, r):
-        self.links = [None, None, None, None]
+        try:
+            self.links = [x for x in r['L'] if x != 'None' else None]
+        except KeyError:
+            self.links = [None, None, None, None]
         self.name = self.d(r, 'NA')
         self.entry_desc = self.d(r, 'EN')
         self.examine_desc = self.d(r, 'EX')
         self.reentry_desc = self.d(r, 'RE')
-        self.holding = [x for x in self.d(r, 'IL').split()] if (
+        self.holding = [x for x in self.d(r, 'IL').split(' | ')] if (
                               self.d(r, 'IL') != '') else ['']
         self.is_visited = False
                               
@@ -39,6 +42,32 @@ class Room():
             print(self.entry_desc)
             self.is_visited = True
         return
+
+    def room_processor(room_info_dict, room_link_dict = None):
+        ''' Takes a Room info dictionary and creates a Room class dictionary
+            If a link info dictionary is provided, runs each Room's
+            link_processor method to set the attribute. '''
+        r = {}
+        # Iterates through the dictionary's keys and creates a new Room using
+        # the associated value (a Room info dictionary).
+        for x in room_info_dict.keys():
+            r[x] = Room(room_info_dict[x])
+        if room_link_dict: 
+            for x in room_link_dict:
+                try:
+                    r[x].link_processor(room_link_dict[x])
+                except KeyError:
+                    print("Tried to set links of a room which doesn't exist.")
+        return r
+
+    def link_processor(self, link_data_entry):
+        ''' Takes an entry from a link data dictionary and transmogrifies it
+            into the corresponding links attribute. '''
+        link_arr = link_data_entry.split(' | ')
+        for i, x in enumerate(link_arr):
+            self.links[i] = x
+
+
     
     def __str__(self):  
         str = "Name: " + self.name + ".\n"
@@ -47,51 +76,3 @@ class Room():
         str = str + "On examine: " + self.examine_desc + "\n"
     
         return str  
-        
-def room_processor(room_desc, room_links = ''):
-    r_d = room_reader(room_desc)
-    r = {}
-    for x in r_d.keys():
-        r[x] = Room(r_d[x])
-    if room_links != '': link_reader(room_links, r)
-    return r
-    
-def room_reader(filename):
-    rooms = dict()
-    with open(filename) as f:
-        info = f.readlines()
-        for x in info:
-            if '//' in x: pass
-            elif '#NA' in x:
-                marker = x[4:].rstrip()
-                rooms[marker]=({'NA':marker})
-            elif x[:3] in Room.codes.keys():
-                try:
-                    rooms[marker][x[1:3]] = x[4:].rstrip()
-                except NameError:
-                    print('No name entered; information will be ignored.')
-    return rooms
-    
-def link_reader(filename, rooms):
-    with open(filename) as f:
-        info = f.readlines()
-        for x in info:
-            if '//' in x: pass
-            elif x != '':
-                y = x.split(', ')
-                if y[0] in rooms.keys():
-                    for i in range(1,5):
-                        rooms[y[0]].links[i-1] = y[i].rstrip() \
-                            if y[i].lower() != 'none' \
-                            else None
-    return
-            
-                        
-                           
-#Testing.                            
-#fn = input("Enter filename: ")
-'''
-day = room_main('desc.txt')
-for x in day:
-    print(day[x])
-'''
