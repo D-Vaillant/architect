@@ -1,0 +1,9 @@
+// Format: NAME, WEST, SOUTH, NORTH, EAST
+// "none" is used when there is nothing in a direction.
+
+initial, robots, none, the wooded entrance, death
+robots, a silent brook, none, none, initial
+a silent brook, a burbling stream, none, none, robots
+a burbling stream, none, none, none, a silent brook
+the wooded entrance, none, initial, hope springs abundant, none
+hope springs abundant, none, the wooded entrance, none, none

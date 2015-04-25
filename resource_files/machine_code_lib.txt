@@ -1,0 +1,40 @@
+Machine Code Library:
+Glossary:
+    r_ = room
+    p_ = prop
+    o_ = object
+    a_ = action
+Aliases:
+    _ = current room
+    ? = current prop
+    ? = current object
+    ? = current action
+
+inv: Manipulate the inventory.
+    o_name+x: add x o_names to inventory
+    o_name-x: remove x o_names from inventory
+
+obj: Manipulate individual objects.
+    o_name#string: change object examine desc to string
+    o_name*string: change object mcode to string
+    
+rom: Change room settings.
+    r_name&DIRr_name2: Create a link from r_name to r_name2 going DIR.
+    r_name#code,string: change room attr(code) to string
+        // add exception for code -> isVisited
+    r_name+o_name: add object to room
+    r_name+p_name: add prop to room
+    r_name-o_name
+    r_name-p_name
+        // figure out prop/object distinction.
+    
+prop: Manipulate props.
+    Same as obj, but with p_name.
+    
+ift: Conditional. Runs machine code if condition is met.
+    _=room>MCODE: MCODE runs if current room is given one.
+    item@room>MCODE: MCODE runs if item is at a room.
+    item@_>MCODE: MCODE runs if item is in inventory
+
+General:
+    MCODE1}MCODE2: Run MCODE1, then MCODE2.
