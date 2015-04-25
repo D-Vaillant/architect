@@ -1,8 +1,6 @@
-''' rooms.py:
-        Implementation of rooms for game.
-        Includes a utility to translate a file into
-        a dictionary of classes.
-'''
+""" rooms.py:
+        Implementation of Rooms for Game.
+"""
 __author__ = "David Vaillant"
 
 class Room():
@@ -16,17 +14,14 @@ class Room():
             }
             
     def d(self, room_dict, i):
-        ''' Used in __init__ as error exception. '''
+        """ Used in __init__ as error exception. """
         try:
             return room_dict[i]
         except:
             return 'N/A'
         
     def __init__(self, r):
-        try:
-            self.links = [x for x in r['L'] if x != 'None' else None]
-        except KeyError:
-            self.links = [None, None, None, None]
+        self.links = [x for x in r['L']]
         self.name = self.d(r, 'NA')
         self.entry_desc = self.d(r, 'EN')
         self.examine_desc = self.d(r, 'EX')
@@ -37,16 +32,18 @@ class Room():
                               
     def on_entry(self):
         ''' Runs whenever a room is entered. '''
-        if self.is_visited: print(self.reentry_desc)
+        if self.is_visited:
+            print(self.reentry_desc)
         else:
             print(self.entry_desc)
             self.is_visited = True
         return
 
     def room_processor(room_info_dict, room_link_dict = None):
-        ''' Takes a Room info dictionary and creates a Room class dictionary
-            If a link info dictionary is provided, runs each Room's
-            link_processor method to set the attribute. '''
+        """ Takes a Room info dictionary and creates a Room class dictionary.
+
+        If a link info dictionary is provided, runs each Room's
+        link_processor method to set the attribute. """
         r = {}
         # Iterates through the dictionary's keys and creates a new Room using
         # the associated value (a Room info dictionary).
@@ -59,20 +56,12 @@ class Room():
                 except KeyError:
                     print("Tried to set links of a room which doesn't exist.")
         return r
-
-    def link_processor(self, link_data_entry):
-        ''' Takes an entry from a link data dictionary and transmogrifies it
-            into the corresponding links attribute. '''
-        link_arr = link_data_entry.split(' | ')
-        for i, x in enumerate(link_arr):
-            self.links[i] = x
-
-
     
     def __str__(self):  
-        str = "Name: " + self.name + ".\n"
-        str = str + "First entry message: " + self.entry_desc + "\n"
-        str = str + "Reentry message: " + self.reentry_desc + "\n"
-        str = str + "On examine: " + self.examine_desc + "\n"
+        string = "Name: " + self.name + ".\n"
+        string = string + "First entry message: " + self.entry_desc + "\n"
+        string = string + "Reentry message: " + self.reentry_desc + "\n"
+        string = string + "On examine: " + self.examine_desc + "\n"
+        string = string + "Items contained: " + self.holding + "\n"
     
-        return str  
+        return string  

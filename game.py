@@ -59,7 +59,8 @@ class Game():
         self.rooms = rdata
         self.things = tdata
         try: self.loc = self.rooms[firstRoom]
-        except KeyError: raise KeyError("No room of that name found.")
+        except KeyError: raise KeyError("Initial room either unspecified "+
+                                        "or missing.")
         self.inventory = Inventory({})
         
     ''' Classes of player commands: Moving, acting, and menu. '''
@@ -67,7 +68,8 @@ class Game():
     #       the room "in that direction" (specified via Room.links).
     def move(self, direction):
         try:
-            self.loc = self.rooms[self.loc.links[self.cardinals[direction]]]
+            translated_direction = self.cardinals[direction[0][0]]
+            self.loc = self.rooms[self.loc.links[translated_direction]]
             self.loc.on_entry()
         except KeyError:
             print('I can\'t go that way.')
@@ -151,8 +153,7 @@ class Game():
         return
     
     def sys_func(self, functional_char, target, instruct):
-        ''' System mcode processor. Currently only used to print a message
-            to the terminal. '''
+        """ System mcode processor. Used to print messages to the terminal. """
         print("Entering system functions.")
         if functional_char == '!':
             print(instruct)
@@ -160,9 +161,8 @@ class Game():
             pass
         return
     
-    # inv_func: Inventory mcode processor. Used to add and remove items
-    #           from the inventory.
     def inv_func(self, functional_char, target, instruct):
+        """ Inventory mcode processor. Used for storage operations. """
         print("Entering inventory functions.")
         if functional_char == '+':
             self.inventory.add_item(target)
@@ -172,13 +172,12 @@ class Game():
             pass
         return
         
-    # rom_func: Room mcode processor. Used to establish links, change room
-    #           properties, add and remove items from rooms.
     def rom_func(self, functional_char, instruct):
+        """ Room mcode processor. Used to manipulate Rooms. """
         return
 
-    # obj_func: Object mcode processor. Used to manipulate things.
     def obj_func(self, functional_char, instruct):
+        """ Thing mcode processor. Used to manipulate Things. """
         return
     
     def change_var(self, target, attribute, new_desc):
@@ -219,8 +218,8 @@ class Game():
         return "Game terminated."
 
 with File_Processor('testgame_desc.txt') as F:
-    room_info = File_Processor.room_info
-    thing_info = File_Processor.thing_info
+    room_info = F.room_info
+    thing_info = F.thing_info
 
-G = Game(Room.room_reader(room_info), Thing.thing_reader(thing_info))
+G = Game(Room.room_processor(room_info), Thing.thing_processor(thing_info))
 #G.main()

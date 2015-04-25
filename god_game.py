@@ -5,11 +5,18 @@ from game import Game
 
 __author__ = "David Vaillant"
 
-data = room_processor('testgame_desc.txt')
-
 class God_Game(Game):
-    ''' Extension of Game class. Allows on-the-fly creation of links between
-        rooms and general testing of the data file loaded. ''' 
+    """ Extension of Game class. Allows use of extra commands.
+
+    Extra commands include:
+        Warping between Rooms
+        Establishing links between Rooms
+        Access to Room_Navigator
+
+    Proposed extra commands:
+        Access to Thing_Navigator
+        Placing Things in Rooms
+        Altering attributes of Rooms and Things """
 
     def __init__(self, rdata, tdata):
         self.euclid = True
@@ -45,9 +52,9 @@ class God_Game(Game):
         return
     
     def create_link(self):
-        dir = input('Enter a direction: ')[0]
-        dir = dir[0].lower() if dir != '' else ''
-        if dir not in self.cardinals.keys():
+        direct = input('Enter a direction: ')[0]
+        direct = direct[0].lower() if direct != '' else ''
+        if direct not in self.cardinals.keys():
             print("Invalid direction.")
             return
         target = input('Enter the name of a room: ')
@@ -56,10 +63,10 @@ class God_Game(Game):
                 print("Can't connect a room to itself!")
                 return
         if target in self.rooms.keys():
-            self.loc.links[self.cardinals[dir]] = target
-            self.link_library[self.loc.name][self.cardinals[dir]] = target
+            self.loc.links[self.cardinals[direct]] = target
+            self.link_library[self.loc.name][self.cardinals[direct]] = target
             if self.euclid:
-                self.mirror(target, self.cardinals[dir])
+                self.mirror(target, self.cardinals[direct])
         else:
             print("That's not the name of a room.")
         return
@@ -74,17 +81,20 @@ class God_Game(Game):
             self.loc.on_entry()
             return
 
-    def mirror(self, target, dir):
-        if dir == 0: dir = 3
-        elif dir == 1: dir = 2
-        elif dir == 2: dir = 1
-        elif dir == 3: dir = 0
-        (self.rooms[target].links)[dir] = self.loc.name
+    def mirror(self, target, direct):
+        if direct == 0: direct = 3
+        elif direct == 1: direct = 2
+        elif direct == 2: direct = 1
+        elif direct == 3: direct = 0
+        (self.rooms[target].links)[direct] = self.loc.name
         
-    def link_printer(self, filename = ''):
-        if filename == '':
-            filename = input("Please enter a name for the link file: ")
-        with open(filename, 'a') as f:
+    def link_printer(self, output_name = ''):
+        """ Outputs link information into the game resource format. """
+
+        if output_name == '':
+            output_name = input("Please enter a name for the link file: ")
+
+        with open(output_name, 'a') as f:
             s = "// Format: NAME, WEST, SOUTH, NORTH, EAST\n// " + \
                 "\"none\" is used when there is nothing in a direction.\n\n"
             for x in self.link_library.keys():
@@ -95,5 +105,3 @@ class God_Game(Game):
             f.write(s + '\n')
         return
             
-        
-G = God_Game(data)
