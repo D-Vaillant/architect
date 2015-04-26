@@ -39,6 +39,7 @@ class Thing():
         '#GD':'ground_desc'
         }
 
+
     def __init__(self, itemD):
         """ Populates attributes using a Thing info dictionary. """
         self.name = itemD['NA'] if 'NA' in itemD.keys() else ''
@@ -69,7 +70,7 @@ class Thing():
         # iterates over 
         for j in thing_dict:
             x = Thing(thing_dict[j])
-            key = x.name
+            key = x.alias
             things[key] = x
         return things
         

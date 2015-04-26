@@ -4,22 +4,23 @@
 #NA initial 
 #EN The green grass meadows softly. The sky is blue and all around you grass blooms. To your north you see a strange house.
 #RE You return to the meadow.
-#IL A shiny bauble
+#EX It is calm here.
+#IL bauble
 
 #NA The house's entrance.
 #EN A rickety old house stands in front of you, dead north. There is a door.
 #RE The house is still there.
-#IL A worn key
+#IL worn key
 
 #NA Inside of the house.
 #EN The house is barren: no furniture, drapes in tatters. To your west there is a staircase down.
 #RE The house is still barren.
-#IL An old painting
+#IL old painting
 
 #NA The basement.
 #EN The walls are covered with strange writings.
 #RE The writings are still there. 
-#IL A notebook
+#IL notebook
 
 ~L
 initial | None | None | The house's entrance. | None
@@ -49,13 +50,14 @@ The basement. | None | None | None | Inside of the house.
 #TY item
 
 #NA A worn key
-#AL key
+#AL worn key
 #EX An slightly rusted key. Hopefully it still works.
 #GD A battered-looking key is lying here.
 #OA rom:The house's entrance&NInside of the house.
 #TY item
 
 #NA An old painting
+#AL old painting
 #EX The old man's face glares at you accusingly. Are those eyes following you?
 #GD A tattered painting hangs on the wall.
 #TY prop

@@ -1,4 +1,4 @@
-''' 
+"""
 game.py:
         The engine for the command-line based game. 
         Some vocabulary needs to be clarified, many things need to be
@@ -42,16 +42,24 @@ File_Processor:
     and translates it into two different dictionaries: a Room info dict
     and a Thing info dict. These info dicts are used by the Room and
     Thing classes and encode all the information about the game.
-'''
+"""
 
 from rooms import Room
 from object_source import Inventory, Thing
 from file_management import File_Processor
+import re
 
 class Game():
     cardinals = {'w':0, 's':1, 'n':2, 'e':3}
-    actions = ['throw', 'examine', 'tap', 'unlock', 'take', 'leave', 'use']
-    mcode_keywords = '[+-&@!*}{^]'
+    actions = ['throw', 'examine', 'tap', 'unlock', 'take', 'use']
+    mcode_keywords = '[!]'
+    ERROR = {
+        "act_item_not_found": "It's not clear what thing" + 
+                              "you're talking about.",
+        "act_not_for_item": "That item cannot be used that way.",
+        "act_using_rooms": "You can't do that with an entire room.",
+        "act_already_holding": "You've already got one of those."
+        }
     #alias = {'_':loc, '^': }
     
     def __init__(self, rdata, tdata, firstRoom = 'initial', ownedObjs = {}):
@@ -61,7 +69,7 @@ class Game():
         try: self.loc = self.rooms[firstRoom]
         except KeyError: raise KeyError("Initial room either unspecified "+
                                         "or missing.")
-        self.inventory = Inventory({})
+        self.inventory = Inventory(ownedObjs)
         
     ''' Classes of player commands: Moving, acting, and menu. '''
     # Move: Self-explanatory, right? Uses number to set current location to
@@ -76,7 +84,43 @@ class Game():
             
     # Act: Takes a command.
     def act(self, command):
-        ''' Action commands. '''
+        ''' Action function. '''
+        tmp = ' '.join(command[1:])
+        # If no object specified.
+        if tmp == '':
+            if command[0] == "examine":
+                self.loc.on_examine()
+            else: 
+                print(ERROR["act_item_not_found"])
+        # Examining.
+        elif command[0] == "examine":
+            if tmp == "room": self.loc.on_examine()
+            elif tmp in self.loc.holding or tmp in self.inventory:
+                print(self.things[tmp].examine_desc)
+            else: print(ERROR["act_item_not_found"])
+        # Taking.
+        elif command[0] == "take":
+            if tmp == "room":
+                print(ERROR["act_using_rooms"])
+            elif tmp in self.loc.holding:
+                self.inventory.add_item(tmp)
+                self.loc.holding.remove(tmp)
+            elif tmp in self.inventory:
+                print(ERROR["act_already_holding"])
+            else:
+                print(ERROR["act_item_not_found"])
+        # Other actions.
+        else:
+            if tmp == "room":
+                print(ERROR["act_using_rooms"])
+            elif tmp in self.loc.holding or tmp in self.inventory:
+                try:
+                    self.mcode_main(self.things[tmp].\
+                        action_dict[command[0]])
+                except KeyError:
+                    print(ERROR["act_not_for_item"])
+            else:
+                print(ERROR["act_item_not_found"])
         return  
     
     def inv(self, command):
@@ -105,7 +149,7 @@ class Game():
             pre-functional character, functional character, and a
             post-functional character. '''
         type_code = words[:3]
-        finder = re.search('[!]', words)
+        finder = re.search(self.mcode_keywords, words)
         if finder is None: raise TypeError("No functional character found.")
         
         functional_char = words[finder.span()[0]]
@@ -208,6 +252,7 @@ class Game():
     ''' Main function. Takes user input, passes it to prompt_exe. '''
     def main(self):
         print(self.beginning)
+        self.loc.on_entry()
         prompt = ' '
         while (prompt[0] != 'q' and prompt[0] != 'quit'):
             x = input('> ')
@@ -221,5 +266,7 @@ with File_Processor('testgame_desc.txt') as F:
     room_info = F.room_info
     thing_info = F.thing_info
 
-G = Game(Room.room_processor(room_info), Thing.thing_processor(thing_info))
+def test_init():
+    G = Game(Room.room_processor(room_info), Thing.thing_processor(thing_info))
+    return G
 #G.main()

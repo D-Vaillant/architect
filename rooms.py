@@ -37,7 +37,21 @@ class Room():
         else:
             print(self.entry_desc)
             self.is_visited = True
+        print(self.print_holding())
         return
+        
+    def on_examine(self):
+        print(self.examine_desc)
+        print(self.print_holding())
+        return
+        
+    def print_holding(self):
+        if len(self.holding) > 1:
+            return "You see a " + ', '.join(self.holding[:-1]) + \
+                   "and a " + self.holding[-1] + " here."
+        else:
+            return "You see a " + self.holding[0] + " here."
+        
 
     def room_processor(room_info_dict, room_link_dict = None):
         """ Takes a Room info dictionary and creates a Room class dictionary.
