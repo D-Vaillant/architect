@@ -41,18 +41,23 @@ class Room():
         return
         
     def on_examine(self):
-        print(self.examine_desc)
+        if self.examine_desc == "N/A":
+            print("There's not much to see here.")
+        else: 
+            print(self.examine_desc)
         print(self.print_holding())
         return
         
     def print_holding(self):
-        if len(self.holding) > 1:
-            return "You see a " + ', '.join(self.holding[:-1]) + \
-                   "and a " + self.holding[-1] + " here."
-        else:
-            return "You see a " + self.holding[0] + " here."
-        
-
+        """ Returns a string describing all the Things in the Room """
+        out_str = ''
+        for x in self.holding:
+            if x.ground_desc == 'pass':
+                str = str + "\nThere is a " + x.alias + " here."
+            else:
+                str = str + "\n" + x.ground_desc
+            return str
+            
     def room_processor(room_info_dict, room_link_dict = None):
         """ Takes a Room info dictionary and creates a Room class dictionary.
 

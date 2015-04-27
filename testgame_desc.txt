@@ -10,7 +10,7 @@
 #NA The house's entrance.
 #EN A rickety old house stands in front of you, dead north. There is a door.
 #RE The house is still there.
-#IL worn key
+#IL worn key | door
 
 #NA Inside of the house.
 #EN The house is barren: no furniture, drapes in tatters. To your west there is a staircase down.
@@ -45,9 +45,15 @@ The basement. | None | None | None | Inside of the house.
 #EX A small, blue sphere made of solid polished glass.
 #GD There is a tiny blue bauble on the ground.
 #OA pass
-#AC throw{inv:A shiny bauble-1{sys:!The bauble shatters into pieces.{prp:Glass shards+_
+#AC throw{ift:bauble@$>inv:bauble-1}sys:!The bauble shatters into pieces.}rom:_+glass shards<sys:!You should pick that up first.
 #AC tap{sys:!Tap tap. It sounds like solid glass.
 #TY item
+
+#NA Glass shards
+#AL glass shards
+#EX Bluish shards from a shattered bauble.
+#GD pass
+#TY prop
 
 #NA A worn key
 #AL worn key
@@ -74,5 +80,5 @@ The basement. | None | None | None | Inside of the house.
 #EX The door looks weak, but not weak enough to knock down. Unfortunately. It is locked.
 #GD A sad-looking door guards the house.
 #TY prop
-#AC unlock{ift:A worn key@_>rom:_&Inside of the house}rom:_#EXThe door looks weak, but not weak enough to knock down. Unfortunately.
+#AC unlock{ift:worn key@_>rom:_&Inside of the house}rom:_#EXThe door looks weak, but not weak enough to knock down. Unfortunately.<pass
 

@@ -8,6 +8,7 @@ class Inventory():
     def __init__(self, default = {}):
         ''' Allows for a non-empty initial inventory. '''
         self.holding = default
+        self.name = "player inventory"
         
     def add_item(self, x):
         ''' Used to add items to the inventory. '''
@@ -20,11 +21,11 @@ class Inventory():
     def remove_item(self, x):
         ''' Used to remove items from the inventory. '''
         if x in self.holding.keys():
-            self.holding[x] = max(x-1, 0)
+            self.holding[x] = max(self.holding[x]-1, 0)
         else:
             print("Warning: Trying to remove a non-existent object.")
             return
-            
+
 class Thing():
     ''' Class used to represent items or props.
         ITEMS: Can be placed in player inventory and used from there.

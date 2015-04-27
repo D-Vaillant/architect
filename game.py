@@ -54,11 +54,14 @@ class Game():
     actions = ['throw', 'examine', 'tap', 'unlock', 'take', 'use']
     mcode_keywords = '[!]'
     ERROR = {
-        "act_item_not_found": "It's not clear what thing" + 
+        "exe_pass": "Invalid command.",
+        "act_item_not_found": "It's not clear what thing " + 
                               "you're talking about.",
         "act_not_for_item": "That item cannot be used that way.",
         "act_using_rooms": "You can't do that with an entire room.",
-        "act_already_holding": "You've already got one of those."
+        "act_already_holding": "You've already got one of those.",
+        "act_taking_prop": "It doesn't seem like you could carry that.",
+        "room_no_room_found": "WARNING: Incorrect room in mcode."
         }
     #alias = {'_':loc, '^': }
     
@@ -86,48 +89,55 @@ class Game():
     def act(self, command):
         ''' Action function. '''
         tmp = ' '.join(command[1:])
+
         # If no object specified.
         if tmp == '':
             if command[0] == "examine":
                 self.loc.on_examine()
             else: 
-                print(ERROR["act_item_not_found"])
+                print(self.ERROR["act_item_not_found"])
         # Examining.
         elif command[0] == "examine":
             if tmp == "room": self.loc.on_examine()
-            elif tmp in self.loc.holding or tmp in self.inventory:
+            elif tmp in self.loc.holding or tmp in self.inventory.holding:
                 print(self.things[tmp].examine_desc)
-            else: print(ERROR["act_item_not_found"])
+            else: print(self.ERROR["act_item_not_found"])
         # Taking.
         elif command[0] == "take":
             if tmp == "room":
-                print(ERROR["act_using_rooms"])
+                print(self.ERROR["act_using_rooms"])
             elif tmp in self.loc.holding:
-                self.inventory.add_item(tmp)
-                self.loc.holding.remove(tmp)
-            elif tmp in self.inventory:
-                print(ERROR["act_already_holding"])
+                if self._alias(tmp).isProp:
+                    print(self.ERROR["act_taking_prop"])
+                else:
+                    self.inventory.add_item(tmp)
+                    self.loc.holding.remove(tmp)
+            elif tmp in self.inventory.holding:
+                print(self.ERROR["act_already_holding"])
             else:
-                print(ERROR["act_item_not_found"])
+                print(self.ERROR["act_item_not_found"])
         # Other actions.
         else:
             if tmp == "room":
-                print(ERROR["act_using_rooms"])
-            elif tmp in self.loc.holding or tmp in self.inventory:
+                print(self.ERROR["act_using_rooms"])
+            elif tmp in self.loc.holding or tmp in self.inventory.holding:
                 try:
-                    self.mcode_main(self.things[tmp].\
-                        action_dict[command[0]])
+                    for x in self.things[tmp].action_dict[command[0]]:
+                        self.mcode_main(x)
                 except KeyError:
-                    print(ERROR["act_not_for_item"])
+                    print(self.ERROR["act_not_for_item"])
             else:
-                print(ERROR["act_item_not_found"])
+                print(self.ERROR["act_item_not_found"])
         return  
     
-    def inv(self, command):
-        ''' Inventory menu commands. '''
+    def _inv(self, command):
+        """ Inventory menu commands. """
+        if command == "open":
+            print(self.inventory.holding)
+        else: pass
         return
         
-    def prompt_exe(self, i):
+    def _prompt_exe(self, i):
         ''' Takes player input and passes the corresponding command to the
             corresponding player command function. '''
         if len(i) < 1: return
@@ -137,7 +147,10 @@ class Game():
             self.move(i[0][0])
         elif i[0] in self.actions:
             self.act(i)
+        elif i[0][:3] == "inv":
+            self._inv(open)
         else:
+            print(self.ERROR["exe_pass"])
             return
     
     # Functions for machine code. Includes main mcode function and ift,
@@ -145,56 +158,96 @@ class Game():
     #    functions implemented by the auxiliary functions. '''
 
     def mcode_main(self, words):
-        ''' Takes a string of machine code and splits it up into a 
-            pre-functional character, functional character, and a
-            post-functional character. '''
+        """ Main function for machine code.
+        
+        Takes a string of machine code and splits it up into a 
+        pre-functional character, functional character, and a
+        post-functional character. """
+        
         type_code = words[:3]
-        finder = re.search(self.mcode_keywords, words)
-        if finder is None: raise TypeError("No functional character found.")
+        tmp = '[!\-\+@]'
+        
+        finder = re.search(tmp, words)
+        #re.search(self.mcode_keywords, words)
+        if finder is None:
+            print("MCode lacking functional character: " + words)
+            raise AttributeError("No functional character found.")
         
         functional_char = words[finder.span()[0]]
-        target = words[4:words[finder.span()[0]]]
+        target = words[4:finder.span()[0]]
         parameters = words[finder.span()[1]:]
         #if type_code == 'prp': type_code = 'obj'
         getattr(self, type_code+"_func")(functional_char, target, parameters)
         #print(type_code, functional_char, parameters)
         return
     
+    def _alias(self, target):
+        """ Turns a name into its appropriate room or thing. """
+        
+        if target == '_':
+            return self.loc
+        elif target == '$':
+            return self.inventory
+        elif target in self.rooms:
+            return self.rooms[target]
+        elif target in self.things:
+            return self.things[target]
+        else:
+            raise NameError(target + " not a Thing, Room, or alias.")
+        
     # ift_func: Conditional mcode processor. Isolates the condition from the
     # post-functional part and enters an if-ifelse-else structure to find which
     # condition corresponds to the mcode. If condition is true, runs each
     # mcode line found after the > (separated by }) by calling mcode_main.
-    def ift_func(self, functional_char, thing_in_question, condition):
-        condition = condition.split('}')
+    def ift_func(self, functional_char, thing_in_question,
+                 condition):
+                 
+        # < divides the "on true" command from the "on false" one.
+        condition = condition.split('<')
+        else_condition = condition[1].split('}')
+        condition = condition[0].split('}')
         
         # At this point condition has the following form:
         #          [parameter>mcode0, mcode1, mcode2,...]
         # We split up the parameter and the mcode0 part using the >,
         # assign parameter to second_thing, and assign mcode0 to condition[0].
         then_finder = re.search('>', condition[0])
-        second_thing = condition[0][:then_finder.span()[0]]
-        condition[0] = condition[0][then_finder.span()[1]:]
+        try:
+            second_thing = condition[0][:then_finder.span()[0]]
+            condition[0] = condition[0][then_finder.span()[1]:]
+        except AttributeError:
+            raise AttributeError("> not found.")
         
+        second_thing = self._alias(second_thing)        
+            
         # @: True if thing_in_question is in second_thing, where second_thing
         #    must be a room or an inventory (with a "holding" attribute).
         if functional_char == '@':
             try:
                 if thing_in_question in second_thing.holding:
                     for x in condition: self.mcode_main(x)
-            except AttributeError:
+                else: 
+                    self.else_func(else_condition)
+            except KeyError:
                 raise AttributeError("@ error.\n"+
-                      "Was checking if \""+thing_in_question.name+
-                      "\" is in \""+second_thing.name+"\".")
+                      second_thing.name + " has no holding attribute.")
 
         # = : True if thing_in_question is identical with second_thing.
         #     Generally used in conjunction with the _ alias.
         elif functional_char == '=':
-            if thing_in_question == '_':
-                thing_in_question = self.loc.name
             if thing_in_question == second_thing:
                 for x in condition: self.mcode_main(x)
-
+            else:
+                self.else_func(else_condition)
         return
+        
+    def else_func(self, x):
+        """ Runs if a conditional command returns False. 
+        
+        Does nothing if x is ['pass']. Otherwise calls mcode_main. """
+        if x[0] == 'pass': return
+        else:
+            for i in x: self.mcode_main(i)
     
     def sys_func(self, functional_char, target, instruct):
         """ System mcode processor. Used to print messages to the terminal. """
@@ -216,8 +269,26 @@ class Game():
             pass
         return
         
-    def rom_func(self, functional_char, instruct):
+    def rom_func(self, functional_char, target, instruct):
         """ Room mcode processor. Used to manipulate Rooms. """
+        
+        
+        tmp_instruct = ' '.join(instruct)
+        
+        # Changes a room name or _ into a Room class instance.
+        target = self._alias(target)
+        
+        print("Entering room functions.")
+        if functional_char == '+':
+            target.holding.append(tmp_instruct)
+        if functional_char == '-':
+            target.holding.remove(tmp_instruct)
+        if functional_char == '#':
+            try:
+                attr = Room.codes['#' + instruct[:2]]
+            except KeyError:
+                raise AttributeError("No corresponding Room attribute.")
+            self.change_var(target, attr, instruct[2:])
         return
 
     def obj_func(self, functional_char, instruct):
@@ -227,11 +298,15 @@ class Game():
     def change_var(self, target, attribute, new_desc):
         ''' Tertiary function used to change the attributes of instances of
             Room and Thing. '''
-        pointer = getattr(target, attribute) 
-        new_desc = pointer
+        try:
+            pointer = getattr(target, attribute) 
+        except AttributeError:
+            raise AttributeError(target + " does not have attribute "
+                                        + attribute)
+        pointer = new_desc
         return        
     
-    def link(source, direction, dest, isEuclidean = True):
+    def _link(source, direction, dest, isEuclidean = True):
         ''' Tertiary function; establishes links between rooms.
                 source ----direction----> dest
             If isEuclidean:
@@ -258,7 +333,7 @@ class Game():
             x = input('> ')
             prompt = x.lower().split() if x != '' else ''
             if prompt == []: prompt = ' '
-            self.prompt_exe(prompt)
+            self._prompt_exe(prompt)
         #raise NameError("Game finished.")
         return "Game terminated."
 
