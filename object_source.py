@@ -5,26 +5,29 @@ class Inventory():
     ''' A rudimentary clone of the Counter class. Used to represent a player's
         inventory. '''
 
-    def __init__(self, default = {}):
+    def __init__(self, default = set()):
         ''' Allows for a non-empty initial inventory. '''
         self.holding = default
         self.name = "player inventory"
         
     def add_item(self, x):
         ''' Used to add items to the inventory. '''
-        try:
-            self.holding[x] += 1
-        except KeyError:
-            self.holding[x] = 1
+        self.holding.add(x)
         return
         
     def remove_item(self, x):
         ''' Used to remove items from the inventory. '''
-        if x in self.holding.keys():
-            self.holding[x] = max(self.holding[x]-1, 0)
-        else:
-            print("Warning: Trying to remove a non-existent object.")
-            return
+        try:
+            self.holding.remove(x)
+        except KeyError:
+            print("WARNING: Tried to remove a non-existent object.")
+        return
+        
+    def __str__(self):
+        out_str = ''
+        for x in holding:
+            out_str + out_str + '\n'
+        return out_str
 
 class Thing():
     ''' Class used to represent items or props.
@@ -63,6 +66,19 @@ class Thing():
         else:
             return valve
     
+    def thing_printer(holds):
+        out_str = ''
+        if holds:
+            for x in holds:
+                if x.ground_desc == 'pass':
+                    pass
+                elif x.ground_desc == 'default':
+                    out_str = out_str + "\nThere is a " + x.alias + " here."
+                else:
+                    out_str = out_str + "\n" + x.ground_desc
+            print(out_str)
+        return    
+            
     def thing_processor(thing_dict):
         """ Returns a Thing class dictionary using a Thing info dictionary. """
         things = dict()

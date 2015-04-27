@@ -49,6 +49,8 @@ from object_source import Inventory, Thing
 from file_management import File_Processor
 import re
 
+V = True
+
 class Game():
     cardinals = {'w':0, 's':1, 'n':2, 'e':3}
     actions = ['throw', 'examine', 'tap', 'unlock', 'take', 'use']
@@ -63,27 +65,60 @@ class Game():
         "act_taking_prop": "It doesn't seem like you could carry that.",
         "room_no_room_found": "WARNING: Incorrect room in mcode."
         }
+    GAME_MSGS = {
+        "beginning": "Welcome to the demo!",
+        "quit": "Game closing."
+        }
+        
     #alias = {'_':loc, '^': }
     
-    def __init__(self, rdata, tdata, firstRoom = 'initial', ownedObjs = {}):
-        self.beginning = 'Welcome to the test!' 
+    def __init__(self, rdata, tdata, firstRoom = 'initial', ownedObjs = None):
         self.rooms = rdata
         self.things = tdata
         try: self.loc = self.rooms[firstRoom]
         except KeyError: raise KeyError("Initial room either unspecified "+
                                         "or missing.")
-        self.inventory = Inventory(ownedObjs)
-        
+        self.inventory = Inventory(ownedObjs) if ownedObjs else Inventory()
+
+    def _prompt_exe(self, i):
+        ''' Takes player input and passes the corresponding command to the
+            corresponding player command function. '''
+        if len(i) < 1: return
+        if i[0] in self.cardinals.keys():
+            self._move(i)
+        elif i[0] in ['west', 'south', 'north', 'east']:
+            self._move(i[0][0])
+        elif i[0] in self.actions:
+            self.act(i)
+        elif i[0] == "inv":
+            self._inv("open")
+        elif i[0] == '?':
+            self._help(i[1:])
+        elif i[0] == 'quit' or i[0] == 'q':
+            print(self.GAME_MSGS["quit"])
+        else:
+            print(self.ERROR["exe_pass"])
+        return        
+            
+    def _help(self, object):
+        if object:
+            pass
+        else:
+            print("Movement: north, south, east, west")
+            print("Actions: " + ', '.join(self.actions))
+        return
+            
     ''' Classes of player commands: Moving, acting, and menu. '''
     # Move: Self-explanatory, right? Uses number to set current location to
     #       the room "in that direction" (specified via Room.links).
-    def move(self, direction):
+    def _move(self, direction):
+        translated_direction = self.cardinals[direction[0][0]]
         try:
-            translated_direction = self.cardinals[direction[0][0]]
             self.loc = self.rooms[self.loc.links[translated_direction]]
-            self.loc.on_entry()
         except KeyError:
             print('I can\'t go that way.')
+            return
+        self._on_entry()
             
     # Act: Takes a command.
     def act(self, command):
@@ -94,11 +129,14 @@ class Game():
         if tmp == '':
             if command[0] == "examine":
                 self.loc.on_examine()
+                Thing.thing_printer([self.things[x] for x in self.loc.holding])
             else: 
                 print(self.ERROR["act_item_not_found"])
         # Examining.
         elif command[0] == "examine":
-            if tmp == "room": self.loc.on_examine()
+            if tmp == "room":
+                self.loc.on_examine()
+                Thing.thing_printer([self.things[x] for x in self.loc.holding])
             elif tmp in self.loc.holding or tmp in self.inventory.holding:
                 print(self.things[tmp].examine_desc)
             else: print(self.ERROR["act_item_not_found"])
@@ -133,25 +171,11 @@ class Game():
     def _inv(self, command):
         """ Inventory menu commands. """
         if command == "open":
+            print("HI I'M DOING THIS NOW!")
             print(self.inventory.holding)
         else: pass
         return
-        
-    def _prompt_exe(self, i):
-        ''' Takes player input and passes the corresponding command to the
-            corresponding player command function. '''
-        if len(i) < 1: return
-        if i[0] in self.cardinals.keys():
-            self.move(i)
-        elif i[0] in ['west', 'south', 'north', 'east']:
-            self.move(i[0][0])
-        elif i[0] in self.actions:
-            self.act(i)
-        elif i[0][:3] == "inv":
-            self._inv(open)
-        else:
-            print(self.ERROR["exe_pass"])
-            return
+
     
     # Functions for machine code. Includes main mcode function and ift,
     #    inv, obj, rom, and sys auxiliary functions as well as from tertiary 
@@ -165,7 +189,7 @@ class Game():
         post-functional character. """
         
         type_code = words[:3]
-        tmp = '[!\-\+@]'
+        tmp = '[&!\-\+@#]'
         
         finder = re.search(tmp, words)
         #re.search(self.mcode_keywords, words)
@@ -251,7 +275,7 @@ class Game():
     
     def sys_func(self, functional_char, target, instruct):
         """ System mcode processor. Used to print messages to the terminal. """
-        print("Entering system functions.")
+        if V: print("Entering system functions.")
         if functional_char == '!':
             print(instruct)
         else:
@@ -260,7 +284,8 @@ class Game():
     
     def inv_func(self, functional_char, target, instruct):
         """ Inventory mcode processor. Used for storage operations. """
-        print("Entering inventory functions.")
+        if V: print("Entering inventory functions.")
+        
         if functional_char == '+':
             self.inventory.add_item(target)
         elif functional_char == '-':
@@ -271,19 +296,21 @@ class Game():
         
     def rom_func(self, functional_char, target, instruct):
         """ Room mcode processor. Used to manipulate Rooms. """
-        
-        
-        tmp_instruct = ' '.join(instruct)
+        if V: print("Entering room functions.")
+
+        #tmp_instruct = ' '.join(instruct)
+        tmp_instruct = instruct
         
         # Changes a room name or _ into a Room class instance.
         target = self._alias(target)
         
-        print("Entering room functions.")
         if functional_char == '+':
             target.holding.append(tmp_instruct)
-        if functional_char == '-':
+        elif functional_char == '-':
             target.holding.remove(tmp_instruct)
-        if functional_char == '#':
+        elif functional_char == '&':
+            self._link(target, instruct[0], instruct[1:])
+        elif functional_char == '#':
             try:
                 attr = Room.codes['#' + instruct[:2]]
             except KeyError:
@@ -291,43 +318,62 @@ class Game():
             self.change_var(target, attr, instruct[2:])
         return
 
-    def obj_func(self, functional_char, instruct):
+    def obj_func(self, functional_char, target, instruct):
         """ Thing mcode processor. Used to manipulate Things. """
+        if V: print("Entering object functions.")
+        
+        target = self._alias(target)
+        
+        if functional_char == '#':
+            try:
+                attr = Thing.codes['#'+instruct[:2]]
+            except KeyError:
+                raise AttributeError("No corresponding Thing attribute.")
+            #self.change_var(target, attr, instruct[2:])
+            print("I'm setting the new attribute now.")
+            setattr(getattr(self, "things")[target.alias], attr, instruct[2:])
         return
     
     def change_var(self, target, attribute, new_desc):
         ''' Tertiary function used to change the attributes of instances of
             Room and Thing. '''
         try:
-            pointer = getattr(target, attribute) 
+            setattr(target, attribute, new_desc) 
         except AttributeError:
             raise AttributeError(target + " does not have attribute "
                                         + attribute)
-        pointer = new_desc
         return        
     
-    def _link(source, direction, dest, isEuclidean = True):
+    def _link(self, source, direction, dest, isEuclidean = True):
         ''' Tertiary function; establishes links between rooms.
                 source ----direction----> dest
             If isEuclidean:
                 dest ----opposite_dir----> source
             where opposite_dir should be clear. (N <-> S, W <-> E) '''
+        direction = self.cardinals[direction.lower()]
+        dest = self._alias(dest)
+        
         if isEuclidean:
             if source == dest:
                 raise Error("Euclidean rooms enabled; no loops allowed.")
-        source[direction] = dest
-        if direction == 0: direction = 3
-        elif direction == 1: direction = 2
-        elif direction == 2: direction = 1
-        elif direction == 3: direction = 0
-        target[direction] = source
+        source.links[direction] = dest.name
+        if isEuclidean:
+            if direction == 0: direction = 3
+            elif direction == 1: direction = 2
+            elif direction == 2: direction = 1
+            elif direction == 3: direction = 0
+            dest.links[direction] = source.name
         return
 
+    def _on_entry(self):
+        self.loc.on_entry()
+        Thing.thing_printer([self.things[x] for x in self.loc.holding])
+        return
 
     ''' Main function. Takes user input, passes it to prompt_exe. '''
     def main(self):
-        print(self.beginning)
-        self.loc.on_entry()
+        print(self.GAME_MSGS['beginning'])
+        self._on_entry()
         prompt = ' '
         while (prompt[0] != 'q' and prompt[0] != 'quit'):
             x = input('> ')
@@ -335,7 +381,7 @@ class Game():
             if prompt == []: prompt = ' '
             self._prompt_exe(prompt)
         #raise NameError("Game finished.")
-        return "Game terminated."
+        return
 
 with File_Processor('testgame_desc.txt') as F:
     room_info = F.room_info
@@ -344,4 +390,6 @@ with File_Processor('testgame_desc.txt') as F:
 def test_init():
     G = Game(Room.room_processor(room_info), Thing.thing_processor(thing_info))
     return G
-#G.main()
+    
+G = test_init()
+G.main()

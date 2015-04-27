@@ -59,7 +59,17 @@ class File_Processor():
         if '#NA' in line:
             self.room_marker = line[4:].rstrip()
             self.room_info[self.room_marker]=({'NA':self.room_marker})
-
+        elif '#EN' in line or '#EX' in line or '#RE' in line:
+            try:
+                target = self.room_info[self.room_marker]
+            except KeyError:
+                print("No room name entered; information will be ignored.")
+            
+            try:
+                target[line[1:3]] += ("\n" + line[4:].rstrip())
+            except KeyError:
+                target[line[1:3]] = line[4:].rstrip()
+                
         # For other properties of Rooms, strips away whitespace and adds it to
         # the Room dictionary.
         elif line[:3] in Room.codes.keys():
