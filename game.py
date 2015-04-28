@@ -79,6 +79,7 @@ class Game():
         except KeyError: raise KeyError("Initial room either unspecified "+
                                         "or missing.")
         self.inventory = Inventory(ownedObjs) if ownedObjs else Inventory()
+        self.outputs = ''
 
     def _prompt_exe(self, i):
         ''' Takes player input and passes the corresponding command to the
@@ -383,6 +384,13 @@ class Game():
         #raise NameError("Game finished.")
         return
 
+    """ Functions which are involved in passing to GUI_Holder class. """
+    def _puts(self, input_string):
+       self.outputs += input_string + '\n'
+
+    def gets(self):
+        return self.outputs
+
 with File_Processor('testgame_desc.txt') as F:
     room_info = F.room_info
     thing_info = F.thing_info
@@ -390,6 +398,7 @@ with File_Processor('testgame_desc.txt') as F:
 def test_init():
     G = Game(Room.room_processor(room_info), Thing.thing_processor(thing_info))
     return G
-    
-G = test_init()
-G.main()
+
+if __name__ == "__main__":
+    G = test_init()
+    G.main()
