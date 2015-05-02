@@ -61,7 +61,6 @@ The basement. | None | None | None | Inside of the house.
 #AL worn key
 #EX An slightly rusted worn key. Hopefully it still works.
 #GD A battered-looking [worn key] is lying here.
-#OA rom:The house's entrance&NInside of the house.
 #TY item
 
 #NA An old painting
@@ -74,13 +73,14 @@ The basement. | None | None | None | Inside of the house.
 #AL notebook
 #EX The notebook is filled with translations of hieroglyphs. There's some space in the back for notes.
 #GD A black [notebook] sits on the ground.
+#DT None
 #TY item
-#OA pass
+#AC use{ift:room=The basement.>sys:!You translate the hieroglyphs and write down what they mean.}notebook
 
 #NA A battered door
 #AL door
 #EX The door looks weak, but not weak enough to knock down. Unfortunately. It is locked.
 #GD pass
 #TY prop
-#AC unlock{ift:worn key@$>rom:_&NInside of the house.}obj:door#EXThe once proud guardian of this house stands defeated and ajar.}sys:!You use the worn key to unlock the door. It works, but the key breaks off in the lock.}inv:worn key-1<pass
+#AC unlock{ift:worn key@$>rom:_&NInside of the house.}obj:door#EXThe once proud guardian of this house stands defeated and ajar.}sys:!You use the worn key to unlock the door. It works, but the key breaks off in the lock.}inv:worn key-1<sys:!You aren't carrying anything you can use to unlock the door.
 

@@ -49,12 +49,12 @@ from object_source import Inventory, Thing
 from file_management import File_Processor
 import re
 
-V = True
+V = False
 
 class Game():
     cardinals = {'w':0, 's':1, 'n':2, 'e':3}
     actions = ['throw', 'examine', 'tap', 'unlock', 'take', 'use']
-    mcode_keywords = '[!]'
+    mcode_keywords = '[&!\-\+@#]'
     ERROR = {
         "exe_pass": "Invalid command.",
         "act_item_not_found": "It's not clear what thing " + 
@@ -79,11 +79,16 @@ class Game():
         except KeyError: raise KeyError("Initial room either unspecified "+
                                         "or missing.")
         self.inventory = Inventory(ownedObjs) if ownedObjs else Inventory()
-        self.outputs = ''
+        self.setting_output = ''
+        self.action_output = ''
 
-    def _prompt_exe(self, i):
+
+    def prompt_exe(self, prompt):
         ''' Takes player input and passes the corresponding command to the
             corresponding player command function. '''
+        i = prompt.lower().split() if prompt != '' else ''
+        if i == []: i = ' '
+
         if len(i) < 1: return
         if i[0] in self.cardinals.keys():
             self._move(i)
@@ -96,17 +101,17 @@ class Game():
         elif i[0] == '?':
             self._help(i[1:])
         elif i[0] == 'quit' or i[0] == 'q':
-            print(self.GAME_MSGS["quit"])
+            self._puts(self.GAME_MSGS["quit"])
         else:
-            print(self.ERROR["exe_pass"])
+            self._puts(self.ERROR["exe_pass"])
         return        
             
     def _help(self, object):
         if object:
             pass
         else:
-            print("Movement: north, south, east, west")
-            print("Actions: " + ', '.join(self.actions))
+            self._puts("Movement: north, south, east, west")
+            self._puts("Actions: " + ', '.join(self.actions))
         return
             
     ''' Classes of player commands: Moving, acting, and menu. '''
@@ -117,9 +122,9 @@ class Game():
         try:
             self.loc = self.rooms[self.loc.links[translated_direction]]
         except KeyError:
-            print('I can\'t go that way.')
+            self._puts('I can\'t go that way.')
             return
-        self._on_entry()
+        #self._room_update()
             
     # Act: Takes a command.
     def act(self, command):
@@ -129,51 +134,51 @@ class Game():
         # If no object specified.
         if tmp == '':
             if command[0] == "examine":
-                self.loc.on_examine()
-                Thing.thing_printer([self.things[x] for x in self.loc.holding])
+                self._puts(self.loc.on_examine())
+                #self._puts(Thing.thing_printer([self.things[x] for x in self.loc.holding]))
             else: 
-                print(self.ERROR["act_item_not_found"])
+                self._puts(self.ERROR["act_item_not_found"])
         # Examining.
         elif command[0] == "examine":
             if tmp == "room":
-                self.loc.on_examine()
-                Thing.thing_printer([self.things[x] for x in self.loc.holding])
+                self._puts(self.loc.on_examine())
+                #self._puts(Thing.thing_printer([self.things[x] for x in self.loc.holding]))
             elif tmp in self.loc.holding or tmp in self.inventory.holding:
-                print(self.things[tmp].examine_desc)
-            else: print(self.ERROR["act_item_not_found"])
+                self._puts(self.things[tmp].examine_desc)
+            else: self._puts(self.ERROR["act_item_not_found"])
         # Taking.
         elif command[0] == "take":
             if tmp == "room":
-                print(self.ERROR["act_using_rooms"])
+                self._puts(self.ERROR["act_using_rooms"])
             elif tmp in self.loc.holding:
                 if self._alias(tmp).isProp:
-                    print(self.ERROR["act_taking_prop"])
+                    self._puts(self.ERROR["act_taking_prop"])
                 else:
                     self.inventory.add_item(tmp)
                     self.loc.holding.remove(tmp)
+                    self._puts("Picked up the " + tmp + ".")
             elif tmp in self.inventory.holding:
-                print(self.ERROR["act_already_holding"])
+                self._puts(self.ERROR["act_already_holding"])
             else:
-                print(self.ERROR["act_item_not_found"])
+                self._puts(self.ERROR["act_item_not_found"])
         # Other actions.
         else:
             if tmp == "room":
-                print(self.ERROR["act_using_rooms"])
+                self._puts(self.ERROR["act_using_rooms"])
             elif tmp in self.loc.holding or tmp in self.inventory.holding:
                 try:
                     for x in self.things[tmp].action_dict[command[0]]:
                         self.mcode_main(x)
                 except KeyError:
-                    print(self.ERROR["act_not_for_item"])
+                    self._puts(self.ERROR["act_not_for_item"])
             else:
-                print(self.ERROR["act_item_not_found"])
+                self._puts(self.ERROR["act_item_not_found"])
         return  
     
     def _inv(self, command):
         """ Inventory menu commands. """
         if command == "open":
-            print("HI I'M DOING THIS NOW!")
-            print(self.inventory.holding)
+            self._puts(self.inventory.__str__())
         else: pass
         return
 
@@ -190,12 +195,10 @@ class Game():
         post-functional character. """
         
         type_code = words[:3]
-        tmp = '[&!\-\+@#]'
         
-        finder = re.search(tmp, words)
-        #re.search(self.mcode_keywords, words)
+        finder = re.search(Game.mcode_keywords, words)
         if finder is None:
-            print("MCode lacking functional character: " + words)
+            self._puts("MCode lacking functional character: " + words)
             raise AttributeError("No functional character found.")
         
         functional_char = words[finder.span()[0]]
@@ -203,7 +206,7 @@ class Game():
         parameters = words[finder.span()[1]:]
         #if type_code == 'prp': type_code = 'obj'
         getattr(self, type_code+"_func")(functional_char, target, parameters)
-        #print(type_code, functional_char, parameters)
+        #self._puts(type_code, functional_char, parameters)
         return
     
     def _alias(self, target):
@@ -243,6 +246,7 @@ class Game():
         except AttributeError:
             raise AttributeError("> not found.")
         
+        # Turns second_thing into a class instance.
         second_thing = self._alias(second_thing)        
             
         # @: True if thing_in_question is in second_thing, where second_thing
@@ -276,16 +280,16 @@ class Game():
     
     def sys_func(self, functional_char, target, instruct):
         """ System mcode processor. Used to print messages to the terminal. """
-        if V: print("Entering system functions.")
+        if V: self._puts("### Entering system functions.")
         if functional_char == '!':
-            print(instruct)
+            self._puts(instruct)
         else:
             pass
         return
     
     def inv_func(self, functional_char, target, instruct):
         """ Inventory mcode processor. Used for storage operations. """
-        if V: print("Entering inventory functions.")
+        if V: self._puts("### Entering inventory functions.")
         
         if functional_char == '+':
             self.inventory.add_item(target)
@@ -297,7 +301,7 @@ class Game():
         
     def rom_func(self, functional_char, target, instruct):
         """ Room mcode processor. Used to manipulate Rooms. """
-        if V: print("Entering room functions.")
+        if V: self._puts("### Entering room functions.")
 
         #tmp_instruct = ' '.join(instruct)
         tmp_instruct = instruct
@@ -321,7 +325,7 @@ class Game():
 
     def obj_func(self, functional_char, target, instruct):
         """ Thing mcode processor. Used to manipulate Things. """
-        if V: print("Entering object functions.")
+        if V: self._puts("### Entering object functions.")
         
         target = self._alias(target)
         
@@ -331,7 +335,7 @@ class Game():
             except KeyError:
                 raise AttributeError("No corresponding Thing attribute.")
             #self.change_var(target, attr, instruct[2:])
-            print("I'm setting the new attribute now.")
+            if V: self._puts("#### Setting the new attribute now.")
             setattr(getattr(self, "things")[target.alias], attr, instruct[2:])
         return
     
@@ -366,30 +370,51 @@ class Game():
             dest.links[direction] = source.name
         return
 
+    '''
     def _on_entry(self):
-        self.loc.on_entry()
-        Thing.thing_printer([self.things[x] for x in self.loc.holding])
+        self._puts(self.loc.on_entry(), True)
+        self._puts(
+                Thing.thing_printer( \
+                    [self.things[x] for x in self.loc.holding]),True)
+        return
+    '''
+
+    def _room_update(self):
+        thing_info = Thing.thing_printer([self.things[x] 
+                                         for x in self.loc.holding])
+        setting_info = self.loc.on_entry() + '\n'
+        if thing_info:
+            setting_info += thing_info + '\n'
+        self._puts(setting_info, True)
         return
 
     ''' Main function. Takes user input, passes it to prompt_exe. '''
     def main(self):
-        print(self.GAME_MSGS['beginning'])
-        self._on_entry()
+        self._puts(self.GAME_MSGS['beginning'])
+        self._room_update()
+        '''
         prompt = ' '
         while (prompt[0] != 'q' and prompt[0] != 'quit'):
             x = input('> ')
             prompt = x.lower().split() if x != '' else ''
             if prompt == []: prompt = ' '
             self._prompt_exe(prompt)
+        '''
         #raise NameError("Game finished.")
         return
 
     """ Functions which are involved in passing to GUI_Holder class. """
-    def _puts(self, input_string):
-       self.outputs += input_string + '\n'
+    def _puts(self, input_string, isSetting = False):
+        if isSetting:
+            self.setting_output = input_string
+        else:
+            self.action_output += input_string + '\n'
 
     def gets(self):
-        return self.outputs
+        self._room_update()
+        returning = self.setting_output + '\n' + self.action_output
+        self.action_output = ''
+        return returning
 
 with File_Processor('testgame_desc.txt') as F:
     room_info = F.room_info

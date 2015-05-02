@@ -20,8 +20,7 @@ class GUI_Holder(tk.Tk):
         tk.Tk.__init__(self, *args, **kwargs)
         self.GUI = tk.Frame(width = self.WIDTH, height = self.HEIGHT) 
         self.GUI.pack(side="top", fill="both", expand=True)
-        #G = game.test_init()
-
+        
         """ Initializing text display area. """
         self.TextDisplay = ReadOnlyText(self.GUI)
         self.TextDisplay.pack(side="top", fill="both", expand=1)
@@ -35,10 +34,15 @@ class GUI_Holder(tk.Tk):
         """ Initializing buttons. """
         # Implement commands.
         self.Quit_Button = tk.Button(self.GUI, text="Quit", command=self._quit_button)
-        self.Inventory_Button = tk.Button(self.GUI, text="Inventory")
+        self.Inventory_Button = tk.Button(self.GUI, text="Inventory", command=self._inv_button)
 
         self.Quit_Button.pack(side="left", expand=1, fill=tk.X)
         self.Inventory_Button.pack(side="left", expand=1, fill=tk.X)
+
+        self.G = game.test_init()
+        self.G.main()
+        self._print_text(self.G.gets())
+
 
     def _call_game(self, entered_text):
         print("## Calling game. ##")
@@ -46,11 +50,15 @@ class GUI_Holder(tk.Tk):
             print('Quitting.')
             self.destroy()
         else:
-            #G.prompt_exe(entered_text)
-            retrieved_text = entered_text
+            self.G.prompt_exe(entered_text)
+            received_text = self.G.gets()
             print("Not quitting.")
-            print(entered_text)
-            self.TextDisplay.insert(tk.INSERT, entered_text)
+            #print(received_text)
+            self._print_text(received_text)
+
+    def _print_text(self, print_me):
+        self._wipe_display()
+        self.TextDisplay.insert(tk.END, print_me)
 
     def _text_prettifier(self, received_text):
         return None
@@ -61,12 +69,14 @@ class GUI_Holder(tk.Tk):
             entered_text = self.Entry.get()
         print("entered_text = {0}".format(entered_text))
         print("Entry.get() = {0}".format(self.Entry.get()))
-        self._wipe_display()
         self._wipe_entry()
         self._call_game(entered_text)  
 
     def _quit_button(self):
         self._enter_text(tk.Event(), 'quit')
+
+    def _inv_button(self):
+        self._enter_text(tk.Event(), 'inv')
 
     def _wipe_entry(self):
         print("Wiping entry.")

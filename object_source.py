@@ -24,9 +24,11 @@ class Inventory():
         return
         
     def __str__(self):
-        out_str = ''
-        for x in holding:
-            out_str + out_str + '\n'
+        out_str = 'You are holding:\n'
+        if not self.holding:
+            return "You are not holding anything."
+        for x in self.holding:
+            out_str += x + '\n'
         return out_str
 
 class Thing():
@@ -41,6 +43,7 @@ class Thing():
         '#TY':'type',
         '#AL':'alias',
         '#GD':'ground_desc'
+        '#DT':'data'
         }
 
 
@@ -53,6 +56,7 @@ class Thing():
         self.on_acquire = itemD['OA'] if 'OA' in itemD.keys() else 'pass'
         self.action_dict = {act:mcode for act, mcode in itemD['AC'].items()} \
                             if 'AC' in itemD.keys() else {}
+        self.data = itemD['DT'] if 'DT' in itemD.keys() else ''                    
         self.isProp = True if itemD['TY'] == 'prop' else False
 
     # NOTE: Need to figure out how to do attribute changes. 
@@ -76,8 +80,8 @@ class Thing():
                     out_str = out_str + "\nThere is a " + x.alias + " here."
                 else:
                     out_str = out_str + "\n" + x.ground_desc
-            print(out_str)
-        return    
+            return out_str
+        else: return ''    
             
     def thing_processor(thing_dict):
         """ Returns a Thing class dictionary using a Thing info dictionary. """

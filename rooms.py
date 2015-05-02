@@ -33,18 +33,16 @@ class Room():
     def on_entry(self):
         """ Runs whenever a room is entered. """
         if self.is_visited:
-            print(self.reentry_desc)
+            return self.reentry_desc
         else:
-            print(self.entry_desc)
-            self.is_visited = True
-        return
+            #self.is_visited = True
+            return self.entry_desc
         
     def on_examine(self):
         if self.examine_desc == "N/A":
-            print("There's not much to see here.")
+            return "There's not much to see here."
         else: 
-            print(self.examine_desc)
-        return
+            return self.examine_desc
             
     def room_processor(room_info_dict, room_link_dict = None):
         """ Takes a Room info dictionary and creates a Room class dictionary.
