@@ -1,6 +1,22 @@
 // Things for the test_game.
+// Comments only work at the beginning of lines. The presence of "//"
+// in a line causes the reader to ignore that line.
+
+// Game input files have four parts: Meta, Room, Links, and Things. (M,R,L,T)
+// All entries must be placed on their own line; turning on word wrap is 
+// advised.
+
+~M
+// Meta.
+
 
 ~R
+// Rooms.
+// Example room page:
+// #NA Name Goes Here
+// #EN Put each line of text in its own #EN line.
+// #IL Put the names of items you want to have the room hold here.
+
 #NA initial 
 #EN The green grass meadows softly. The sky is blue and all around you grass blooms.
 #EN To your north you see a strange house.
@@ -25,6 +41,13 @@
 #IL notebook
 
 ~L
+// Links.
+// If you want a room to connect to any other room you need to have an entry.
+// Format: ROOM_NAME | WEST_R_NAME | SOUTH_R_NAME | NORTH_R_NAME | EAST_R_NAME
+
+// Rooms not specified default to having no links. "None" is reserved for
+// specifying a lack of links in that direction.
+
 initial | None | None | The house's entrance. | None
 The house's entrance. | None | initial | None | None
 Inside of the house. | The basement. | The house's entrance. | None | None
@@ -42,31 +65,34 @@ The basement. | None | None | None | Inside of the house.
 
 
 ~T
+// Things.
 #NA A shiny bauble
 #AL bauble
 #EX A small, blue sphere made of solid polished glass.
 #GD There is a tiny blue [bauble] on the ground.
 #OA pass
-#AC throw{ift:bauble@$>inv:bauble-1}sys:!The bauble shatters into pieces.}rom:_+glass shards<sys:!You should pick that up first.
-#AC tap{sys:!Tap tap. It sounds like solid glass.
+#PR glass
 #TY item
 
 #NA Glass shards
 #AL glass shards
 #GD There are some [glass shards] scattered about.
 #EX Bluish shards from a shattered bauble.
+#PR glass
 #TY prop
 
 #NA A worn key
 #AL worn key
 #EX An slightly rusted worn key. Hopefully it still works.
 #GD A battered-looking [worn key] is lying here.
+#PR metal
 #TY item
 
 #NA An old painting
 #AL painting
 #EX The old man's face glares at you accusingly. Are those eyes following you?
 #GD A tattered [painting] hangs on the wall.
+#PR cloth
 #TY prop
 
 #NA A notebook
@@ -75,12 +101,43 @@ The basement. | None | None | None | Inside of the house.
 #GD A black [notebook] sits on the ground.
 #DT None
 #TY item
-#AC use{ift:room=The basement.>sys:!You translate the hieroglyphs and write down what they mean.}notebook
 
-#NA A battered door
+#NA door_battered
+#DS A battered %n
 #AL door
 #EX The door looks weak, but not weak enough to knock down. Unfortunately. It is locked.
 #GD pass
 #TY prop
-#AC unlock{ift:worn key@$>rom:_&NInside of the house.}obj:door#EXThe once proud guardian of this house stands defeated and ajar.}sys:!You use the worn key to unlock the door. It works, but the key breaks off in the lock.}inv:worn key-1<sys:!You aren't carrying anything you can use to unlock the door.
+#PR wooden
 
+~A
+// Actions.
+
+// All actions run some line of MCODE.
+// Priority is in order of specification.
+
+// name/MCODE: Action on Thing with given name runs MCODE.
+// p:prop/MCODE: Action on Thing with given property runs MCODE.
+// /MCODE: Action on anything not specified runs MCODE. Generally just a sys:!.
+
+#throw
+!1the
+!2at
+bauble/ift:bauble@$>inv:bauble-1}sys:!The bauble shatters into pieces.}rom:_+glass shards<sys:!You should pick that up first.
+/sys:!You probably shouldn't throw that.
+
+#tap
+!1the
+bauble/sys!:Ting ting. It sounds like solid glass.
+p:wooden/sys!:Thud thud.
+p:metal/sys!:Ding ding.
+/sys!:Tap tap.
+
+#unlock
+door_battered\ift:worn key@$>rom:_&NInside of the house.}obj:door#EXThe once proud guardian of this house stands defeated and ajar.}sys:!You use the worn key to unlock the door. It works, but the key breaks off in the lock.}inv:worn key-1<sys:!You aren't carrying anything you can use to unlock the door.
+/sys!:That's not the sort of thing you can unlock.
+
+#use
+notebook/ift:room=The basement.>sys:!You translate the hieroglyphs and write down what they mean.<sys:!There's nothing to use the notebook with.
+
+#look

@@ -2,25 +2,32 @@
 __author__ = "David Vaillant"
 
 class Inventory():
-    ''' A rudimentary clone of the Counter class. Used to represent a player's
-        inventory. '''
+    """ Keeps track of items in player's possession.
+    
+    Allows for more detailed collections, including tracking weight and 
+    multiple disjoint containers held by the player. """
 
-    def __init__(self, default = set()):
+    def __init__(self, default = {"main":set()}, limits = {"main":-1}):
         ''' Allows for a non-empty initial inventory. '''
         self.holding = default
+        self.containers = default.keys()
+        self.capacities = limits
         self.name = "player inventory"
         
-    def add_item(self, x):
+    def add_item(self, x, target="main"):
         ''' Used to add items to the inventory. '''
-        self.holding.add(x)
+        if limits[target] >= x.weight or limits[target] == -1:
+            return "FULL"
+        else:
+                
         return
         
-    def remove_item(self, x):
+    def remove_item(self, x, target="main"):
         ''' Used to remove items from the inventory. '''
         try:
-            self.holding.remove(x)
+            self.holding[target].remove(x)
         except KeyError:
-            print("WARNING: Tried to remove a non-existent object.")
+            print("WARNING: Something went wrong.")
         return
         
     def __str__(self):
@@ -32,9 +39,9 @@ class Inventory():
         return out_str
 
 class Thing():
-    ''' Class used to represent items or props.
+    """ Class used to represent items or props.
         ITEMS: Can be placed in player inventory and used from there.
-        PROPS: Cannot be moved from their position in a room. '''
+        PROPS: Cannot be moved from their position in a room. """
     codes = {
         '#NA':'name',
         '#EX':'examine_desc',
@@ -42,24 +49,31 @@ class Thing():
         '#AC':'action',
         '#TY':'type',
         '#AL':'alias',
-        '#GD':'ground_desc'
-        '#DT':'data'
+        '#GD':'ground_desc',
+        '#PR':'properties'
         }
 
 
     def __init__(self, itemD):
         """ Populates attributes using a Thing info dictionary. """
+        
         self.name = itemD['NA'] if 'NA' in itemD.keys() else ''
-        self.alias = itemD['AL'] if 'AL' in itemD.keys() else 'thing'
+        
+        self.alias = itemD['AL'] if 'AL' in itemD.keys() else 'thing'        
+        self.properties = itemD['PR'].split() if 'PR' in itemD.keys() else ''
+        self.weight = itemD['WT'] if 'WT' in itemD.keys() else -1
+        self.isProp = True if itemD['TY'] == 'prop' else False   
+        
         self.examine_desc = itemD['EX'] if 'EX' in itemD.keys() else ''
         self.ground_desc = itemD['GD'] if 'GD' in itemD.keys() else ''
+        
         self.on_acquire = itemD['OA'] if 'OA' in itemD.keys() else 'pass'
         self.action_dict = {act:mcode for act, mcode in itemD['AC'].items()} \
                             if 'AC' in itemD.keys() else {}
-        self.data = itemD['DT'] if 'DT' in itemD.keys() else ''                    
-        self.isProp = True if itemD['TY'] == 'prop' else False
+
 
     # NOTE: Need to figure out how to do attribute changes. 
+    """
     def safety(self, attributeType, source):
         """ Used when changing Thing attributes. """
         if type(source) == str: valve = '' 
@@ -69,6 +83,7 @@ class Thing():
            return x
         else:
             return valve
+    """
     
     def thing_printer(holds):
         out_str = ''
@@ -95,6 +110,7 @@ class Thing():
             things[key] = x
         return things
         
+    """
     def thing_fixer(input_dict):
         sourceList = obj_reader(fileIn) if type(fileIn) is str else fileIn
         for ele in input_dict:
@@ -103,3 +119,4 @@ class Thing():
                     ele[code[1:]] = {} if code == '#AC' \
                                     else 'pass'
         return fixed_dict
+    """

@@ -12,6 +12,8 @@ class File_Processor():
         self.room_marker = None
         self.thing_info = {}
         self.thing_marker = None
+        self.action_info = {}
+        self.action_market = None
         self.file_processor(filename)
 
     # Unclear if this part is necessary. Keeping anyways. 
@@ -25,7 +27,7 @@ class File_Processor():
         """ Takes a filename, opens the file, and passes lines. """
         if filename == '':
             filename = input("Enter a filename: ")
-        marker_dict = {'R':'room', 'L':'link', 'T':	'thing'}
+        marker_dict = {'A':'action', 'R':'room', 'L':'link', 'T':'thing'}
         
         with open(filename) as f:
             info = f.readlines()
@@ -41,7 +43,42 @@ class File_Processor():
                 else:
                     getattr(self, marker+"_reader")(x)
 
+    def action_reader(self, line):
+        """ Does action reading things. """
         
+        # The # symbol marks a new action.
+        if '#' in line:
+            self.action_marker = line[1:].rstrip()
+            self.action_info[self.action_marker]={0:'', 1:{}, 2:{}}
+        
+        # ! marks a preposition; !0
+        elif line[0] == '!':
+            if line[1].isnumeric():
+                self.action_info[self.action_marker]['P'+line[1]]=[line[2:]
+            else:
+                printf("Failed at adding a predicate: " + line)
+        
+        elif line[0] == 'V':
+            self.action_info[self.action_marker]['V'] = True
+            
+        # objects/mcode is the input; adds objects:mcode to action_info.
+        elif "/" in line:
+            try:
+                tmp0, tmp1 = line.split("/")
+                if "|" in tmp0:
+                    try:
+                        obj0, obj1 = tmp0.split("|")
+                        self.action_info[self.action_marker][2][(obj1,obj2)]\
+                            = tmp1
+                    except ValueError:
+                        print("Something went wrong with the | split.")
+                else:
+                    self.action_info[self.action_marker][1][tmp0]=tmp1
+            except ValueError:
+                print("Too many /'s found.")
+        else:
+            print("Warning - Invalid entry: " + line)
+                    
     def room_reader(self, line):
         """ Reads a line of text and alters room_* attributes accordingly.
 
@@ -76,8 +113,8 @@ class File_Processor():
             try:
                 self.room_info[self.room_marker][line[1:3]] = line[4:].rstrip()
             except NameError:
-                print('No room name entered; information will be ignored.')
-        else: print('WARNING - Invalid entry: ' + line)
+                print("No room name entered; information will be ignored.")
+        else: print("WARNING - Invalid entry: " + line)
         return
         
     def link_reader(self, line):

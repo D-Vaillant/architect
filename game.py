@@ -32,6 +32,9 @@ Thing:
         Also contains the object_reader function which takes a Thing info dict
     and creates a Thing class dict, one of the input parameters for the
     Game class.
+    
+Action:
+        Contains information about player actions. 
 
 Inventory:
         Container class for the PC's inventory. Contains items which 
@@ -45,6 +48,7 @@ File_Processor:
 """
 
 from rooms import Room
+from actions import Action
 from object_source import Inventory, Thing
 from file_management import File_Processor
 import re
@@ -72,13 +76,15 @@ class Game():
         
     #alias = {'_':loc, '^': }
     
-    def __init__(self, rdata, tdata, firstRoom = 'initial', ownedObjs = None):
+    def __init__(self, rdata, tdata, adata, mdata):
         self.rooms = rdata
         self.things = tdata
-        try: self.loc = self.rooms[firstRoom]
+        self.actions = adata
+        try: self.loc = self.adata["firstRoom"]
         except KeyError: raise KeyError("Initial room either unspecified "+
                                         "or missing.")
-        self.inventory = Inventory(ownedObjs) if ownedObjs else Inventory()
+        self.inventory = Inventory(ownedObjs) if adata["ownedObjs"]
+                                              else Inventory()
         self.setting_output = ''
         self.action_output = ''
 
@@ -87,7 +93,7 @@ class Game():
         ''' Takes player input and passes the corresponding command to the
             corresponding player command function. '''
         i = prompt.lower().split() if prompt != '' else ''
-        if i == []: i = ' '
+        if i == []: i = ''
 
         if len(i) < 1: return
         if i[0] in self.cardinals.keys():
@@ -96,7 +102,7 @@ class Game():
             self._move(i[0][0])
         elif i[0] in self.actions:
             self.act(i)
-        elif i[0] == "inv":
+        elif i[0] in ["inv", "i"]:
             self._inv("open")
         elif i[0] == '?':
             self._help(i[1:])
@@ -127,6 +133,7 @@ class Game():
         #self._room_update()
             
     # Act: Takes a command.
+    """
     def act(self, command):
         ''' Action function. '''
         tmp = ' '.join(command[1:])
@@ -173,7 +180,21 @@ class Game():
                     self._puts(self.ERROR["act_not_for_item"])
             else:
                 self._puts(self.ERROR["act_item_not_found"])
-        return  
+        return
+    """
+    def act(self, command):
+        """ Does actiony stuff. Don't ask me! """
+        ACT = self.actions[command[0]]
+        command = command[1:]
+        if(command):
+        
+        # If no other words specified.
+        else:
+            if ACT.min = 0:
+                ACT.call_action(command)
+            else:
+                
+        
     
     def _inv(self, command):
         """ Inventory menu commands. """
@@ -193,6 +214,8 @@ class Game():
         Takes a string of machine code and splits it up into a 
         pre-functional character, functional character, and a
         post-functional character. """
+        
+        if words == "pass": return
         
         type_code = words[:3]
         
@@ -223,12 +246,17 @@ class Game():
         else:
             raise NameError(target + " not a Thing, Room, or alias.")
         
-    # ift_func: Conditional mcode processor. Isolates the condition from the
-    # post-functional part and enters an if-ifelse-else structure to find which
-    # condition corresponds to the mcode. If condition is true, runs each
-    # mcode line found after the > (separated by }) by calling mcode_main.
     def ift_func(self, functional_char, thing_in_question,
                  condition):
+        """ Conditional mcode processor.
+        
+        Isolates the condition from the post-functional part and enters an 
+        if-ifelse-else structure to find which condition corresponds to
+        the mcode. 
+        
+        If condition is true, runs each mcode line found after the >
+        (separated by }) by calling mcode_main. Otherwise, runs mcode
+        found after the <. """
                  
         # < divides the "on true" command from the "on false" one.
         condition = condition.split('<')
@@ -254,29 +282,25 @@ class Game():
         if functional_char == '@':
             try:
                 if thing_in_question in second_thing.holding:
-                    for x in condition: self.mcode_main(x)
+                    status = True
                 else: 
-                    self.else_func(else_condition)
+                    status = False
             except KeyError:
-                raise AttributeError("@ error.\n"+
-                      second_thing.name + " has no holding attribute.")
+                raise AttributeError("@ error.\n"+ second_thing.name + 
+                                     " has no holding attribute.")
 
         # = : True if thing_in_question is identical with second_thing.
         #     Generally used in conjunction with the _ alias.
         elif functional_char == '=':
             if thing_in_question == second_thing:
-                for x in condition: self.mcode_main(x)
+                status = True
             else:
-                self.else_func(else_condition)
+                status = False
+                
+        tmp = condition if status else else_condition
+        for i in tmp: self.mcode_main(i)
+        
         return
-        
-    def else_func(self, x):
-        """ Runs if a conditional command returns False. 
-        
-        Does nothing if x is ['pass']. Otherwise calls mcode_main. """
-        if x[0] == 'pass': return
-        else:
-            for i in x: self.mcode_main(i)
     
     def sys_func(self, functional_char, target, instruct):
         """ System mcode processor. Used to print messages to the terminal. """
