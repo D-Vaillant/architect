@@ -1,0 +1,6 @@
+~R
+#NA initial 
+#EN The green grass meadows softly. The sky is blue and all around you grass blooms. #EN To your north you see a strange house.
+#RE You return to the meadow.
+#EX It is calm here.
+#IL bauble

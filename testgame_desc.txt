@@ -120,24 +120,25 @@ The basement. | None | None | None | Inside of the house.
 // p:prop/MCODE: Action on Thing with given property runs MCODE.
 // /MCODE: Action on anything not specified runs MCODE. Generally just a sys:!.
 
+#cry
+0/sys.!You weep in desperation, but don't feel any better.
+
 #throw
-!1the
 !2at
 bauble/ift:bauble@$>inv:bauble-1}sys:!The bauble shatters into pieces.}rom:_+glass shards<sys:!You should pick that up first.
 /sys:!You probably shouldn't throw that.
 
 #tap
-!1the
-bauble/sys!:Ting ting. It sounds like solid glass.
-p:wooden/sys!:Thud thud.
-p:metal/sys!:Ding ding.
-/sys!:Tap tap.
+bauble/sys.!Ting ting. It sounds like solid glass.
+p:wooden/sys.!Thud thud.
+p:metal/sys.!Ding ding.
+/sys.!Tap tap.
 
 #unlock
-door_battered\ift:worn key@$>rom:_&NInside of the house.}obj:door#EXThe once proud guardian of this house stands defeated and ajar.}sys:!You use the worn key to unlock the door. It works, but the key breaks off in the lock.}inv:worn key-1<sys:!You aren't carrying anything you can use to unlock the door.
-/sys!:That's not the sort of thing you can unlock.
+door_battered|worn key/rom:_&NInside of the house.|obj:door_battered#EXThe once proud guardian of this house stands defeated and ajar.|sys.!You use the worn key to unlock the door. It works, but the key breaks off in the lock.|inv:worn key-1
+p:
+p:locked/sys.!How is that going to unlock anything?
+/sys.!That's not the sort of thing you can unlock.
 
 #use
-notebook/ift:room=The basement.>sys:!You translate the hieroglyphs and write down what they mean.<sys:!There's nothing to use the notebook with.
-
-#look
+notebook/ift:room=The basement.>sys.!You translate the hieroglyphs and write down what they mean.<sys.!There's nothing to use the notebook with.

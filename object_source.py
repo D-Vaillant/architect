@@ -11,15 +11,16 @@ class Inventory():
         ''' Allows for a non-empty initial inventory. '''
         self.holding = default
         self.containers = default.keys()
-        self.capacities = limits
+        self.limits = limits
         self.name = "player inventory"
         
     def add_item(self, x, target="main"):
         ''' Used to add items to the inventory. '''
-        if limits[target] >= x.weight or limits[target] == -1:
-            return "FULL"
-        else:
-                
+        #if self.limits[target] >= x.weight or self.limits[target] == -1:
+        #    return "FULL"
+        #else: pass
+        self.holding[target].add(x)
+        
         return
         
     def remove_item(self, x, target="main"):
@@ -32,9 +33,9 @@ class Inventory():
         
     def __str__(self):
         out_str = 'You are holding:\n'
-        if not self.holding:
+        if not self.holding["main"]:
             return "You are not holding anything."
-        for x in self.holding:
+        for x in self.holding["main"]:
             out_str += x + '\n'
         return out_str
 
@@ -50,7 +51,8 @@ class Thing():
         '#TY':'type',
         '#AL':'alias',
         '#GD':'ground_desc',
-        '#PR':'properties'
+        '#PR':'properties',
+        '#WT':'weight'
         }
 
 
@@ -61,7 +63,7 @@ class Thing():
         
         self.alias = itemD['AL'] if 'AL' in itemD.keys() else 'thing'        
         self.properties = itemD['PR'].split() if 'PR' in itemD.keys() else ''
-        self.weight = itemD['WT'] if 'WT' in itemD.keys() else -1
+        self.weight = itemD['WT'] if 'WT' in itemD.keys() else 0
         self.isProp = True if itemD['TY'] == 'prop' else False   
         
         self.examine_desc = itemD['EX'] if 'EX' in itemD.keys() else ''
@@ -75,7 +77,7 @@ class Thing():
     # NOTE: Need to figure out how to do attribute changes. 
     """
     def safety(self, attributeType, source):
-        """ Used when changing Thing attributes. """
+        # Used when changing Thing attributes.
         if type(source) == str: valve = '' 
         elif type(source) == dict: valve = {}
 
@@ -100,7 +102,7 @@ class Thing():
             
     def thing_processor(thing_dict):
         """ Returns a Thing class dictionary using a Thing info dictionary. """
-        things = dict()
+        things = {}
         #thing_dict = thing_fixer(thing_dict)
          
         # iterates over 

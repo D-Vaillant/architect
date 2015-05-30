@@ -2,7 +2,7 @@ import tkinter as tk
 from idlelib.WidgetRedirector import WidgetRedirector
 import game
 
-V = True
+V = False
 
 # Credit to tkinter.unpythonic.net/wiki/ReadOnlyText.
 class ReadOnlyText(tk.Text):
@@ -101,6 +101,9 @@ class GUI_Holder(tk.Tk):
         if V: print("Wiping display.")
         self.TextDisplay.delete("0.0", tk.END)
 
-if __name__ == "__main__":
+def initialize():
     root = GUI_Holder()
     root.mainloop()
+    
+if __name__ == "__main__":
+    initialize()

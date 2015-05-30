@@ -4,6 +4,7 @@
 
 from rooms import Room
 from object_source import Thing
+from collections import OrderedDict as OrdDict
 
 class File_Processor():
     def __init__(self, filename = ''):
@@ -13,7 +14,9 @@ class File_Processor():
         self.thing_info = {}
         self.thing_marker = None
         self.action_info = {}
-        self.action_market = None
+        self.action_marker = None
+        self.meta_info = {}
+        self.meta_marker = None
         self.file_processor(filename)
 
     # Unclear if this part is necessary. Keeping anyways. 
@@ -27,7 +30,8 @@ class File_Processor():
         """ Takes a filename, opens the file, and passes lines. """
         if filename == '':
             filename = input("Enter a filename: ")
-        marker_dict = {'A':'action', 'R':'room', 'L':'link', 'T':'thing'}
+        marker_dict = {'A':'action', 'R':'room', 'M':'meta',
+                       'L':'link', 'T':'thing'}
         
         with open(filename) as f:
             info = f.readlines()
@@ -41,41 +45,47 @@ class File_Processor():
                 elif marker == None:
                     raise Exception("No marker specified.")
                 else:
-                    getattr(self, marker+"_reader")(x)
+                    getattr(self, marker+"_reader")(x.rstrip())
 
     def action_reader(self, line):
         """ Does action reading things. """
         
         # The # symbol marks a new action.
-        if '#' in line:
+        if line[0] == '#':
             self.action_marker = line[1:].rstrip()
-            self.action_info[self.action_marker]={0:'', 1:{}, 2:{}}
+            self.action_info[self.action_marker]={0:'', 1:OrdDict(),
+                                                        2:OrdDict()}
         
-        # ! marks a preposition; !0
+        # ! marks a preposition; !1 or !2
         elif line[0] == '!':
-            if line[1].isnumeric():
-                self.action_info[self.action_marker]['P'+line[1]]=[line[2:]
+            if line[1] in ['1', '2']:
+                self.action_info[self.action_marker]['P'+line[1]] = \
+                                                    line[2:]
             else:
-                printf("Failed at adding a predicate: " + line)
+                print("Failed at adding a predicate: " + line)
         
+        # V sets "unaryVerbose" to True; makes unary preposition non-optional
         elif line[0] == 'V':
             self.action_info[self.action_marker]['V'] = True
-            
-        # objects/mcode is the input; adds objects:mcode to action_info.
+                
+        # objects/mcode is the input. 
         elif "/" in line:
             try:
                 tmp0, tmp1 = line.split("/")
-                if "|" in tmp0:
+                tmp1 = tmp1.split("|")
+                if tmp0 == '0':
+                    self.action_info[self.action_marker][0]=tmp1
+                elif "|" in tmp0:
                     try:
                         obj0, obj1 = tmp0.split("|")
                         self.action_info[self.action_marker][2][(obj1,obj2)]\
                             = tmp1
                     except ValueError:
-                        print("Something went wrong with the | split.")
+                        print("Something went wrong with the | split: " + line)
                 else:
                     self.action_info[self.action_marker][1][tmp0]=tmp1
             except ValueError:
-                print("Too many /'s found.")
+                print("Too many /'s found: " + line)
         else:
             print("Warning - Invalid entry: " + line)
                     
@@ -94,7 +104,7 @@ class File_Processor():
         # NA marks a Room name; creates a new Room dictionary and adds it to
         # room_info. room_marker is set to the current working Room name.
         if '#NA' in line:
-            self.room_marker = line[4:].rstrip()
+            self.room_marker = line[4:]
             self.room_info[self.room_marker]=({'NA':self.room_marker})
         elif '#EN' in line or '#EX' in line or '#RE' in line:
             try:
@@ -103,15 +113,15 @@ class File_Processor():
                 print("No room name entered; information will be ignored.")
             
             try:
-                target[line[1:3]] += ("\n" + line[4:].rstrip())
+                target[line[1:3]] += ("\n" + line[4:])
             except KeyError:
-                target[line[1:3]] = line[4:].rstrip()
+                target[line[1:3]] = line[4:]
                 
         # For other properties of Rooms, strips away whitespace and adds it to
         # the Room dictionary.
         elif line[:3] in Room.codes.keys():
             try:
-                self.room_info[self.room_marker][line[1:3]] = line[4:].rstrip()
+                self.room_info[self.room_marker][line[1:3]] = line[4:]
             except NameError:
                 print("No room name entered; information will be ignored.")
         else: print("WARNING - Invalid entry: " + line)
@@ -121,9 +131,9 @@ class File_Processor():
         """ Takes a line marked as \'link\', alters room[\'L\'] accordingly.
 
         Warns if specified room dictionary is not found. """
-        y = line.rstrip().split(' | ')
+        y = line.split(' | ')
         try:
-            self.room_info[y[0]]['L'] = [y[i+1].rstrip() if y[i+1].lower() != 'none'
+            self.room_info[y[0]]['L'] = [y[i+1] if y[i+1].lower() != 'none'
                                             else None for i in range(4)]
         except KeyError:
                 print("WARNING - Attempted to set links for an unknown room.")
@@ -146,7 +156,7 @@ class File_Processor():
         # adds it to thing_info. thing_marker is set to the current
         # working Thing name.
         if line[:3] == '#NA':
-            self.thing_marker = line[4:].rstrip()
+            self.thing_marker = line[4:]
             self.thing_info[self.thing_marker] = {'NA':self.thing_marker}
             
         # For actions: machine codes are separated by '{'.
@@ -154,7 +164,7 @@ class File_Processor():
         elif line[:3] == '#AC':
             # Use { to split up various parts of the plaintext into
             # individual mcode commands.
-            tmp = line[4:].rstrip().split('{')
+            tmp = line[4:].split('{')
             
             # Creates an empty dict if this is the first action.
             if 'AC' not in self.thing_info[self.thing_marker].keys():
@@ -166,7 +176,7 @@ class File_Processor():
         # add property code : property description to object dictionary.
         elif line[:3] in Thing.codes.keys():
             try:
-                self.thing_info[self.thing_marker][line[1:3]] = line[4:].rstrip()
+                self.thing_info[self.thing_marker][line[1:3]] = line[4:]
             # If no name has been entered before a property, raise Error.
             except NameError:
                 print("No name entered; information discarded.")

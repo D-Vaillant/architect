@@ -57,7 +57,7 @@ V = False
 
 class Game():
     cardinals = {'w':0, 's':1, 'n':2, 'e':3}
-    actions = ['throw', 'examine', 'tap', 'unlock', 'take', 'use']
+    special_actions = ['take']
     mcode_keywords = '[&!\-\+@#]'
     ERROR = {
         "exe_pass": "Invalid command.",
@@ -68,6 +68,11 @@ class Game():
         "act_already_holding": "You've already got one of those.",
         "act_taking_prop": "It doesn't seem like you could carry that.",
         "room_no_room_found": "WARNING: Incorrect room in mcode."
+        }
+    ACT_MSGS = {
+        "Input < 2":"What do you want to do that to?",
+        "0 < Max:":"You need to do that with something.",
+        "Input > 0":"That doesn't make sense."
         }
     GAME_MSGS = {
         "beginning": "Welcome to the demo!",
@@ -80,11 +85,15 @@ class Game():
         self.rooms = rdata
         self.things = tdata
         self.actions = adata
-        try: self.loc = self.adata["firstRoom"]
+        """
+        try: self.loc = self.mdata["firstRoom"]
         except KeyError: raise KeyError("Initial room either unspecified "+
                                         "or missing.")
-        self.inventory = Inventory(ownedObjs) if adata["ownedObjs"]
+        self.inventory = Inventory(ownedObjs) if mdata["ownedObjs"] \
                                               else Inventory()
+        """
+        self.loc = self.rooms["initial"]
+        self.inventory = Inventory()
         self.setting_output = ''
         self.action_output = ''
 
@@ -100,7 +109,7 @@ class Game():
             self._move(i)
         elif i[0] in ['west', 'south', 'north', 'east']:
             self._move(i[0][0])
-        elif i[0] in self.actions:
+        elif i[0] in self.actions or self.special_actions:
             self.act(i)
         elif i[0] in ["inv", "i"]:
             self._inv("open")
@@ -184,16 +193,45 @@ class Game():
     """
     def act(self, command):
         """ Does actiony stuff. Don't ask me! """
-        ACT = self.actions[command[0]]
-        command = command[1:]
-        if(command):
+        tmp = ' '.join(command[1:])
         
-        # If no other words specified.
+        if command[0] in self.special_actions:
+            if command[0] == "take":
+                if tmp == "room":
+                    self._puts(self.ERROR["act_using_rooms"])
+                elif tmp in self.loc.holding:
+                    #tmp = self._alias(tmp)
+                    if self._alias(tmp).isProp:
+                        self._puts(self.ERROR["act_taking_prop"])
+                    else:
+                        self.inventory.add_item(tmp)
+                        self.loc.holding.remove(tmp)
+                        self._puts("Picked up the " + tmp + ".")
+                #elif tmp in self.inventory.holding:
+                #    self._puts(self.ERROR["act_already_holding"])
+                else:
+                    self._puts(self.ERROR["act_item_not_found"])
         else:
-            if ACT.min = 0:
-                ACT.call_action(command)
-            else:
+            ACT = self.actions[command[0]]
+            command = command[1:]
+            
+            command = ACT.parse_string(command)
+            
+            if command[:2] == "#F:":
+                self._puts(ACT_MSGS[command[2:]])
                 
+            try:
+                for i, x in enumerate(command):
+                    if x:
+                        command[i] = self.things[x]
+                tmp = ACT.call_action(command)
+                for x in tmp: self.mcode_main(x)
+            
+            except KeyError:
+                self._puts(self.ERROR["act_item_not_found"])
+           
+                
+        return
         
     
     def _inv(self, command):
@@ -214,9 +252,8 @@ class Game():
         Takes a string of machine code and splits it up into a 
         pre-functional character, functional character, and a
         post-functional character. """
-        
         if words == "pass": return
-        
+        print("INPUT: "+ str(words))
         type_code = words[:3]
         
         finder = re.search(Game.mcode_keywords, words)
@@ -364,8 +401,8 @@ class Game():
         return
     
     def change_var(self, target, attribute, new_desc):
-        ''' Tertiary function used to change the attributes of instances of
-            Room and Thing. '''
+        """ Tertiary function used to change the attributes of instances of
+            Room and Thing. """
         try:
             setattr(target, attribute, new_desc) 
         except AttributeError:
@@ -374,11 +411,12 @@ class Game():
         return        
     
     def _link(self, source, direction, dest, isEuclidean = True):
-        ''' Tertiary function; establishes links between rooms.
+        """ Tertiary function; establishes links between rooms.
                 source ----direction----> dest
             If isEuclidean:
                 dest ----opposite_dir----> source
-            where opposite_dir should be clear. (N <-> S, W <-> E) '''
+            where opposite_dir should be clear. (N <-> S, W <-> E) """
+            
         direction = self.cardinals[direction.lower()]
         dest = self._alias(dest)
         
@@ -443,9 +481,13 @@ class Game():
 with File_Processor('testgame_desc.txt') as F:
     room_info = F.room_info
     thing_info = F.thing_info
+    action_info = F.action_info
 
 def test_init():
-    G = Game(Room.room_processor(room_info), Thing.thing_processor(thing_info))
+    G = Game(Room.room_processor(room_info), \
+             Thing.thing_processor(thing_info), \
+             Action.action_processor(action_info), \
+             None)
     return G
 
 if __name__ == "__main__":
