@@ -16,9 +16,9 @@ class Inventory():
         
     def add_item(self, x, target="main"):
         ''' Used to add items to the inventory. '''
-        #if self.limits[target] >= x.weight or self.limits[target] == -1:
-        #    return "FULL"
-        #else: pass
+        ##if self.limits[target] >= x.weight or self.limits[target] == -1:
+        ##    return "FULL"
+        ##else: pass
         self.holding[target].add(x)
         
         return
@@ -31,12 +31,18 @@ class Inventory():
             print("WARNING: Something went wrong.")
         return
         
+    def isIn(self, x, target="all"):
+        """ Returns True if x is in target. Defaults to checking all. """
+        for pouch in self.containers:
+            if x in pouch: return True
+        return False
+        
     def __str__(self):
         out_str = 'You are holding:\n'
         if not self.holding["main"]:
             return "You are not holding anything."
         for x in self.holding["main"]:
-            out_str += x + '\n'
+            out_str += x.name + '\n'
         return out_str
 
 class Thing():
@@ -44,34 +50,34 @@ class Thing():
         ITEMS: Can be placed in player inventory and used from there.
         PROPS: Cannot be moved from their position in a room. """
     codes = {
-        '#NA':'name',
-        '#EX':'examine_desc',
-        '#OA':'on_acquire',
-        '#AC':'action',
-        '#TY':'type',
-        '#AL':'alias',
-        '#GD':'ground_desc',
-        '#PR':'properties',
-        '#WT':'weight'
+        '#IDEN':'id',
+        '#NAME':'name',
+        '#EXMN':'examine_desc',
+        '#ONAQ':'on_acquire',
+        '#TYPE':'type',
+        '#ALIA':'alias',
+        '#GRND':'ground_desc',
+        '#PROP':'properties',
+        '#WGHT':'weight'
         }
 
 
     def __init__(self, itemD):
         """ Populates attributes using a Thing info dictionary. """
         
-        self.name = itemD['NA'] if 'NA' in itemD.keys() else ''
+        t = lambda s: itemD[s] if s in itemD.keys() else ''
+        self.id = t('IDEN')
+        self.name = t('NAME')
         
-        self.alias = itemD['AL'] if 'AL' in itemD.keys() else 'thing'        
-        self.properties = itemD['PR'].split() if 'PR' in itemD.keys() else ''
-        self.weight = itemD['WT'] if 'WT' in itemD.keys() else 0
-        self.isProp = True if itemD['TY'] == 'prop' else False   
+        self.alias = t('ALIA') or t('NAME') or 'thing'        
+        self.properties = t('PROP').split()
+        self.weight = t('WGHT') or 0
+        self.isProp = t('TYPE') == 'prop'  
         
-        self.examine_desc = itemD['EX'] if 'EX' in itemD.keys() else ''
-        self.ground_desc = itemD['GD'] if 'GD' in itemD.keys() else ''
+        self.examine_desc = t('EXMN')
+        self.ground_desc = t('GRND')
         
-        self.on_acquire = itemD['OA'] if 'OA' in itemD.keys() else 'pass'
-        self.action_dict = {act:mcode for act, mcode in itemD['AC'].items()} \
-                            if 'AC' in itemD.keys() else {}
+        self.on_acquire = t('ONAQ') or 'pass'
 
 
     # NOTE: Need to figure out how to do attribute changes. 
@@ -99,18 +105,19 @@ class Thing():
                     out_str = out_str + "\n" + x.ground_desc
             return out_str
         else: return ''    
-            
+    
+    @staticmethod
     def thing_processor(thing_dict):
         """ Returns a Thing class dictionary using a Thing info dictionary. """
         things = {}
-        #thing_dict = thing_fixer(thing_dict)
+        ##thing_dict = thing_fixer(thing_dict)
          
         # iterates over 
-        for j in thing_dict:
-            x = Thing(thing_dict[j])
-            key = x.alias
-            things[key] = x
-        return things
+        ##for t in thing_dict.values():
+        ##    x = Thing(t)
+        ##    key = x.id
+        ##    things[key] = x
+        return {x:Thing(thing_dict[x]) for x in thing_dict}
         
     """
     def thing_fixer(input_dict):

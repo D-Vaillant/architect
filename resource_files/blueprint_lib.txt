@@ -1,4 +1,4 @@
-Machine Code Library:
+Blueprint Code Library:
 Glossary:
     r_ = room
     p_ = prop
@@ -23,11 +23,11 @@ rom: Change room settings.
     r_name-t_name: remove thing from room
     
 ift: Conditional. Runs machine code if condition is met.
-    room=_>MCODE: MCODE runs if current room is given one.
-    item@room>MCODE: MCODE runs if item is at a room.
-    item@_>MCODE: MCODE runs if item is in inventory
+    room=_>BPCODE: BPCODE runs if current room is given one.
+    item@room>BPCODE: BPCODE runs if item is at a room.
+    item@_>BPCODE: BPCODE runs if item is in inventory
 
 sys: System messages.
     !string: Prints string to the console.
 General:
-    MCODE1}MCODE2: Run MCODE1, then MCODE2.
+    BPCODE1}BPCODE2: Run BPCODE1, then BPCODE2.

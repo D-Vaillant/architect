@@ -6,44 +6,57 @@ __author__ = "David Vaillant"
 class Room():
     """ Room class. """
     codes = {
-        '#NA':'name',
-        '#EN':'entry_desc',
-        '#RE':'reentry_desc',
-        '#EX':'examine_desc',
-        '#IL':'item_location',
+        '#IDEN':'id',
+        '#NAME':'name',
+        '#DESC':'entry_desc',
+        '#HOLD':'holding',
             }
-            
-    def d(self, room_dict, i):
-        """ Used in __init__ as error exception. """
-        try:
-            return room_dict[i]
-        except:
-            return 'N/A'
         
     def __init__(self, r):
-        self.links = [x for x in r['L']]
-        self.name = self.d(r, 'NA')
-        self.entry_desc = self.d(r, 'EN')
-        self.examine_desc = self.d(r, 'EX')
-        self.reentry_desc = self.d(r, 'RE')
-        self.holding = [x for x in self.d(r, 'IL').split(' | ')] if (
-                              self.d(r, 'IL') != '') else ['']
+        d = lambda s: r[s] if s in r else ''
+        self.links = [x for x in d('L')]
+        
+        self.name = d('NAME')
+        self.id = d('IDEN')
+        self.entry_desc = d('DESC')
+        
+        ##self.examine_desc = d('EX')
+        ##self.reentry_desc = d('RE')
+        self.holding = d('HOLD').split(' | ')
+        if self.holding == ['']: self.holding = []
+        
+        if d('DATA'): self.data = []
         self.is_visited = False
                               
     def on_entry(self):
         """ Runs whenever a room is entered. """
-        if self.is_visited:
-            return self.reentry_desc
-        else:
-            #self.is_visited = True
-            return self.entry_desc
+        self.is_visited = True
+        return self.entry_desc
         
     def on_examine(self):
-        if self.examine_desc == "N/A":
-            return "There's not much to see here."
-        else: 
-            return self.examine_desc
-            
+        return self.examine_desc if self.examine_desc \
+                                 else "There's not much to see here."
+    
+    def __str__(self):  
+        string = ("Name: {0}\n"
+                  "ID: {1}\n"
+                  "Entry message: {2}\n"
+                  "Items contained: [").format(self.name,
+                                               self.id,
+                                               self.entry_desc)        
+        for x in self.holding:
+            try:
+                string += x.id + " "
+            except AttributeError:
+                try:
+                    string += x + " "
+                except TypeError:
+                    string += "ERROR: ABNORMAL HOLDINGS"
+        string += "] \n"
+        
+        return string  
+        
+    @staticmethod
     def room_processor(room_info_dict, room_link_dict = None):
         """ Takes a Room info dictionary and creates a Room class dictionary.
 
@@ -52,21 +65,15 @@ class Room():
         r = {}
         # Iterates through the dictionary's keys and creates a new Room using
         # the associated value (a Room info dictionary).
-        for x in room_info_dict.keys():
+        for x in room_info_dict:
             r[x] = Room(room_info_dict[x])
+
         if room_link_dict: 
             for x in room_link_dict:
                 try:
                     r[x].link_processor(room_link_dict[x])
                 except KeyError:
                     print("Tried to set links of a room which doesn't exist.")
+                    print("Relevant line: ", x)
         return r
-    
-    def __str__(self):  
-        string = "Name: " + self.name + ".\n"
-        string = string + "First entry message: " + self.entry_desc + "\n"
-        string = string + "Reentry message: " + self.reentry_desc + "\n"
-        string = string + "On examine: " + self.examine_desc + "\n"
-        string = string + "Items contained: " + self.holding + "\n"
-    
-        return string  
+   
