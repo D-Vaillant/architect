@@ -30,7 +30,7 @@ def stringMaker_B(D):
     ##print(outer)
     return outer.encode('UTF-8')
 
-class FP_Integrity_Tester(unittest.TestCase):
+class FP_Core(unittest.TestCase):
     """ Makes sure that File_Processor class returns the right dicts. """
     def setUp(self):
         self.r_dict = {'initial':
@@ -91,6 +91,11 @@ class FP_Integrity_Tester(unittest.TestCase):
        
         self.fp = File_Processor(self.tf, ut = True)
         
+       
+    def tearDown(self):
+        self.tf.close()
+
+class FP_Integrity_Tester(FP_Core):
     def test_rooms(self):
         self.assertDictEqual(self.fp.room_info, self.r_dict)
             
@@ -102,14 +107,16 @@ class FP_Integrity_Tester(unittest.TestCase):
         
     def test_links(self):
         return
-        
-    def tearDown(self):
-        self.tf.close()
-
-class FP_Soundness_Tester():
+ 
+class FP_Soundness_Tester(FP_Core):
     """ Checks to see if FP dictionary is adequate for a Game. """
     pass
     
+class Action_Tester(unittest.TestCase):
+    def setUp(self):
+        return
+
+
 
 tester = FP_Integrity_Tester()
 if __name__ == '__main__': unittest.main()
