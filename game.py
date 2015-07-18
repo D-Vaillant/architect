@@ -10,7 +10,7 @@ Blueprint:
         A domain specific language.
         
         I didn't want to define a new class for each room but different
-    instances of classes can only differ semantically; changing Things
+    instances of classes can only differ semantically; changing Items
     required syntactic commands. Thus: I created a small system of commands
     which could be taken by an interpreter function which would then
     execute the commands.
@@ -24,14 +24,14 @@ Room:
     (see File_Processor) to create a Room class dict, one of the input
     parameters for the Game class. 
 
-Thing:
+Item:
         Container class for the objects that the PC encounters. Come in two
     varieties, props and items. Props are static and cannot be moved
     once placed (generally in a room) while items can be placed and
     removed from an Inventory.
 
-        Also contains the object_reader function which takes a Thing info dict
-    and creates a Thing class dict, one of the input parameters for the
+        Also contains the object_reader function which takes a Item info dict
+    and creates a Item class dict, one of the input parameters for the
     Game class.
     
 Action:
@@ -44,13 +44,14 @@ Inventory:
 File_Processor:
         Only used when initializing the Game; reads a text file
     and translates it into two different dictionaries: a Room info dict
-    and a Thing info dict. These info dicts are used by the Room and
-    Thing classes and encode all the information about the game.
+    and a Item info dict. These info dicts are used by the Room and
+    Item classes and encode all the information about the game.
 """
 
 from rooms import Room
 from actions import Action
-from object_source import Inventory, Thing
+from inventory import Inventory
+from item import Item
 from file_management import File_Processor
 import re
 
@@ -63,8 +64,9 @@ class Game():
     blueprint_keywords = '[&!\-\+@#]'
     ERROR = {
         "exe_pass": "Invalid command.",
-        "act_item_not_found": "It's not clear what thing " + 
-                              "you're talking about.",
+        "ambiguity": "Be more specific!",
+        "item_not_found": "It's not clear what thing " 
+                          "you're talking about.",
         "act_not_for_item": "That item cannot be used that way.",
         "act_using_rooms": "You can't do that with an entire room.",
         "act_already_holding": "You've already got one of those.",
@@ -88,20 +90,14 @@ class Game():
         self.isCLI = False 
         
         self.rooms = Room.room_processor(rdata)
-        self.things = Thing.thing_processor(tdata)
-        self.thing_names = {t.alias:t.id for t in self.things.values()}
+        self.items = Item.item_processor(tdata)
+        self.item_names = {t.name:t.id for t in self.items.values()}
         self.actions = Action.action_processor(adata)
         
         self._populate()
         
         # For eventual implementation of meta-data entry.
-        """
-        try: self.loc = self.mdata["firstRoom"]
-        except KeyError: raise KeyError("Initial room either unspecified "+
-                                        "or missing.")
-        self.inventory = Inventory(ownedObjs) if mdata["ownedObjs"] \
-                                              else Inventory()
-        """
+        ## self._meta_processor(mdata)
         
         self.loc = self.rooms["initial"]
         self.inventory = Inventory()
@@ -112,24 +108,78 @@ class Game():
         for room in self.rooms.values():
             try:
                 ##if V: print([t for t in room.holding])
-                room.holding = [self.things[t_id] for t_id in room.holding]
+                room.holding = [self.items[t_id] for t_id in room.holding]
             except KeyError:
-                raise KeyError("Room holding non-existent thing.")
-                
+                raise KeyError("Room holding non-existent item.")
+        return        
         ## Implementation of inventory populating.
         ## 
         ##
-        return
         
     def _meta_processor(self, raw_mdata):
-        return
+        try: 
+            firstRoomID = raw_mdata["firstRoom"]
+            self.loc = self._alias(firstRoomID)
+        except KeyError: 
+            raise KeyError("Initial room unspecified.")
+        except NameError:
+            raise NameError("Initial room not found.")
         
 #------------------------------ Utility Functions ----------------------------
 
-    def _getThing(self, user_input):
-        raise NotImplementedError
+    def _getItem(self, item_id, holder):
+        if item_id in holder.holding:
+            return self.items
+        
+#----------------------------- Engine Methods --------------------------------
 
-#-------------------------------- User Prompt --------------------------------
+    def _moveItem(self, moved_item, source, target):
+        if source: # is not None
+            if moved_item in source.holding:
+                if target: #is not None
+                    try: 
+                        target.holding += moved_item
+                        source.holding -= moved_item
+                    except AttributeError:
+                        raise AttributeError("Target lacks holding.")
+                else:
+                    source.holding -= moved_item
+            else:
+                raise Error("src != None and item not in src.holding.")
+        else:
+            if target: # is not None
+                try:
+                    target.holding += moved_item
+                except AttributeError:
+                    raise AttributeError("Target lacks holding.")
+            else: raise Error("Do-nothing call of _moveItem.")
+        return
+
+    
+    def _IDtoItem(self, id):
+        try:
+            return self.items[id]
+        except KeyError:
+            raise NameError("No item with ID {}.".format(id))
+        return
+        
+    
+    def _alias(self, target):
+        """ Turns an ID into its appropriate room or item. """
+        
+        if target == '_':
+            return self.loc
+        elif target == '$':
+            return self.inventory
+        elif target in self.rooms:
+            return self.rooms[target]
+        elif target in self.item_names:
+            return self.items[self.item_names[target]]
+        else:
+            raise NameError(target + " not a Item, Room, or alias.")
+            
+
+#-------------------------------- User Methods -------------------------------
 
     def prompt_exe(self, prompt):
         ''' Takes player input and passes the corresponding command to the
@@ -138,7 +188,7 @@ class Game():
         # Turns string inputs into arrays of strings.
         i = prompt.lower().split() if prompt != '' else ''
         
-        # Does nothing if empty command is entered.
+        # Does noitem if empty command is entered.
         if i == []: i = ''
         if len(i) < 1: return
 
@@ -181,8 +231,22 @@ class Game():
             self._puts("Actions: " + ', '.join(self.actions))
         return
             
-    ''' Classes of player commands: Moving, acting, and menu. '''
+# ----------------------- User/Designer Interface ----------------------------
 
+    def _local(self):
+        return self.loc.holding+self.inventory.holding  
+        
+    def _itemNametoID(self, item_name):
+        search_arr = [x for x in self._local if item_name in x.name]
+        if len(search_arr) == 1:
+            return search_arr[0].id
+        elif len(search_arr):
+            self._puts(self.ERROR["ambiguity"])
+            return None
+        else: 
+            self._puts(self.ERROR["item_not_found"])
+            return None
+    
     def _move(self, direction):
         """ Attempts to change self.loc in response to movement commands. """
         # Transforms letters to Room.links array index (0-3).
@@ -206,16 +270,18 @@ class Game():
         if tmp == '':
             if command[0] == "examine":
                 self._puts(self.loc.on_examine())
-                #self._puts(Thing.thing_printer([self.things[x] for x in self.loc.holding]))
+                #self._puts(Item.item_printer([self.items[x] 
+                     for x in self.loc.holding]))
             else: 
                 self._puts(self.ERROR["act_item_not_found"])
         # Examining.
         elif command[0] == "examine":
             if tmp == "room":
                 self._puts(self.loc.on_examine())
-                #self._puts(Thing.thing_printer([self.things[x] for x in self.loc.holding]))
+                #self._puts(Item.item_printer([self.items[x] 
+                     for x in self.loc.holding]))
             elif tmp in self.loc.holding or tmp in self.inventory.holding:
-                self._puts(self.things[tmp].examine_desc)
+                self._puts(self.items[tmp].examine_desc)
             else: self._puts(self.ERROR["act_item_not_found"])
         # Taking.
         elif command[0] == "take":
@@ -238,7 +304,7 @@ class Game():
                 self._puts(self.ERROR["act_using_rooms"])
             elif tmp in self.loc.holding or tmp in self.inventory.holding:
                 try:
-                    for x in self.things[tmp].action_dict[command[0]]:
+                    for x in self.items[tmp].action_dict[command[0]]:
                         self.blueprint_main(x)
                 except KeyError:
                     self._puts(self.ERROR["act_not_for_item"])
@@ -263,54 +329,23 @@ class Game():
             self._special_act(action, specifics)
                     
         # User-specified actions.
-        else:
+        elif action in self.actions:
             if V: print("Ordinary action being run.")
-            # Turns action names into Action instances.
-            action = self.actions[action]
+     
+            self._user_act(action, specifics)
+        else:
+            if V: print("Non-action. Why are we here?")
             
-            # Transforms specifics into either an error message string
-            # or an array of Thing names.
-            specifics = action.parse_string(specifics)
-            
-            
-            # If parse_string returns a #F: prefixed string, put
-            # an error message.
-            if specifics and specifics[:2] == "#F:":
-                self._puts(ACT_MSGS[specifics[2:]])
-            
-            # Turns the parsed string into (hopefully) an array of Thing IDs.
-            try:
-                specifics = specifics.split()
-            except AttributeError:
-                if specifics != 0: 
-                    raise AttributeError("specifics is not splittable.")
-            
-            try:
-                # Changes specifics into an array of Things.
-                for i, x in enumerate(specifics):
-                    if x:
-                        print("Working! ", i, x)
-                        specifics[i] = self.things[self.thing_names[x]]
-                        
-                # Calls the action, returning an array of instructions.
-                bp_code = action.call(specifics)
-                    
-                # Runs these instructions.
-                for x in bp_code: self.blueprint_main(x)
-            
-            # If one of the item IDs doesn't correspond to the ID of a 
-            # Thing, put a "Cannot be found." message.
-            except KeyError:
-                self._puts(self.ERROR["act_item_not_found"])
-                           
         return
         
     def _special_act(self, action, specifics):
         if action == "take":
-            try: specifics = self._alias(specifics)
-            except NameError: pass
+            """ Specifics should be an Item ID! """
+            try: specifics = self._IDtoItem(specifics)
+            except NameError: 
+                if V: print("Failed to get Item: {}".format(specifics)) 
             
-            if specifics == "room":
+            if specifics == "room": # More of an Easter Egg.
                 if V: print("Taking: Room.")
                 self._puts(self.ERROR["act_using_rooms"])
             elif specifics in self.loc.holding:
@@ -327,8 +362,45 @@ class Game():
                 self._puts(self.ERROR["act_item_not_found"])
                     
     def _user_act(self, action, specifics):
-        raise NotImplementedError
-    
+        breaker = True
+        
+        # Turns action names into Action instances.
+        action = self.actions[action]
+        
+        # Transforms specifics into either an error message string
+        # or an array of Item names.
+        specifics = action.parse_string(specifics)
+        
+        
+        # If parse_string returns a #F: prefixed string, put
+        # an error message.
+        if specifics and specifics[:2] == "#F:":
+            self._puts(ACT_MSGS[specifics[2:]])
+        
+        # Turns the parsed string into (hopefully) an array of Item IDs.
+        try:
+            specifics = specifics.split()
+            for i, x in enumerate(specifics):
+                if x:
+                    print("Working! ", i, x)
+                    try:
+                        # Changes specifics into an array of Items.
+                        specifics[i] = self.items[self.item_names[x]]
+                        print(specifics)
+                    except KeyError: 
+                        # If one of the item IDs doesn't correspond to the ID 
+                        # of an Item, put a "Cannot be found." message.
+                        self._puts(self.ERROR["act_item_not_found"])
+                        breaker = False
+                        
+        except AttributeError:
+            if specifics != 0: 
+                raise AttributeError("specifics is not splittable.")
+        if breaker:
+            # Calls the action, returning an array of instructions and runs it.
+            bp_code = action.call(specifics)
+            for x in bp_code: self.blueprint_main(x)
+
     def _inv(self, command):
         """ Inventory menu commands. """
         if command == "open":
@@ -337,7 +409,9 @@ class Game():
         return
 
     
-# ----------------------- Blueprint Implementation --------------------------
+# ----------------------- Designer/Engine Interface --------------------------
+    """ A great deal of work must be done here. Revamping this whole thing, 
+        in all probability. """
     
     def blueprint_main(self, words):
         """ Main function for Blueprint code.
@@ -361,20 +435,6 @@ class Game():
         getattr(self, type_code+"_func")(functional_char, target, parameters)
         #self._puts(type_code, functional_char, parameters)
         return
-    
-    def _alias(self, target):
-        """ Turns a name into its appropriate room or thing. """
-        
-        if target == '_':
-            return self.loc
-        elif target == '$':
-            return self.inventory
-        elif target in self.rooms:
-            return self.rooms[target]
-        elif target in self.thing_names:
-            return self.things[self.thing_names[target]]
-        else:
-            raise NameError(target + " not a Thing, Room, or alias.")
         
     def ift_func(self, functional_char, thing_in_question,
                  condition):
@@ -487,7 +547,7 @@ class Game():
         return
 
     def obj_func(self, functional_char, target, instruct):
-        """ Thing mcode processor. Used to manipulate Things. """
+        """ Item mcode processor. Used to manipulate Items. """
         if V: self._puts("### Entering object functions.")
         
         target = self._alias(target)
@@ -495,9 +555,9 @@ class Game():
         ### Give this a looksee.
         if functional_char == '#':
             try:
-                attr = Thing.codes['#'+instruct[:2]]
+                attr = Item.codes['#'+instruct[:2]]
             except KeyError:
-                raise AttributeError("No corresponding Thing attribute.")
+                raise AttributeError("No corresponding Item attribute.")
             #self.change_var(target, attr, instruct[2:])
             if V: self._puts("#### Setting the new attribute now.")
             setattr(getattr(self, "things")[target.alias], attr, instruct[2:])
@@ -506,7 +566,7 @@ class Game():
     ### Is this even used?
     def change_var(self, target, attribute, new_desc):
         """ Tertiary function used to change the attributes of instances of
-            Room and Thing. """
+            Room and Item. """
         try:
             setattr(target, attribute, new_desc) 
         except AttributeError:
@@ -541,18 +601,18 @@ class Game():
     def _on_entry(self):
         self._puts(self.loc.on_entry(), True)
         self._puts(
-                Thing.thing_printer( \
+                Item.thing_printer( \
                     [self.things[x] for x in self.loc.holding]),True)
         return
     '''
 
-# --------------------------- GUI/Game Interface ----------------------------
+# --------------------------- GUI/User Interface -----------------------------
     
     def _room_update(self):
-        thing_info = Thing.thing_printer(self.loc.holding)
+        item_info = Item.item_printer(self.loc.holding)
         setting_info = self.loc.on_entry() + '\n'
-        if thing_info:
-            setting_info += thing_info + '\n'
+        if item_info:
+            setting_info += item_info + '\n'
         self._puts(setting_info, True)
         return
 
@@ -586,11 +646,12 @@ class Game():
         self.action_output = ''
         return returning
 
+
 # ------------------------- Testing -----------------------------------------
 
 def test_init():
     with File_Processor('testgame_desc.txt') as F:
-        G = Game(F.room_info, F.thing_info, F.action_info, None)
+        G = Game(F.room_info, F.item_info, F.action_info, None)
     return G
 
 if __name__ == "__main__":

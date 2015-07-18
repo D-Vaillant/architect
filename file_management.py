@@ -1,9 +1,10 @@
 ''' file_processor.py: Contains the File_Processor class, which is run in a
-        with structure and outputs an Room info dictionary and a Thing info 
+        with structure and outputs an Room info dictionary and a Item info 
         dictionary. '''
 
 from rooms import Room
-from object_source import Thing
+from item import Item
+from inventory import Inventory
 from collections import OrderedDict as OrdDict
 
 V = False
@@ -11,14 +12,14 @@ V = False
 class File_Processor():
 
     marker_dict = {'A':'action', 'R':'room', 'M':'meta',
-                   'L':'link', 'T':'thing'}
+                   'L':'link', 'I':'item'}
                    
     def __init__(self, filename = '', ut = False):
-        """ Creates info and marker vars for room, thing. Takes a filename. """
+        """ Creates info and marker vars for room, item. Takes a filename. """
         self.room_info = {}
         self.room_marker = None
-        self.thing_info = {}
-        self.thing_marker = None
+        self.item_info = {}
+        self.item_marker = None
         self.action_info = {}
         self.action_marker = None
         self.meta_info = {}
@@ -37,7 +38,7 @@ class File_Processor():
     def file_processor(self, filename):
         """ Takes a filename, opens the file, and passes lines. 
         
-            If unitTesting, does other things. """
+            If unitTesting, does other items. """
             
         if filename == '':
             filename = input("Enter a filename: ")
@@ -75,7 +76,7 @@ class File_Processor():
                 getattr(self, marker+"_reader")(x.rstrip())
     
     def action_reader(self, line):
-        """ Does action reading things. """
+        """ Does action reading items. """
         
         # The # symbol marks a new action.
         if line[0] == '#':
@@ -117,7 +118,7 @@ class File_Processor():
                         self.action_info[self.action_marker][2][(obj0,obj1)]\
                             = tmp1
                     except ValueError:
-                        print("Something went wrong with the | split: " + line)
+                        print("Someitem went wrong with the | split: " + line)
                 
                 # Otherwise tmp0 is a unary spec.
                 # & divides up different requirements, eg multiple properties.
@@ -186,30 +187,30 @@ class File_Processor():
             print("Line: "+ line)
         return
 
-    def thing_reader(self, line):
-        """ Reads a line of text and alters thing_* attributes accordingly.
+    def item_reader(self, line):
+        """ Reads a line of text and alters item_* attributes accordingly.
 
         On name specification:
-            Adds a new Thing dictionary to thing_info, 
-            sets thing_marker to its key.
+            Adds a new Item dictionary to item_info, 
+            sets item_marker to its key.
 
         On property specification:
-            Adds a new entry to the marked Thing dictionary.
+            Adds a new entry to the marked Item dictionary.
 
         Otherwise: prints a warning and continues. """
 
-        # IDEN marks a Thing ID; creates a new Thing dictionary and
-        # adds it to thing_info. thing_marker is set to the current
-        # working Thing name.
+        # IDEN marks a Item ID; creates a new Item dictionary and
+        # adds it to item_info. item_marker is set to the current
+        # working Item name.
         if line[:5] == '#IDEN':
-            self.thing_marker = line[6:]
-            self.thing_info[self.thing_marker] = {'IDEN':self.thing_marker}
+            self.item_marker = line[6:]
+            self.item_info[self.item_marker] = {'IDEN':self.item_marker}
          
         # For other properties, strip away trailing whitespace and 
         # add property code : property description to object dictionary.
-        elif line[:5] in Thing.codes.keys():
+        elif line[:5] in Item.codes.keys():
             try:
-                self.thing_info[self.thing_marker][line[1:5]] = line[6:]
+                self.item_info[self.item_marker][line[1:5]] = line[6:]
             # If no ID has been entered before a property, raise Error.
             except NameError:
                 print("No ID entered; information discarded.")
@@ -223,13 +224,13 @@ class File_Processor():
         tmp = line[4:].split('{')
         
         # Creates an empty dict if this is the first action.
-        if 'AC' not in self.thing_info[self.thing_marker].keys():
-            self.thing_info[self.thing_marker]['AC'] = {}
+        if 'AC' not in self.item_info[self.item_marker].keys():
+            self.item_info[self.item_marker]['AC'] = {}
         # Add associated machine code to action dictionary.
-        self.thing_info[self.thing_marker]['AC'][tmp[0]] = tmp[1:]
+        self.item_info[self.item_marker]['AC'][tmp[0]] = tmp[1:]
     """
         
-    # Deprecated by staticmethods in Thing class.
+    # Deprecated by staticmethods in Item class.
     """
     # takes an object metadict and returns a dict of props and a dict of items
     def obj_processor(obj_list = []):
@@ -238,20 +239,20 @@ class File_Processor():
         if type(obj_list) == str:
             obj_list = obj_reader(obj_list)
 
-        things = dict()
+        items = dict()
         obj_list = obj_putter(obj_list)
          
         # iterates over 
         for j in obj_list:
-            x = Thing(j)
+            x = Item(j)
             key = x.name
-            things[key] = x
-        return things
+            items[key] = x
+        return items
         
     def obj_putter(fileIn = '', fileOut = ''):
         sourceList = obj_reader(fileIn) if type(fileIn) is str else fileIn
         for ele in sourceList:
-            for code in Thing.codes:
+            for code in Item.codes:
                 if code[1:] not in ele.keys():
                     ele[code[1:]] = {} if code == '#AC' \
                                     else 'pass'
