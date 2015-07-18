@@ -72,11 +72,11 @@ basement | None | None | None | house
 // prop:name+name2, put prop name in room name2. _ is current room.
 
 
-~T
+~I
 // Things.
 #IDEN bauble
 #NAME shiny bauble
-#ALIA bauble
+#NICK bauble
 #EXMN A small, blue sphere made of solid polished glass.
 #GRND There is a tiny blue [bauble] on the ground.
 #ONAQ pass
@@ -85,7 +85,7 @@ basement | None | None | None | house
 
 #IDEN shards
 #NAME glass shards
-#ALIA glass shards
+#NICK shards
 #GRND There are some [glass shards] scattered about.
 #EXMN Bluish shards from a shattered bauble.
 #PROP glass
@@ -93,7 +93,7 @@ basement | None | None | None | house
 
 #IDEN worn_key
 #NAME worn key
-#ALIA worn key
+#NICK key
 #EXMN An slightly rusted worn key. Hopefully it still works.
 #GRND A battered-looking [worn key] is lying here.
 #PROP metal
@@ -108,7 +108,7 @@ basement | None | None | None | house
 
 #IDEN painting
 #NAME old painting
-#ALIA painting
+#NICK painting
 #EXMN The old man's face glares at you accusingly. Are those eyes following you?
 #GRND A tattered [painting] hangs on the wall.
 #PROP cloth
@@ -124,7 +124,7 @@ basement | None | None | None | house
 #IDEN door
 #NAME battered door
 #DS A battered %n
-#ALIA door
+#NICK door
 #EXMN The door looks weak, but not weak enough to knock down. Unfortunately. It is locked.
 #GRND pass
 #TYPE prop
