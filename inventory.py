@@ -8,7 +8,6 @@ class Inventory():
         ''' Allows for a non-empty initial inventory. '''
         self.structured_holding = default
         
-        self.holding = []
         self.update_holding()
         
         self.containers = default.keys()
@@ -16,8 +15,11 @@ class Inventory():
         self.name = "player inventory"
  
     def update_holding(self):
+        self.holding = []
         for x in self.structured_holding.values():
-            self.holding = self.holding.union(x)
+            print(x)
+            print(self.holding)
+            self.holding.extend(list(x))
             
     def add_item(self, x, target="main"):
         ''' Used to add items to the inventory. '''

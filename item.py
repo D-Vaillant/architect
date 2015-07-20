@@ -28,7 +28,7 @@ class Item():
         self.nickname = t('NICK') or t('NAME') or 'item'        
         self.properties = t('PROP').split()
         self.weight = t('WGHT') or 0
-        self.isProp = t('TYPE') == 'prop'  
+        self.isProp = ('static' in self.properties)  
         
         self.examine_desc = t('EXMN')
         self.ground_desc = t('GRND')

@@ -2,6 +2,7 @@ import unittest
 import tempfile
 from collections import OrderedDict
 from file_management import File_Processor
+from game import *
 
 """ To do: revamp Action dictionary. """
 
@@ -115,6 +116,10 @@ class FP_Soundness_Tester(FP_Core):
 class Action_Tester(unittest.TestCase):
     def setUp(self):
         return
+
+class Game_Tester(unittest.TestCase):
+    def test_directions(self):
+
 
 
 

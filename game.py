@@ -237,7 +237,7 @@ class Game():
         return self.loc.holding+self.inventory.holding  
         
     def _itemNametoID(self, item_name):
-        search_arr = [x for x in self._local if item_name in x.name]
+        search_arr = [x for x in self._local() if item_name in x.name]
         if len(search_arr) == 1:
             return search_arr[0].id
         elif len(search_arr):
@@ -335,20 +335,23 @@ class Game():
             self._user_act(action, specifics)
         else:
             if V: print("Non-action. Why are we here?")
+            self._puts("I'm not sure what you mean.")
+
             
         return
         
     def _special_act(self, action, specifics):
         if action == "take":
             """ Specifics should be an Item ID! """
-            try: specifics = self._IDtoItem(specifics)
+            try: 
+                specifics = self._IDtoItem(self._itemNametoID(specifics))
             except NameError: 
                 if V: print("Failed to get Item: {}".format(specifics)) 
             
             if specifics == "room": # More of an Easter Egg.
                 if V: print("Taking: Room.")
                 self._puts(self.ERROR["act_using_rooms"])
-            elif specifics in self.loc.holding:
+            elif specifics:
                 if V: print("Taking: ", specifics)
                 if specifics.isProp:
                     self._puts(self.ERROR["act_taking_prop"])
@@ -362,6 +365,7 @@ class Game():
                 self._puts(self.ERROR["act_item_not_found"])
                     
     def _user_act(self, action, specifics):
+        """ Text processing part. """
         breaker = True
         
         # Turns action names into Action instances.
@@ -380,12 +384,14 @@ class Game():
         # Turns the parsed string into (hopefully) an array of Item IDs.
         try:
             specifics = specifics.split()
+            print(specifics)
             for i, x in enumerate(specifics):
                 if x:
                     print("Working! ", i, x)
                     try:
                         # Changes specifics into an array of Items.
-                        specifics[i] = self.items[self.item_names[x]]
+                        x = self._itemNametoID(x)
+                        specifics[i] = self._IDtoItem(x) 
                         print(specifics)
                     except KeyError: 
                         # If one of the item IDs doesn't correspond to the ID 
@@ -396,6 +402,8 @@ class Game():
         except AttributeError:
             if specifics != 0: 
                 raise AttributeError("specifics is not splittable.")
+
+        """ Acting part. """
         if breaker:
             # Calls the action, returning an array of instructions and runs it.
             bp_code = action.call(specifics)

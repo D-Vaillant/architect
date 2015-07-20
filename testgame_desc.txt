@@ -81,15 +81,13 @@ basement | None | None | None | house
 #GRND There is a tiny blue [bauble] on the ground.
 #ONAQ pass
 #PROP glass
-#TYPE item
 
 #IDEN shards
 #NAME glass shards
 #NICK shards
 #GRND There are some [glass shards] scattered about.
 #EXMN Bluish shards from a shattered bauble.
-#PROP glass
-#TYPE prop
+#PROP glass static
 
 #IDEN worn_key
 #NAME worn key
@@ -111,8 +109,7 @@ basement | None | None | None | house
 #NICK painting
 #EXMN The old man's face glares at you accusingly. Are those eyes following you?
 #GRND A tattered [painting] hangs on the wall.
-#PROP cloth
-#TYPE prop
+#PROP cloth static
 
 #IDEN notebook
 #NAME black notebook
@@ -127,8 +124,7 @@ basement | None | None | None | house
 #NICK door
 #EXMN The door looks weak, but not weak enough to knock down. Unfortunately. It is locked.
 #GRND pass
-#TYPE prop
-#PROP wooden locked
+#PROP wooden locked static
 
 ~A
 // Actions.

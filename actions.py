@@ -59,7 +59,7 @@ class Action:
         if condition[0:2] == 'p:':
             return (condition[2:] in single_obj[0].properties)
         else:
-            return (condition == single_obj[0].alias) or (not condition)
+            return (condition == single_obj[0].id) or (not condition)
             
     def pluralUnaryTest(self, single_obj, condition_array):
         for x in condition_array:
@@ -98,4 +98,3 @@ class Action:
             
         return actions
         
-    
