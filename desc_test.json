@@ -3,8 +3,7 @@
     "type":     "room",
     "id":       "initial",
     "name":     "A Grassy Meadow",
-    "desc_0":   "The green grass meadows softly. The sky is blue and all around you grass blooms.",
-    "desc_1":   "To your north you see a strange house.",
+    "desc":   "The green grass meadows softly. The sky is blue and all around you grass blooms.\nTo your north you see a strange house.",
     "hold":     ["bauble"],
     "links":    [null, "flowers", "entrance", null]
 },
@@ -12,7 +11,7 @@
     "type":     "room",
     "id":       "entrance",
     "name":     "In Front of the House",
-    "desc_0":   "A rickety old house stands in front of you, dead north.",
+    "desc":   "A rickety old house stands in front of you, dead north.",
     "hold":     ["worn_key", "door"],
     "links":    [null, "entrance", null, null]
 },
@@ -20,7 +19,7 @@
     "type":     "room",
     "id":       "house",
     "name":     "Inside of the House",
-    "desc_0":   "The house is barren: no furniture, drapes in tatters. To your west there is a staircase down.",
+    "desc":   "The house is barren: no furniture, drapes in tatters. To your west there is a staircase down.",
     "hold":     ["painting"],
     "links":    ["basement", "entrance", null, null]
 },
@@ -28,7 +27,7 @@
     "type":     "room",
     "id":       "basement",
     "name":     "The Basement",
-    "desc_0":   "It's dusty and musty down here.",
+    "desc":   "It's dusty and musty down here.",
     "hold":     "notebook",
     "links":    [null, null, null, "house"]
 },
@@ -36,7 +35,7 @@
     "type":     "room",
     "id":       "flowers",
     "name":     "A Flowery Meadow",
-    "desc_0":   "It's a beautiful landscape of flowers and plants which stretch for as far as the eye can see. You feel at peace here, calm and collected at last. But you cannot linger here forever.",
+    "desc":   "It's a beautiful landscape of flowers and plants which stretch for as far as the eye can see. You feel at peace here, calm and collected at last. But you cannot linger here forever.",
     "links":    [null, null, "entrance", null]
 },
 

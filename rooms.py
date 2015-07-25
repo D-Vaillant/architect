@@ -6,25 +6,23 @@ __author__ = "David Vaillant"
 class Room():
     """ Room class. """
     codes = {
-        '#IDEN':'id',
-        '#NAME':'name',
-        '#DESC':'entry_desc',
-        '#HOLD':'holding',
+        'id':'id',
+        'name':'name',
+        'desc':'entry_desc',
+        'hold':'holding',
+        'links':'links'
             }
         
     def __init__(self, r):
         d = lambda s: r[s] if s in r else ''
-        self.links = [x for x in d('L')]
-        
+
+        self.links = [x for x in d('links')]
         self.name = d('name')
         self.id = d('id')
-        self.entry_desc = d('DESC')
-        
-        ##self.examine_desc = d('EX')
-        ##self.reentry_desc = d('RE')
+        self.entry_desc = d('desc')
         self.holding = d('hold')
-        
         if d('data'): self.data = []
+
         self.is_visited = False
                               
     def on_entry(self):
@@ -59,7 +57,7 @@ class Room():
         return string  
         
     @staticmethod
-    def room_processor(room_info_dict, room_link_dict = None):
+    def room_processor(room_info_dict):
         """ Takes a Room info dictionary and creates a Room class dictionary.
 
         If a link info dictionary is provided, runs each Room's
@@ -69,7 +67,9 @@ class Room():
         # the associated value (a Room info dictionary).
         for x in room_info_dict:
             r[x] = Room(room_info_dict[x])
+        return r
 
+        """
         if room_link_dict: 
             for x in room_link_dict:
                 try:
@@ -77,5 +77,6 @@ class Room():
                 except KeyError:
                     print("Tried to set links of a room which doesn't exist.")
                     print("Relevant line: ", x)
-        return r
+        """
+
    

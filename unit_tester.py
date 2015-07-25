@@ -2,6 +2,7 @@ import unittest
 import tempfile
 from collections import OrderedDict
 from file_management import File_Processor
+from json_reader import InfoCollector
 from game import *
 
 """ To do: revamp Action dictionary. """
@@ -31,8 +32,8 @@ def stringMaker_B(D):
     ##print(outer)
     return outer.encode('UTF-8')
 
+"""
 class FP_Core(unittest.TestCase):
-    """ Makes sure that File_Processor class returns the right dicts. """
     def setUp(self):
         self.r_dict = {'initial':
                             {'DESC':"Sick room bro",
@@ -110,18 +111,31 @@ class FP_Integrity_Tester(FP_Core):
         return
  
 class FP_Soundness_Tester(FP_Core):
-    """ Checks to see if FP dictionary is adequate for a Game. """
     pass
-    
+"""
+
+class JR_Tester(unittest.TestCase):
+    def setUp(self):
+        self.Reader = InfoCollector()
+        self.Reader.main()
+
+    def test_rooms(self):
+        roomDict = Room.room_processor(self.Reader.room_info)
+        for r in roomDict.values():
+            self.subtest_room(r)
+
+    def subtest_room(self, r):
+        for key, r_var in r.codes.items():
+            self.assertIn(key, self.Reader.room_info[r.id])
+            self.assertEqual(getattr(r, r_var),self.Reader.room_info[r.id][key])
+
 class Action_Tester(unittest.TestCase):
     def setUp(self):
         return
 
 class Game_Tester(unittest.TestCase):
     def test_directions(self):
+        return
 
-
-
-
-tester = FP_Integrity_Tester()
+jj = JR_Tester()
 if __name__ == '__main__': unittest.main()

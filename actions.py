@@ -4,7 +4,7 @@ V = True
 
 class Action:
     def __init__(self, act_dict):        
-        self.name = act_dict["name"]
+        self.name = act_dict["id"]
         a = lambda s: act_dict[s] if s in act_dict else ''                   
         self.zero_act = a('0')
         self.unary_act = self.actProcessor(a('1'))
@@ -13,14 +13,20 @@ class Action:
         self.binary_prep = a('prep')
         
         ## self.unaryVerbose = 'V' in act_dict
-        
-        self.min = min(self.dict)
-        self.max = max(self.dict)
+       
+        # An idiomatic way of saying "2 if self.binary_act,
+        # else 1 if unary_act, 
+        # else 0 if zero_act"
+        self.max = (self.binary_act and 2) or (self.unary_act and 1) or \
+                   (self.zero_act and 0)
+        # Like the above but reversed order.
+        self.min = (self.zero_act and 0) or (self.unary_act and 1) or \
+                   (self.binary_act and 2)
         
     def actProcessor(self, act_list):
         A = OrdDict()
         for x in act_list:
-            A.extend(x)
+            A.update(x)
         return A or ''
         
     def parse_string(self, input_list):

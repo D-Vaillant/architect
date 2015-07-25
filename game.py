@@ -52,7 +52,8 @@ from rooms import Room
 from actions import Action
 from inventory import Inventory
 from item import Item
-from file_management import File_Processor
+##from file_management import File_Processor
+from json_reader import InfoCollector
 import re
 
 # Verbose option.
@@ -658,8 +659,8 @@ class Game():
 # ------------------------- Testing -----------------------------------------
 
 def test_init():
-    with File_Processor('testgame_desc.txt') as F:
-        G = Game(F.room_info, F.item_info, F.action_info, None)
+    F = InfoCollector()
+    G = Game(F.room_info, F.item_info, F.action_info, None)
     return G
 
 if __name__ == "__main__":
