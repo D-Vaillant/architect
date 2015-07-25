@@ -1,0 +1,125 @@
+[
+{
+    "type":     "room",
+    "id":       "initial",
+    "name":     "A Grassy Meadow",
+    "desc_0":   "The green grass meadows softly. The sky is blue and all around you grass blooms.",
+    "desc_1":   "To your north you see a strange house.",
+    "hold":     ["bauble"],
+    "links":    [null, "flowers", "entrance", null]
+},
+{
+    "type":     "room",
+    "id":       "entrance",
+    "name":     "In Front of the House",
+    "desc_0":   "A rickety old house stands in front of you, dead north.",
+    "hold":     ["worn_key", "door"],
+    "links":    [null, "entrance", null, null]
+},
+{
+    "type":     "room",
+    "id":       "house",
+    "name":     "Inside of the House",
+    "desc_0":   "The house is barren: no furniture, drapes in tatters. To your west there is a staircase down.",
+    "hold":     ["painting"],
+    "links":    ["basement", "entrance", null, null]
+},
+{
+    "type":     "room",
+    "id":       "basement",
+    "name":     "The Basement",
+    "desc_0":   "It's dusty and musty down here.",
+    "hold":     "notebook",
+    "links":    [null, null, null, "house"]
+},
+{
+    "type":     "room",
+    "id":       "flowers",
+    "name":     "A Flowery Meadow",
+    "desc_0":   "It's a beautiful landscape of flowers and plants which stretch for as far as the eye can see. You feel at peace here, calm and collected at last. But you cannot linger here forever.",
+    "links":    [null, null, "entrance", null]
+},
+
+{
+    "type":     "item",
+    "id":       "bauble",
+    "name":     "blue bauble",
+    "nick":     "bauble",
+    "examine":  "A small, bluish bauble made of solid polished glass. Seems a bit fragile.",
+    "ground":   "There is a tiny blue bauble on the ground.",
+    "acquire":  "pass",
+    "property": ["glass"]
+},
+{
+    "type":     "item",
+    "id":       "shards",
+    "name":     "glass shards",
+    "nick":     "shards",
+    "ground":   "There are some glass shards scattered around.",
+    "examine":  "Bluish shards from a shattered bauble.",
+    "property": ["glass", "static"]
+},
+{
+    "type":     "item",
+    "id":       "worn_key",
+    "name":     "worn key",
+    "nick":     "key",
+    "examine":  "A slightly rusted worn key. Hopefully it still works.",
+    "ground":   "A battered-looking worn key is lying here.",
+    "property": ["metal"]
+},
+{
+    "type":     "item",
+    "id":       "painting",
+    "name":     "old painting",
+    "nick":     "painting",
+    "examine":  "The painting depicts a glaring old man. Wait, are those eyes following you?",
+    "ground":   "A tattered painting of an old man hangs on the wall.",
+    "property": ["cloth", "static"]
+},
+{
+    "type":     "item",
+    "id":       "notebook",
+    "name":     "black notebook",
+    "nick":     "notebook",
+    "examine":  "The notebook is filled with translations of hieroglyphs. There's some space in the back for notes.",
+    "ground":   "A black notebook sits on the ground.",
+    "data":     []
+},
+{
+    "type":     "item",
+    "id":       "old_door",
+    "name":     "battered door",
+    "nick":     "door",
+    "examine":  "The door looks weak but not weak enough to knock down. It's locked.",
+    "ground":   "A sad-looking door guards the house.",
+    "property": ["door", "wooden", "locked", "static"]
+},
+
+{
+    "type":     "action",
+    "id":     "cry",
+    "0":        ""
+},
+{
+    "type":     "action",
+    "id":     "tap",
+    "1":[
+         {"bauble":     "a"},
+         {"p:wooden":   "a"},
+         {"p:metal":    "a"},
+         {"":           "a"}]
+},
+{
+    "type":     "action",
+    "id":     "unlock",
+    "prep":     "with",
+    "1":[
+         {"p:locked":   ""},
+         {"":          "" }],
+    "2":[
+         {"old_door&p:locked|worn_key": "a"},
+         {"old_door|": "a"}]
+           
+}
+]

@@ -16,16 +16,15 @@ class Room():
         d = lambda s: r[s] if s in r else ''
         self.links = [x for x in d('L')]
         
-        self.name = d('NAME')
-        self.id = d('IDEN')
+        self.name = d('name')
+        self.id = d('id')
         self.entry_desc = d('DESC')
         
         ##self.examine_desc = d('EX')
         ##self.reentry_desc = d('RE')
-        self.holding = d('HOLD').split(' | ')
-        if self.holding == ['']: self.holding = []
+        self.holding = d('hold')
         
-        if d('DATA'): self.data = []
+        if d('data'): self.data = []
         self.is_visited = False
                               
     def on_entry(self):
@@ -37,6 +36,9 @@ class Room():
         return self.examine_desc if self.examine_desc \
                                  else "There's not much to see here."
     
+    def link(self, linked_room, dir):
+        self.links[dir] = linked_room
+
     def __str__(self):  
         string = ("Name: {0}\n"
                   "ID: {1}\n"

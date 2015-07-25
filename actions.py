@@ -4,18 +4,24 @@ V = True
 
 class Action:
     def __init__(self, act_dict):        
-        self.dict = {x:act_dict[x] for x in act_dict 
-                                   if x in [0,1,2] and act_dict[x]}
-                                   
+        self.name = act_dict["name"]
         a = lambda s: act_dict[s] if s in act_dict else ''                   
-        self.unary_prep = a('P1')
-        self.binary_prep = a('P2')
+        self.zero_act = a('0')
+        self.unary_act = self.actProcessor(a('1'))
+        self.binary_act = self.actProcessor(a('2'))
+                                   
+        self.binary_prep = a('prep')
         
         ## self.unaryVerbose = 'V' in act_dict
         
         self.min = min(self.dict)
         self.max = max(self.dict)
         
+    def actProcessor(self, act_list):
+        A = OrdDict()
+        for x in act_list:
+            A.extend(x)
+        return A or ''
         
     def parse_string(self, input_list):
         """ Takes a user-given string and returns a list of IDs.

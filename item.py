@@ -22,18 +22,34 @@ class Item():
         """ Populates attributes using a Item info dictionary. """
         
         t = lambda s: itemD[s] if s in itemD.keys() else ''
-        self.id = t('IDEN')
-        self.name = t('NAME')
+        self.id = t('id')
+        self.name = t('name')
         
-        self.nickname = t('NICK') or t('NAME') or 'item'        
-        self.properties = t('PROP').split()
-        self.weight = t('WGHT') or 0
+        self.nickname = t('nick') or t('name') or 'item'        
+        self.properties = set(t('property').split())
+        self.weight = t('weight') or 0
         self.isProp = ('static' in self.properties)  
         
-        self.examine_desc = t('EXMN')
-        self.ground_desc = t('GRND')
+        self.examine_desc = t('examine')
+        self.ground_desc = t('ground')
         
-        self.on_acquire = t('ONAQ') or 'pass'
+        self.on_acquire = t('acquire') or 'pass'
+
+    def setProperty(self, property_input, isAdding = True):
+        if isAdding:
+            self.properties.add(property_input)
+        else:
+            try:
+                self.properties.remove(property_input)
+            except KeyError: return True 
+        return False #if setProperty: error handle.
+
+    def setDescription(self, type, text = ""):
+        try:
+            self.setattr(type, text)
+            return False
+        except AttributeError:
+            return True
 
 
     # NOTE: Need to figure out how to do attribute changes. 
