@@ -18,7 +18,7 @@ class Action:
         
         self.zero_act = a('0') or ''
         self.unary_act = self.actProcessor(a('1') or [])
-        self.binary_act = self.actProcessor(a('2') or [], binary=Tree)
+        self.binary_act = self.actProcessor(a('2') or [], binary=True)
                                    
         self.binary_prep = a('prep') or ''
                
@@ -32,11 +32,20 @@ class Action:
                    (self.binary_act and 2)
         
     def actProcessor(self, act_list, binary=False):
+        """ Takes a list of lists of length 2, produces an OrderedDict. """
         A = OrdDict()
-        for x in act_list:
-            if binary:
-            else: A.update(x)
-        return A or ''
+
+        for x, y in act_list: # [ [x_0, y_0],...,[x_n,y_n] ]
+            if binary: # could also use ("|" in x_0) but this is faster
+                x = x.split("|") # [[a,b], y_0]
+                for i in [0,1]:
+                    # [ [(ap_0,ap_1), (bp_0,bp_1)], y_0]
+                    x[i] = tuple(x[i].split('&')) 
+                x = tuple(x) # [ ((ap_0,ap_1), (bp_0,bp_1)), y ]
+            else:
+                x = tuple(x.split('&')) #[ (xp_0, xp_1), y]
+            A[x] = y
+        return A 
         
     def parse_string(self, input_list):
         """ Takes a user-given string and returns a list of IDs.

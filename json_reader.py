@@ -6,15 +6,20 @@ from actions import Action
 from collections import OrderedDict as OrdDict
 
 class InfoCollector:
-    def __init__(self):
+    def __init__(self, filename = "desc_test.json"):
         self.action_info = {}
         self.item_info = {}
         self.room_info = {}
+        
+        self.main()
 
     def main(self):
-        with open("desc_test.json", 'r') as F:
+        with open(filename, 'r') as F:
             p = json.load(F)
         
         for x in p:
             getattr(self, x["type"]+"_info").update({x["id"]:x})
         return
+
+# Testing stuffs.
+I = InfoCollector()

@@ -104,21 +104,21 @@
     "type":     "action",
     "id":     "tap",
     "1":[
-         {"bauble":     "a"},
-         {"p:wooden":   "a"},
-         {"p:metal":    "a"},
-         {"":           "a"}]
+         ["bauble",     "a"],
+         ["p:wooden",   "a"],
+         ["p:metal",    "a"],
+         ["",           "a"]]
 },
 {
     "type":     "action",
     "id":     "unlock",
     "prep":     "with",
     "1":[
-         {"p:locked":   ""},
-         {"":          "" }],
+         ["p:locked",   ""],
+         ["",           ""]],
     "2":[
-         {"old_door&p:locked|worn_key": "a"},
-         {"old_door|": "a"}]
+         ["old_door&p:locked|worn_key", "a"],
+         ["old_door|", "a"]]
            
 }
 ]

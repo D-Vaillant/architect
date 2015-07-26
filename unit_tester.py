@@ -136,26 +136,29 @@ class JR_Tester(unittest.TestCase):
                     
     def test_actions(self):
         actDict = Action.action_processor(self.Reader.action_info)
-        for a in roomDict:
+        for a in actDict:
             self.subtest_action(self.Reader.action_info[a], actDict[a])
         
     def subtest_action(self, actionJR, actionOBJ):
+        grabObjVar = lambda q: getattr(actionOBJ, q)
+
         for key, i_var in actionOBJ.codes.items():
             if key in actionJR:
-                self.assertEqual(getattr(actionOBJ, i_var), actionJR[
+                if key not in {"1", "2"}: 
+                    self.assertEqual(grabObjVar(i_var), actionJR[key])
+                else:
+                    pass
+            else:
+                if key in {"1", "2"}:
+                    self.assertEqual(grabObjVar(i_var), OrderedDict())
+                else:
+                    self.assertEqual(grabObjVar(i_var), '')
         
     
     def test_items(self):
         itemDict = Item.item_processor(self.Reader.action_info)
         for i in itemDict:
-            self.subtest_item(self.Reader.item_info[i], itemDict[i])
-        
-class Action_Tester(unittest.TestCase):
-    def setUp(self):
-        return
-
-class Game_Tester(unittest.TestCase):
-    def test_directions(self):
-        return
+            ##self.subtest_item(self.Reader.item_info[i], itemDict[i])
+            pass
 
 if __name__ == '__main__': unittest.main()
