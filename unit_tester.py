@@ -121,14 +121,35 @@ class JR_Tester(unittest.TestCase):
 
     def test_rooms(self):
         roomDict = Room.room_processor(self.Reader.room_info)
-        for r in roomDict.values():
-            self.subtest_room(r)
+        for r in roomDict:
+            self.subtest_room(self.Reader.room_info[r], roomDict[r])
 
-    def subtest_room(self, r):
-        for key, r_var in r.codes.items():
-            self.assertIn(key, self.Reader.room_info[r.id])
-            self.assertEqual(getattr(r, r_var),self.Reader.room_info[r.id][key])
-
+    def subtest_room(self, roomJR, roomOBJ):
+        for key, r_var in roomOBJ.codes.items():
+                if key in roomJR:
+                    self.assertEqual(getattr(roomOBJ, r_var), roomJR[key])
+                else:
+                    if key == "links":
+                        self.assertEqual(roomOBJ.links == [None]*4)
+                    else:
+                        self.assertEqual(getattr(roomOBJ, r_var), '')
+                    
+    def test_actions(self):
+        actDict = Action.action_processor(self.Reader.action_info)
+        for a in roomDict:
+            self.subtest_action(self.Reader.action_info[a], actDict[a])
+        
+    def subtest_action(self, actionJR, actionOBJ):
+        for key, i_var in actionOBJ.codes.items():
+            if key in actionJR:
+                self.assertEqual(getattr(actionOBJ, i_var), actionJR[
+        
+    
+    def test_items(self):
+        itemDict = Item.item_processor(self.Reader.action_info)
+        for i in itemDict:
+            self.subtest_item(self.Reader.item_info[i], itemDict[i])
+        
 class Action_Tester(unittest.TestCase):
     def setUp(self):
         return
@@ -137,5 +158,4 @@ class Game_Tester(unittest.TestCase):
     def test_directions(self):
         return
 
-jj = JR_Tester()
 if __name__ == '__main__': unittest.main()

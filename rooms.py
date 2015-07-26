@@ -14,14 +14,15 @@ class Room():
             }
         
     def __init__(self, r):
-        d = lambda s: r[s] if s in r else ''
+        d = lambda s: r[s] if s in r else None
 
-        self.links = [x for x in d('links')]
-        self.name = d('name')
-        self.id = d('id')
-        self.entry_desc = d('desc')
-        self.holding = d('hold')
-        if d('data'): self.data = []
+        self.id = d('id') 
+
+        self.links = d('links') or [None]*4
+        self.name = d('name') or ''
+        self.entry_desc = d('desc') or ''
+        self.holding = d('hold') or ''
+        ##if d('data'): self.data = []
 
         self.is_visited = False
                               

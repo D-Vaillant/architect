@@ -3,17 +3,25 @@ from collections import OrderedDict as OrdDict
 V = True
 
 class Action:
-    def __init__(self, act_dict):        
-        self.name = act_dict["id"]
-        a = lambda s: act_dict[s] if s in act_dict else ''                   
-        self.zero_act = a('0')
-        self.unary_act = self.actProcessor(a('1'))
-        self.binary_act = self.actProcessor(a('2'))
-                                   
-        self.binary_prep = a('prep')
+    codes = {
+        "id":"id",
+        "0":"zero_act",
+        "1":"unary_act",
+        "2":"binary_act",
+        "prep":"binary_prep"
+        }
         
-        ## self.unaryVerbose = 'V' in act_dict
-       
+    def __init__(self, act_dict):    
+        a = lambda s: act_dict[s] if s in act_dict else None
+
+        self.id = act_dict["id"] # id not in act_dict => something went wrong
+        
+        self.zero_act = a('0') or ''
+        self.unary_act = self.actProcessor(a('1') or [])
+        self.binary_act = self.actProcessor(a('2') or [], binary=Tree)
+                                   
+        self.binary_prep = a('prep') or ''
+               
         # An idiomatic way of saying "2 if self.binary_act,
         # else 1 if unary_act, 
         # else 0 if zero_act"
@@ -23,10 +31,11 @@ class Action:
         self.min = (self.zero_act and 0) or (self.unary_act and 1) or \
                    (self.binary_act and 2)
         
-    def actProcessor(self, act_list):
+    def actProcessor(self, act_list, binary=False):
         A = OrdDict()
         for x in act_list:
-            A.update(x)
+            if binary:
+            else: A.update(x)
         return A or ''
         
     def parse_string(self, input_list):
@@ -37,14 +46,7 @@ class Action:
         p1_loc = 0
         
         if(input_list):
-            if self.max > 0:
-                if input_list[0] == self.unary_prep:
-                    p1_loc += 1
-                ## else:
-                ##     if self.unaryVerbose:
-                ##         return "FAIL: No unary prep."
-                ##     else: pass 
-                
+            if self.max > 0:                
                 if self.max > 1:
                     try:
                         p2_loc = input_list.index(self.binary_prep)
@@ -88,12 +90,12 @@ class Action:
             for i,j in self.dict[2]:
                 if self.pluralUnaryTest(input_objs[0], i) and \
                    self.pluralUnaryTest(input_objs[1], j):
-                    val = self.dict[2][(i,j)]
+                    val = self.binary_act[(i,j)]
                 else: pass
         else: # Only one object.
-            for i in self.dict[1]:
+            for i in self.unary_act:
                 if self.pluralUnaryTest(input_objs, i):
-                    val = self.dict[1][i]
+                    val = self.unary_act[i]
                 else: pass
         if V: print("Returning {}.".format(val))                
             

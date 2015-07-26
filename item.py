@@ -6,32 +6,31 @@ class Item():
         ITEMS: Can be placed in player inventory and used from there.
         PROPS: Cannot be moved from their position in a room. """
     codes = {
-        '#IDEN':'id',
-        '#NAME':'name',
-        '#EXMN':'examine_desc',
-        '#ONAQ':'on_acquire',
-        '#TYPE':'type',
-        '#ALIA':'alias',
-        '#GRND':'ground_desc',
-        '#PROP':'properties',
-        '#WGHT':'weight'
+        'id':'id',
+        'name':'name',
+        'nick':'nick',
+        'examine':'examine_desc',
+        'acquire':'on_acquire',
+        'ground':'ground_desc',
+        'property':'properties',
+        'weight':'weight'
         }
 
 
     def __init__(self, itemD):
         """ Populates attributes using a Item info dictionary. """
+        t = lambda s: itemD[s] if s in itemD.keys() else None
         
-        t = lambda s: itemD[s] if s in itemD.keys() else ''
         self.id = t('id')
         self.name = t('name')
         
-        self.nickname = t('nick') or t('name') or 'item'        
-        self.properties = set(t('property').split())
+        self.nickname = t('nick') or t('name') or 'item'                
+        self.properties = set(t('property') or [])
         self.weight = t('weight') or 0
         self.isProp = ('static' in self.properties)  
         
-        self.examine_desc = t('examine')
-        self.ground_desc = t('ground')
+        self.examine_desc = t('examine') or ''
+        self.ground_desc = t('ground') or ''
         
         self.on_acquire = t('acquire') or 'pass'
 
