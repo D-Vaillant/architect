@@ -12,7 +12,7 @@
     "id":       "entrance",
     "name":     "In Front of the House",
     "desc":   "A rickety old house stands in front of you, dead north.",
-    "hold":     ["worn_key", "door"],
+    "hold":     ["worn_key", "old_door"],
     "links":    [null, "entrance", null, null]
 },
 {
@@ -28,7 +28,7 @@
     "id":       "basement",
     "name":     "The Basement",
     "desc":   "It's dusty and musty down here.",
-    "hold":     "notebook",
+    "hold":     ["notebook"],
     "links":    [null, null, null, "house"]
 },
 {

@@ -6,6 +6,10 @@ from json_reader import InfoCollector
 from game import *
 
 """ To do: revamp Action dictionary. """
+""" TESTS TO WRITE:
+        Verify that Rooms only hold actual item IDs.
+        Game logic stuff.
+        """
 
 def stringMaker_A(D):
     """ Used to turn Room and Thing info dicts into byte strings. """
