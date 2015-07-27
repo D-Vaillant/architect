@@ -118,25 +118,28 @@ class FP_Soundness_Tester(FP_Core):
     pass
 """
 
-class JR_Tester(unittest.TestCase):
+class Game_Loader(unittest.TestCase):
     def setUp(self):
         self.Reader = InfoCollector()
         self.Reader.main()
-
+        
+class JR_Tester(Game_Loader):
     def test_rooms(self):
         roomDict = Room.room_processor(self.Reader.room_info)
         for r in roomDict:
             self.subtest_room(self.Reader.room_info[r], roomDict[r])
 
     def subtest_room(self, roomJR, roomOBJ):
+        grabObjVar = lambda q: getattr(roomOBJ, q)
+        
         for key, r_var in roomOBJ.codes.items():
                 if key in roomJR:
-                    self.assertEqual(getattr(roomOBJ, r_var), roomJR[key])
+                    self.assertEqual(grabObjVar(r_var), roomJR[key])
                 else:
                     if key == "links":
-                        self.assertEqual(roomOBJ.links == [None]*4)
+                        self.assertEqual(roomOBJ.links, [None]*4)
                     else:
-                        self.assertEqual(getattr(roomOBJ, r_var), '')
+                        self.assertEqual(grabObjVar(r_var), '')
                     
     def test_actions(self):
         actDict = Action.action_processor(self.Reader.action_info)
@@ -146,23 +149,69 @@ class JR_Tester(unittest.TestCase):
     def subtest_action(self, actionJR, actionOBJ):
         grabObjVar = lambda q: getattr(actionOBJ, q)
 
-        for key, i_var in actionOBJ.codes.items():
+        for key, a_var in actionOBJ.codes.items():
             if key in actionJR:
                 if key not in {"1", "2"}: 
-                    self.assertEqual(grabObjVar(i_var), actionJR[key])
+                    self.assertEqual(grabObjVar(a_var), actionJR[key])
                 else:
                     pass
             else:
                 if key in {"1", "2"}:
-                    self.assertEqual(grabObjVar(i_var), OrderedDict())
+                    self.assertEqual(grabObjVar(a_var), OrderedDict())
                 else:
-                    self.assertEqual(grabObjVar(i_var), '')
+                    self.assertEqual(grabObjVar(a_var), '')
         
     
     def test_items(self):
-        itemDict = Item.item_processor(self.Reader.action_info)
+        itemDict = Item.item_processor(self.Reader.item_info)
         for i in itemDict:
-            ##self.subtest_item(self.Reader.item_info[i], itemDict[i])
-            pass
+            self.subtest_item(self.Reader.item_info[i], itemDict[i])
 
+    def subtest_item(self, itemJR, itemOBJ):
+        grabObjVar = lambda q: getattr(itemOBJ, q)
+        
+        for key, i_var in itemOBJ.codes.items():
+            if key in itemJR:
+                if key is "property":
+                    self.assertEqual(grabObjVar(i_var), set(itemJR[key]))
+                else:
+                    self.assertEqual(grabObjVar(i_var), itemJR[key])
+            else:
+                if key == "weight":
+                    self.assertEqual(grabObjVar(i_var), 0)
+                elif key == "property":
+                    self.assertEqual(grabObjVar(i_var), set())
+                elif key == "nick":
+                    if "name" in itemJR:
+                        self.assertEqual(grabObjVar(i_var), itemJR['name'])
+                    else:
+                        self.assertEqual(grabObjVar(i_var), 'item')
+                        
+class Item_Tester(Game_Loader):
+    def setUp(self):
+        super().setUp()
+        theItems = Item.item_processor(self.Reader.item_info)
+        self.bauble = theItems["bauble"]
+        self.painting = theItems["painting"]
+        
+    def test_setProperty_adding_success(self):
+        self.bauble.setProperty("static")
+        self.assertIn("static", self.bauble.properties)
+        
+    def test_setProperty_removing_success(self):
+        self.bauble.setProperty("glass", False)
+        self.assertNotIn("glass", self.bauble.properties)
+        
+    def test_setProperty_removing_failure(self):
+        with self.assertRaises(KeyError):
+            self.bauble.setProperty("metal", False)
+        
+    def test_setDescription_success(self):
+        self.bauble.setDescription("ground", "Success.")
+        self.assertEqual(self.bauble.ground_desc, "Success.")
+        
+    def test_setDescription_failure(self):
+        with self.assertRaises(AttributeError):
+            self.bauble.setProperty("stone", "Failure.")
+        
 if __name__ == '__main__': unittest.main()

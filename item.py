@@ -8,7 +8,7 @@ class Item():
     codes = {
         'id':'id',
         'name':'name',
-        'nick':'nick',
+        'nick':'nickname',
         'examine':'examine_desc',
         'acquire':'on_acquire',
         'ground':'ground_desc',
@@ -25,7 +25,7 @@ class Item():
         self.name = t('name')
         
         self.nickname = t('nick') or t('name') or 'item'                
-        self.properties = set(t('property') or [])
+        self.properties = set(t('property') or {})
         self.weight = t('weight') or 0
         self.isProp = ('static' in self.properties)  
         
@@ -45,7 +45,7 @@ class Item():
 
     def setDescription(self, type, text = ""):
         try:
-            self.setattr(type, text)
+            self.setattr(type+"_desc", text)
             return False
         except AttributeError:
             return True
@@ -63,7 +63,7 @@ class Item():
         else:
             return valve
     """
-    
+    @staticmethod
     def item_printer(holds):
         out_str = ''
         if holds:
