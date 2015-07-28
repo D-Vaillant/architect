@@ -26,12 +26,12 @@ class Room():
 
         self.is_visited = False
                               
-    def on_entry(self):
+    def onEntry(self):
         """ Runs whenever a room is entered. """
         self.is_visited = True
         return self.entry_desc
         
-    def on_examine(self):
+    def onExamine(self):
         return self.examine_desc if self.examine_desc \
                                  else "There's not much to see here."
     

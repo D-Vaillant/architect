@@ -35,21 +35,24 @@ class Item():
         self.on_acquire = t('acquire') or 'pass'
 
     def setProperty(self, property_input, isAdding = True):
+        error = False
+        
         if isAdding:
             self.properties.add(property_input)
         else:
             try:
                 self.properties.remove(property_input)
-            except KeyError: return True 
-        return False #if setProperty: error handle.
+            except KeyError: error = True
+        return error #if setProperty: error handle.
 
     def setDescription(self, type, text = ""):
-        try:
-            self.setattr(type+"_desc", text)
-            return False
-        except AttributeError:
-            return True
-
+        error = False
+        
+        if hasattr(self, type+"_desc"):
+            setattr(self, type+"_desc", text)
+        else:
+            error = True #if setDescription: error handle.
+        return error
 
     # NOTE: Need to figure out how to do attribute changes. 
     """
@@ -63,6 +66,9 @@ class Item():
         else:
             return valve
     """
+    
+    ### NOTE: This could probably be moved elsewhere. ###
+    ### Related: __str__ method for Items. ###
     @staticmethod
     def item_printer(holds):
         out_str = ''

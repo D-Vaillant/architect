@@ -1,7 +1,7 @@
 import unittest
 import tempfile
 from collections import OrderedDict
-from file_management import File_Processor
+##from file_management import File_Processor
 from json_reader import InfoCollector
 from game import *
 
@@ -203,15 +203,27 @@ class Item_Tester(Game_Loader):
         self.assertNotIn("glass", self.bauble.properties)
         
     def test_setProperty_removing_failure(self):
-        with self.assertRaises(KeyError):
-            self.bauble.setProperty("metal", False)
+        self.assertTrue(self.bauble.setProperty("metal", False))
         
     def test_setDescription_success(self):
         self.bauble.setDescription("ground", "Success.")
         self.assertEqual(self.bauble.ground_desc, "Success.")
         
     def test_setDescription_failure(self):
-        with self.assertRaises(AttributeError):
-            self.bauble.setProperty("stone", "Failure.")
+        self.assertTrue(self.bauble.setDescription("stone", "Failure."))
+
+class Room_Tester(Game_Loader):
+    def setUp(self):
+        super().setUp()
+        theRooms = Room.room_processor(self.Reader.room_info)
+        self.field = theRooms["flowers"]
+        self.initial = theRooms["initial"]
+        
+    def test_onEntry(self):
+        self.assertFalse(self.field.is_visited)
+        self.assertEqual(self.field.entry_desc, self.field.onEntry())
+        self.assertTrue(self.field.is_visited)
+        
+    def test_Examine(self):
         
 if __name__ == '__main__': unittest.main()
