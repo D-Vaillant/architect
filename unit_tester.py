@@ -10,9 +10,8 @@ from game import *
         Verify that Rooms only hold actual item IDs.
         Game logic stuff.
         """
-
+"""
 def stringMaker_A(D):
-    """ Used to turn Room and Thing info dicts into byte strings. """
     outer = ''
     for key, value in D.items():
         outer += "#IDEN {}\n".format(key)
@@ -36,7 +35,7 @@ def stringMaker_B(D):
     ##print(outer)
     return outer.encode('UTF-8')
 
-"""
+
 class FP_Core(unittest.TestCase):
     def setUp(self):
         self.r_dict = {'initial':
@@ -224,6 +223,9 @@ class Room_Tester(Game_Loader):
         self.assertEqual(self.field.entry_desc, self.field.onEntry())
         self.assertTrue(self.field.is_visited)
         
-    def test_Examine(self):
-        
+    def test_link(self):
+        self.field.link(self.initial, 0)
+        self.assertEqual(self.field.links[0], self.initial)
+
+    
 if __name__ == '__main__': unittest.main()
