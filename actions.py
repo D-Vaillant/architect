@@ -30,7 +30,7 @@ class Action:
         # Like the above but reversed order.
         self.min = (self.zero_act and 0) or (self.unary_act and 1) or \
                    (self.binary_act and 2)
-        
+
     def actProcessor(self, act_list, binary=False):
         """ Takes a list of lists of length 2, produces an OrderedDict. """
         A = OrdDict()
@@ -48,7 +48,7 @@ class Action:
         return A 
         
     def parse_string(self, input_list):
-        """ Takes a user-given string and returns a list of IDs.
+        """ Takes a user-given list (split string) and returns a list of IDs.
         
         If fails, returns an error message. """
         val = ''
@@ -62,18 +62,18 @@ class Action:
                         val = [input_list[p1_loc:p2_loc],
                                input_list[p2_loc+1:]]
                     except ValueError:
-                        if self.min == 2: val = "#F:Input < 2"
+                        if self.min == 2: val = "$! Input < Min"
                         else: pass
                 else: pass
                 
                 val = input_list[p1_loc:]   
             else:
-                val = "#F:Input > 0"
+                val = "$! Input > Min"
         else:
             if self.min == 0:
                 val = 0
             else:
-                val = "#F:0 < Max"
+                val = "$! 0 < Min"
         
         if V: print("Action parsed string: ", val)
         return val
