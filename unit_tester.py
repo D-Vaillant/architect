@@ -223,7 +223,5 @@ class Room_Tester(Game_Loader):
         self.assertFalse(self.field.is_visited)
         self.assertEqual(self.field.entry_desc, self.field.onEntry())
         self.assertTrue(self.field.is_visited)
-        
-    def test_Examine(self):
-        
+                
 if __name__ == '__main__': unittest.main()
