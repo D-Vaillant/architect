@@ -98,7 +98,7 @@
 {
     "type":     "action",
     "id":     "cry",
-    "0":        ""
+    "0":        "a"
 },
 {
     "type":     "action",
@@ -111,11 +111,11 @@
 },
 {
     "type":     "action",
-    "id":     "unlock",
+    "id":       "unlock",
     "prep":     "with",
     "1":[
-         ["p:locked",   ""],
-         ["",           ""]],
+         ["p:locked",   "a"],
+         ["",           "a"]],
     "2":[
          ["old_door&p:locked|worn_key", "a"],
          ["old_door|", "a"]]

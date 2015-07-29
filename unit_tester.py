@@ -253,24 +253,24 @@ class Action_Tester(Game_Loader):
     def test_max_tap(self):
         self.assertEqual(self.tap.max, 1)
 
-    def test_parse_string_0_where_min_is_zero(self):
-        self.assertEqual(self.cry.parse_string([]), 0)
+    def test_parseString_0_where_min_is_zero(self):
+        self.assertEqual(self.cry.parseString([]), 0)
 
-    def test_parse_string_0_where_min_greaterThan_zero(self):
-        self.assertEqual(self.unlock.parse_string([]), "$! 0 < Min")
+    def test_parseString_0_where_min_greaterThan_zero(self):
+        self.assertEqual(self.unlock.parseString([]), "$! 0 < Min")
 
-    def test_parse_string_1_where_max_is_zero(self):
-        self.assertEqual(self.cry.parse_string(["rock"]), "$! Input > Min")
+    def test_parseString_1_where_max_is_zero(self):
+        self.assertEqual(self.cry.parseString(["rock"]), "$! Input > Min")
 
-    def test_parse_string_1_successfully(self):
-        self.assertEqual(self.unlock.parse_string(["rock"]), ["rock"])
+    def test_parseString_1_successfully(self):
+        self.assertEqual(self.unlock.parseString(["rock"]), ["rock"])
 
-    def test_parse_string_2_where_prep_missing(self):
-        self.assertEqual(self.unlock.parse_string(["rock", "out"]), 
-                                                   "$! Input < Max")
+    def test_parseString_2_where_prep_missing(self):
+        self.assertEqual(self.unlock.parseString(["rock", "out"]), 
+                                                 ["rock", "out"])
 
-    def test_parse_string_2_successfully(self):
-        self.assertEqual(self.unlock.parse_string(["dance", "with", "style"]), 
-                                                  ["dance", "style"])
+    def test_parseString_2_successfully(self):
+        self.assertEqual(self.unlock.parseString(["dance", "with", "style"]), 
+                                                 ["dance", "style"])
 
 if __name__ == '__main__': unittest.main()

@@ -1,6 +1,6 @@
 from collections import OrderedDict as OrdDict
 
-V = True
+V = False
 
 class Action:
     codes = {
@@ -46,26 +46,44 @@ class Action:
             A[x] = y
         return A 
         
-    def parse_string(self, input_list):
+    def min_maxHelper(self):
+        min, max = None, None
+        
+        if self.zero_act:
+            min = 0
+            max = 0
+        if self.unary_act:
+            if min is None: min = 1
+            max = 1
+        if self.binary_act:
+            if min is None: min = 2
+            max = 2
+            
+        if min is None: min = -1
+        if max is None: max = -1
+        return min, max
+    
+    def parseString(self, input_list):
         """ Takes a user-given list (split string) and returns a list of IDs.
         
         If fails, returns an error message. """
         val = ''
-        p1_loc = 0
+        prep_loc = 0
         
         if(input_list):
-            if self.max > 0:                
+            if self.max > 0:
                 if self.max > 1:
+                    # try binary preposition stuff
                     try:
-                        p2_loc = input_list.index(self.binary_prep)
-                        val = [input_list[p1_loc:p2_loc],
-                               input_list[p2_loc+1:]]
+                        prep_loc = input_list.index(self.binary_prep)
+                        val = input_list[:prep_loc] +\
+                              input_list[prep_loc+1:]
                     except ValueError:
                         if self.min == 2: val = "$! Input < Min"
                         else: pass
                 else: pass
                 
-                val = input_list[p1_loc:]   
+                if not val: val = input_list[prep_loc:]
             else:
                 val = "$! Input > Min"
         else:
