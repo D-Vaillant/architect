@@ -10,9 +10,8 @@ from game import *
         Verify that Rooms only hold actual item IDs.
         Game logic stuff.
         """
-
+"""
 def stringMaker_A(D):
-    """ Used to turn Room and Thing info dicts into byte strings. """
     outer = ''
     for key, value in D.items():
         outer += "#IDEN {}\n".format(key)
@@ -36,7 +35,7 @@ def stringMaker_B(D):
     ##print(outer)
     return outer.encode('UTF-8')
 
-"""
+
 class FP_Core(unittest.TestCase):
     def setUp(self):
         self.r_dict = {'initial':
@@ -223,5 +222,55 @@ class Room_Tester(Game_Loader):
         self.assertFalse(self.field.is_visited)
         self.assertEqual(self.field.entry_desc, self.field.onEntry())
         self.assertTrue(self.field.is_visited)
-                
+        
+    def test_link(self):
+        self.field.link(self.initial, 0)
+        self.assertEqual(self.field.links[0], self.initial)
+
+class Action_Tester(Game_Loader):
+    def setUp(self):
+        super().setUp()
+        theActions = Action.action_processor(self.Reader.action_info)
+        self.unlock = theActions["unlock"]
+        self.cry = theActions["cry"]
+        self.tap = theActions["tap"]
+
+    def test_min_cry(self):
+        self.assertEqual(self.cry.min, 0)
+
+    def test_min_unlock(self):
+        self.assertEqual(self.unlock.min, 1)
+
+    def test_min_tap(self):
+        self.assertEqual(self.tap.min, 1)
+
+    def test_max_cry(self):
+        self.assertEqual(self.cry.max, 0)
+
+    def test_max_unlock(self):
+        self.assertEqual(self.unlock.max, 2)
+
+    def test_max_tap(self):
+        self.assertEqual(self.tap.max, 1)
+
+    def test_parse_string_0_where_min_is_zero(self):
+        self.assertEqual(self.cry.parse_string([]), 0)
+
+    def test_parse_string_0_where_min_greaterThan_zero(self):
+        self.assertEqual(self.unlock.parse_string([]), "$! 0 < Min")
+
+    def test_parse_string_1_where_max_is_zero(self):
+        self.assertEqual(self.cry.parse_string(["rock"]), "$! Input > Min")
+
+    def test_parse_string_1_successfully(self):
+        self.assertEqual(self.unlock.parse_string(["rock"]), ["rock"])
+
+    def test_parse_string_2_where_prep_missing(self):
+        self.assertEqual(self.unlock.parse_string(["rock", "out"]), 
+                                                   "$! Input < Max")
+
+    def test_parse_string_2_successfully(self):
+        self.assertEqual(self.unlock.parse_string(["dance", "with", "style"]), 
+                                                  ["dance", "style"])
+
 if __name__ == '__main__': unittest.main()

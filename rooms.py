@@ -31,10 +31,6 @@ class Room():
         self.is_visited = True
         return self.entry_desc
         
-    def onExamine(self):
-        return self.examine_desc if self.examine_desc \
-                                 else "There's not much to see here."
-    
     def link(self, linked_room, dir):
         self.links[dir] = linked_room
 
