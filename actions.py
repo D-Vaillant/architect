@@ -111,9 +111,9 @@ class Action:
         if V: print("CALLING ACTION: ", input_objs)
         val = None
         
-        if(not input_objs): return self.dict[0]
+        if(not input_objs): return self.zero_act
         elif(type(input_objs) == 'tuple'): # Two objects.
-            for i,j in self.dict[2]:
+            for i,j in self.binary_act:
                 if self.pluralUnaryTest(input_objs[0], i) and \
                    self.pluralUnaryTest(input_objs[1], j):
                     val = self.binary_act[(i,j)]

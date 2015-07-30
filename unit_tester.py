@@ -123,7 +123,7 @@ class Game_Loader(unittest.TestCase):
         self.Reader.main()
         
 class JR_Tester(Game_Loader):
-    def test_rooms(self):
+    def test_JR_rooms(self):
         roomDict = Room.room_processor(self.Reader.room_info)
         for r in roomDict:
             self.subtest_room(self.Reader.room_info[r], roomDict[r])
@@ -140,7 +140,7 @@ class JR_Tester(Game_Loader):
                     else:
                         self.assertEqual(grabObjVar(r_var), '')
                     
-    def test_actions(self):
+    def test_JR_actions(self):
         actDict = Action.action_processor(self.Reader.action_info)
         for a in actDict:
             self.subtest_action(self.Reader.action_info[a], actDict[a])
@@ -161,7 +161,7 @@ class JR_Tester(Game_Loader):
                     self.assertEqual(grabObjVar(a_var), '')
         
     
-    def test_items(self):
+    def test_JR_items(self):
         itemDict = Item.item_processor(self.Reader.item_info)
         for i in itemDict:
             self.subtest_item(self.Reader.item_info[i], itemDict[i])
@@ -193,22 +193,22 @@ class Item_Tester(Game_Loader):
         self.bauble = theItems["bauble"]
         self.painting = theItems["painting"]
         
-    def test_setProperty_adding_success(self):
+    def test_Item_setProperty_adding_success(self):
         self.bauble.setProperty("static")
         self.assertIn("static", self.bauble.properties)
         
-    def test_setProperty_removing_success(self):
+    def test_Item_setProperty_removing_success(self):
         self.bauble.setProperty("glass", False)
         self.assertNotIn("glass", self.bauble.properties)
         
-    def test_setProperty_removing_failure(self):
+    def test_Item_setProperty_removing_failure(self):
         self.assertTrue(self.bauble.setProperty("metal", False))
         
-    def test_setDescription_success(self):
+    def test_Item_setDescription_success(self):
         self.bauble.setDescription("ground", "Success.")
         self.assertEqual(self.bauble.ground_desc, "Success.")
         
-    def test_setDescription_failure(self):
+    def test_Item_setDescription_failure(self):
         self.assertTrue(self.bauble.setDescription("stone", "Failure."))
 
 class Room_Tester(Game_Loader):
@@ -218,12 +218,12 @@ class Room_Tester(Game_Loader):
         self.field = theRooms["flowers"]
         self.initial = theRooms["initial"]
         
-    def test_onEntry(self):
+    def test_Room_onEntry(self):
         self.assertFalse(self.field.is_visited)
         self.assertEqual(self.field.entry_desc, self.field.onEntry())
         self.assertTrue(self.field.is_visited)
         
-    def test_link(self):
+    def test_Room_link(self):
         self.field.link(self.initial, 0)
         self.assertEqual(self.field.links[0], self.initial)
 
@@ -235,42 +235,43 @@ class Action_Tester(Game_Loader):
         self.cry = theActions["cry"]
         self.tap = theActions["tap"]
 
-    def test_min_cry(self):
+    def test_Action_min_cry(self):
         self.assertEqual(self.cry.min, 0)
 
-    def test_min_unlock(self):
+    def test_Action_min_unlock(self):
         self.assertEqual(self.unlock.min, 1)
 
-    def test_min_tap(self):
+    def test_Action_min_tap(self):
         self.assertEqual(self.tap.min, 1)
 
-    def test_max_cry(self):
+    def test_Action_max_cry(self):
         self.assertEqual(self.cry.max, 0)
 
-    def test_max_unlock(self):
+    def test_Action_max_unlock(self):
         self.assertEqual(self.unlock.max, 2)
 
-    def test_max_tap(self):
+    def test_Action_max_tap(self):
         self.assertEqual(self.tap.max, 1)
 
-    def test_parseString_0_where_min_is_zero(self):
+    def test_Action_parseString_0_where_min_is_zero(self):
         self.assertEqual(self.cry.parseString([]), 0)
 
-    def test_parseString_0_where_min_greaterThan_zero(self):
+    def test_Action_parseString_0_where_min_greaterThan_zero(self):
         self.assertEqual(self.unlock.parseString([]), "$! 0 < Min")
 
-    def test_parseString_1_where_max_is_zero(self):
+    def test_Action_parseString_1_where_max_is_zero(self):
         self.assertEqual(self.cry.parseString(["rock"]), "$! Input > Min")
 
-    def test_parseString_1_successfully(self):
+    def test_Action_parseString_1_successfully(self):
         self.assertEqual(self.unlock.parseString(["rock"]), ["rock"])
 
-    def test_parseString_2_where_prep_missing(self):
+    def test_Action_parseString_2_where_prep_missing(self):
         self.assertEqual(self.unlock.parseString(["rock", "out"]), 
                                                  ["rock", "out"])
 
-    def test_parseString_2_successfully(self):
+    def test_Action_parseString_2_successfully(self):
         self.assertEqual(self.unlock.parseString(["dance", "with", "style"]), 
                                                  ["dance", "style"])
+
 
 if __name__ == '__main__': unittest.main()
