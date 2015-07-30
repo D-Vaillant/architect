@@ -14,7 +14,7 @@
     "name":     "In Front of the House",
     "desc":   "A rickety old house stands in front of you, dead north.",
     "hold":     ["worn_key", "old_door"],
-    "links":    [null, "entrance", null, null]
+    "links":    [null, "initial", null, null]
 },
 {
     "type":     "room",
@@ -37,7 +37,7 @@
     "id":       "flowers",
     "name":     "A Flowery Meadow",
     "desc":   "It's a beautiful landscape of flowers and plants which stretch for as far as the eye can see. You feel at peace here, calm and collected at last. But you cannot linger here forever.",
-    "links":    [null, null, "entrance", null]
+    "links":    [null, null, "initial", null]
 },
 
 {

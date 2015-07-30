@@ -41,18 +41,17 @@ Inventory:
         Container class for the PC's inventory. Contains items which 
     can be used from the inventory menu.
 
-File_Processor:
-        Only used when initializing the Game; reads a text file
-    and translates it into two different dictionaries: a Room info dict
-    and a Item info dict. These info dicts are used by the Room and
-    Item classes and encode all the information about the game.
+InfoCollector:
+        Only used when initializing the Game; reads a JSON file
+    and translates it into three different dictionaries: a Room info dict,
+    an Action info dict, and a Item info dict. These info dicts are used by
+    their respective classes and encode all the information about the game.
 """
 
 from rooms import Room
 from actions import Action
 from inventory import Inventory
 from item import Item
-##from file_management import File_Processor
 from json_reader import InfoCollector
 import re
 
@@ -61,8 +60,8 @@ V = True
 
 class Game():
     cardinals = {'w':0, 's':1, 'n':2, 'e':3}
-    special_actions = ['take']
-    blueprint_keywords = '[&!\-\+@#]'
+    special_actions = ['take'] ## Special actions are... weird.
+    blueprint_keywords = '[&!\-\+@#]' ## Blueprint needs to be reworked.
     ERROR = {
         "exe_pass": "Invalid command.",
         "ambiguity": "Be more specific!",
@@ -75,9 +74,9 @@ class Game():
         "room_no_room_found": "WARNING: Incorrect room in Blueprint."
         }
     ACT_MSGS = {
-        "Input < 2":"What do you want to do that to?",
-        "0 < Max:":"You need to do that with something.",
-        "Input > 0":"That doesn't make sense."
+        "Input < Min":"What do you want to do that to?",
+        "0 < Min:":"You need to do that with something.",
+        "Input > Min":"That doesn't make sense."
         }
     GAME_MSGS = {
         "beginning": "Welcome to the demo!",
@@ -88,7 +87,7 @@ class Game():
     
 #---------------------------- Initialization ---------------------------------
     def __init__(self, rdata, tdata, adata, mdata):
-        self.isCLI = False 
+        self.isCLI = False ## Specified by mdata...?
         
         self.rooms = Room.room_processor(rdata)
         self.items = Item.item_processor(tdata)
@@ -129,10 +128,10 @@ class Game():
 #------------------------------ Utility Functions ----------------------------
 
     def _getItem(self, item_id, holder):
-        if item_id in holder.holding:
-            return self.items
+        return self.items["item_id"] if item_id in holder.holding else None
         
 #----------------------------- Engine Methods --------------------------------
+## Used in BP Code implementation. 
 
     def _moveItem(self, moved_item, source, target):
         if source: # is not None
@@ -153,7 +152,7 @@ class Game():
                     target.holding += moved_item
                 except AttributeError:
                     raise AttributeError("Target lacks holding.")
-            else: raise Error("Do-nothing call of _moveItem.")
+            else: raise Error("Do nothing call of _moveItem.")
         return
 
     
@@ -189,7 +188,7 @@ class Game():
         # Turns string inputs into arrays of strings.
         i = prompt.lower().split() if prompt != '' else ''
         
-        # Does noitem if empty command is entered.
+        # Does nothing if empty command is entered.
         if i == []: i = ''
         if len(i) < 1: return
 
@@ -213,6 +212,7 @@ class Game():
             self._help(i[1:])
             
         # Deprecated right now since Quit is handled by the GUI.
+        # HOWEVER: Useful for CLI implementation.
         elif i[0] == 'quit' or i[0] == 'q':
             self._puts(self.GAME_MSGS["quit"])
         
@@ -256,7 +256,7 @@ class Game():
         try:
             self.loc = self.rooms[self.loc.links[translated_direction]]
         except KeyError:
-            self._puts('I can\'t go that way.')
+            self._puts("I can't go that way.")
             return
         #self._room_update()
             
@@ -336,14 +336,11 @@ class Game():
             self._user_act(action, specifics)
         else:
             if V: print("Non-action. Why are we here?")
-            self._puts("I'm not sure what you mean.")
-
             
         return
         
     def _special_act(self, action, specifics):
         if action == "take":
-            """ Specifics should be an Item ID! """
             try: 
                 specifics = self._IDtoItem(self._itemNametoID(specifics))
             except NameError: 
@@ -374,12 +371,12 @@ class Game():
         
         # Transforms specifics into either an error message string
         # or an array of Item names.
-        specifics = action.parse_string(specifics)
+        specifics = action.parseString(specifics)
         
         
-        # If parse_string returns a #F: prefixed string, put
+        # If parseString returns a "$! " prefixed string, put
         # an error message.
-        if specifics and specifics[:2] == "#F:":
+        if specifics and specifics[:2] == "$! ":
             self._puts(ACT_MSGS[specifics[2:]])
         
         # Turns the parsed string into (hopefully) an array of Item IDs.
@@ -619,7 +616,7 @@ class Game():
     
     def _room_update(self):
         item_info = Item.item_printer(self.loc.holding)
-        setting_info = self.loc.on_entry() + '\n'
+        setting_info = self.loc.onEntry() + '\n'
         if item_info:
             setting_info += item_info + '\n'
         self._puts(setting_info, True)
@@ -643,8 +640,8 @@ class Game():
             self.prompt_exe(prompt)        
 
     """ Functions which are involved in passing to GUI_Holder class. """
-    def _puts(self, input_string, isSetting = False):
-        if isSetting:
+    def _puts(self, input_string, is_setting = False):
+        if is_setting:
             self.setting_output = input_string
         else:
             self.action_output += input_string + '\n'
