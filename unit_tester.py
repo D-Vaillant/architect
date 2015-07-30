@@ -133,10 +133,13 @@ class JR_Tester(Game_Loader):
         
         for key, r_var in roomOBJ.codes.items():
                 if key in roomJR:
-                    self.assertEqual(grabObjVar(r_var), roomJR[key])
+                    if key != "desc":
+                        self.assertEqual(grabObjVar(r_var), roomJR[key])
                 else:
                     if key == "links":
                         self.assertEqual(roomOBJ.links, [None]*4)
+                    elif key == "desc":
+                        self.assertEqual(roomOBJ.entry_desc, {0:''})
                     else:
                         self.assertEqual(grabObjVar(r_var), '')
                     
@@ -220,13 +223,17 @@ class Room_Tester(Game_Loader):
         
     def test_onEntry(self):
         self.assertFalse(self.field.is_visited)
-        self.assertEqual(self.field.entry_desc, self.field.onEntry())
+        self.assertEqual( 
+                            [self.field.entry_desc[_] 
+                                for _ in sorted(self.field.entry_desc)], 
+                            self.field.onEntry().split('\n')
+                        )          
         self.assertTrue(self.field.is_visited)
         
     def test_link(self):
         self.field.link(self.initial, 0)
         self.assertEqual(self.field.links[0], self.initial)
-
+        
 class Action_Tester(Game_Loader):
     def setUp(self):
         super().setUp()
