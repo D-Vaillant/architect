@@ -1,8 +1,7 @@
 class Inventory():
     """ Keeps track of items in player's possession.
     
-    Allows for more detailed collections, including tracking weight and 
-    multiple disjoint containers held by the player. """
+    Implements weight as well. Eventually... """
 
     def __init__(self, default = {"main":set()}, limits = {"main":-1}):
         ''' Allows for a non-empty initial inventory. '''
@@ -14,6 +13,9 @@ class Inventory():
         self.limits = limits
         self.name = "player inventory"
  
+    def __contains__(self, item):
+        return item in self.holding                
+    
     def update_holding(self):
         self.holding = []
         for x in self.structured_holding.values():
@@ -21,7 +23,7 @@ class Inventory():
             print(self.holding)
             self.holding.extend(list(x))
             
-    def add_item(self, x, target="main"):
+    def add(self, x, target="main"):
         ''' Used to add items to the inventory. '''
         ##if self.limits[target] >= x.weight or self.limits[target] == -1:
         ##    return "FULL"
@@ -30,7 +32,7 @@ class Inventory():
         self.update_holding()
         return
         
-    def remove_item(self, x, target="main"):
+    def remove(self, x, target="main"):
         ''' Used to remove items from the inventory. '''
         try:
             self.structured_holding[target].remove(x)

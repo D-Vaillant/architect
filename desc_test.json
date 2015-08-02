@@ -3,8 +3,8 @@
     "type":     "room",
     "id":       "initial",
     "name":     "A Grassy Meadow",
-    "desc":    {"1":"The green grass meadows softly. The sky is blue and all around you grass blooms.",
-                "2":"To your north you see a strange house."},
+    "desc":     ["The green grass meadows softly. The sky is blue and all around you grass blooms.",
+                 "To your north you see a strange house."],
     "hold":     ["bauble"],
     "links":    [null, "flowers", "entrance", null]
 },
@@ -12,7 +12,7 @@
     "type":     "room",
     "id":       "entrance",
     "name":     "In Front of the House",
-    "desc":   "A rickety old house stands in front of you, dead north.",
+    "desc":     "A rickety old house stands in front of you, dead north.",
     "hold":     ["worn_key", "old_door"],
     "links":    [null, "initial", null, null]
 },
@@ -99,7 +99,7 @@
 {
     "type":     "action",
     "id":     "cry",
-    "0":        "a"
+    "0":        "puts!You weep for a while but don't feel any better."
 },
 {
     "type":     "action",

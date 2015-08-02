@@ -87,8 +87,6 @@ class Game():
     
 #---------------------------- Initialization ---------------------------------
     def __init__(self, rdata, tdata, adata, mdata):
-        self.isCLI = False ## Specified by mdata...?
-        
         self.rooms = Room.room_processor(rdata)
         self.items = Item.item_processor(tdata)
         self.item_names = {t.name:t.id for t in self.items.values()}
@@ -98,6 +96,8 @@ class Game():
         
         # For eventual implementation of meta-data entry.
         ## self._meta_processor(mdata)
+        M = lambda x: x if x in mdata else None
+        self.isCLI = M('isCLI') or False
         
         self.loc = self.rooms["initial"]
         self.inventory = Inventory()
@@ -138,12 +138,12 @@ class Game():
             if moved_item in source.holding:
                 if target: #is not None
                     try: 
-                        target.holding += moved_item
-                        source.holding -= moved_item
+                        target.add(moved_item)
+                        source.remove(moved_item)
                     except AttributeError:
                         raise AttributeError("Target lacks holding.")
                 else:
-                    source.holding -= moved_item
+                    source.remove(moved_item)
             else:
                 raise Error("src != None and item not in src.holding.")
         else:
@@ -655,9 +655,10 @@ class Game():
 
 # ------------------------- Testing -----------------------------------------
 
-def test_init():
+def gui_init():
     F = InfoCollector()
-    G = Game(F.room_info, F.item_info, F.action_info, None)
+    F.meta_info['isCLI'] = False
+    G = Game(*F.output())
     return G
 
 if __name__ == "__main__":

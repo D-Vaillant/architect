@@ -20,25 +20,32 @@ class Room():
 
         self.links = d('links') or [None]*4
         self.name = d('name') or ''
-        self.entry_desc = self.initializeEntryDesc(d('desc'))
-        self.holding = d('hold') or ''
+        
+        _ = d('desc')
+        if type(_) == str:
+            self.entry_desc = [_]
+        else:
+            self.entry_desc = _ or ["This is a room."]
+           
+        self.holding = d('hold') or []
         ##if d('data'): self.data = []
 
         self.is_visited = False
-
-    def initializeEntryDesc(self, json_entry):
-        if type(json_entry) != "dict":
-            return {0:json_entry}
-        else:
-            return {index:entry for index, (key, entry)
-                                in enumerate(sorted(json_entry.items()))}
+        
+    def __contains__(self, item):
+        """ Simplifies 'in' calls. """
+        return item in self.holding
             
-    
+    def add(self, item):
+        self.holding += item
+        
+    def remove(self, item):
+        self.holding -= item
+        
     def onEntry(self):
         """ Runs whenever a room is entered. """
         self.is_visited = True
-        out = "\n".join([self.entry_desc[_]
-                        for _ in sorted(self.entry_desc)])
+        out = "\n".join(self.entry_desc)
         return out
         
     def link(self, linked_room, dir):

@@ -18,7 +18,7 @@ class GUI_Holder(tk.Tk):
     WIDTH = 150 
     HEIGHT = 30
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, game, *args, **kwargs):
         tk.Tk.__init__(self, *args, **kwargs)
         self.GUI = tk.Frame(width = self.WIDTH, height = self.HEIGHT) 
         self.GUI.pack(side="top", fill="both", expand=True)
@@ -44,7 +44,6 @@ class GUI_Holder(tk.Tk):
         self.Quit_Button.pack(side="left", expand=1, fill=tk.X)
         self.Inventory_Button.pack(side="left", expand=1, fill=tk.X)
 
-        self.G = game.test_init()
         self.G.main()
         self._print_text(self.G.gets())
 
@@ -100,10 +99,8 @@ class GUI_Holder(tk.Tk):
     def _wipe_display(self):
         if V: print("Wiping display.")
         self.TextDisplay.delete("0.0", tk.END)
-
-def initialize():
-    root = GUI_Holder()
-    root.mainloop()
     
 if __name__ == "__main__":
-    initialize()
+    G = game.gui_init()
+    root = GUI_Holder(G)
+    root.mainloop()

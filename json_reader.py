@@ -12,6 +12,7 @@ class InfoCollector:
         self.action_info = {}
         self.item_info = {}
         self.room_info = {}
+        self.meta_info = {}
         
         self.main()
 
@@ -22,6 +23,10 @@ class InfoCollector:
         for x in p:
             getattr(self, x["type"]+"_info").update({x["id"]:x})
         return
+        
+    def output(self):
+        return (self.room_info, self.item_info, 
+                self.action_info, self.meta_info)
 
 # Testing stuffs.
 I = InfoCollector()
