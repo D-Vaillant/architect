@@ -127,41 +127,32 @@ class Game():
         
 #------------------------------ Utility Functions ----------------------------
 
-    def _getItem(self, item_id, holder):
-        return self.items["item_id"] if item_id in holder.holding else None
-        
+    ##def _getItem(self, item_id, holder):
+    ##    return self.items[item_id] if item_id in holder.holding else None
+    # Deprecated, I'm pretty sure.
+    
 #----------------------------- Engine Methods --------------------------------
 ## Used in BP Code implementation. 
 
     def _moveItem(self, moved_item, source, target):
-        if source: # is not None
-            if moved_item in source.holding:
-                if target: #is not None
-                    try: 
-                        target.add(moved_item)
-                        source.remove(moved_item)
-                    except AttributeError:
-                        raise AttributeError("Target lacks holding.")
-                else:
-                    source.remove(moved_item)
-            else:
-                raise Error("src != None and item not in src.holding.")
+        """ Removes moved_item from source and adds it to target. """
+        if moved_item in source:
+            try: 
+                target.add(moved_item)
+                source.remove(moved_item)
+            except AttributeError:
+                raise AttributeError("Target lacks add() method.")
         else:
-            if target: # is not None
-                try:
-                    target.holding += moved_item
-                except AttributeError:
-                    raise AttributeError("Target lacks holding.")
-            else: raise Error("Do nothing call of _moveItem.")
+            raise AttributeError("Item not in source.")
         return
 
     
     def _IDtoItem(self, id):
+        """ Returns an Item instance W such that W.id = id. """
         try:
             return self.items[id]
         except KeyError:
             raise NameError("No item with ID {}.".format(id))
-        return
         
     
     def _alias(self, target):
@@ -182,14 +173,12 @@ class Game():
 #-------------------------------- User Methods -------------------------------
 
     def prompt_exe(self, prompt):
-        ''' Takes player input and passes the corresponding command to the
-            corresponding player command function. '''
+        """ Takes user input and passes it to the appropriate method. """
             
         # Turns string inputs into arrays of strings.
-        i = prompt.lower().split() if prompt != '' else ''
+        i = prompt.lower().split() if prompt else ''
         
         # Does nothing if empty command is entered.
-        if i == []: i = ''
         if len(i) < 1: return
 
         # Call _move if a movement command is entered.
@@ -211,8 +200,7 @@ class Game():
         elif i[0] == '?':
             self._help(i[1:])
             
-        # Deprecated right now since Quit is handled by the GUI.
-        # HOWEVER: Useful for CLI implementation.
+        # Puts Quit message.
         elif i[0] == 'quit' or i[0] == 'q':
             self._puts(self.GAME_MSGS["quit"])
         

@@ -1,7 +1,7 @@
 import unittest
-import tempfile
+import mock
+
 from collections import OrderedDict
-##from file_management import File_Processor
 from json_reader import InfoCollector
 from game import Game
 from rooms import Room
@@ -35,6 +35,8 @@ class JR_Tester(Game_Loader):
                     elif key == "desc":
                         self.assertEqual(roomOBJ.entry_desc, 
                                          ["This is a room."])
+                    elif key == "hold":
+                        self.assertEqual(roomOBJ.holding, [])
                     else:
                         self.assertEqual(grabObjVar(r_var), '')
                     
@@ -120,7 +122,7 @@ class Room_Tester(Game_Loader):
         self.field.add("test_string")
         self.assertIn("test_string", self.field)
         
-    def test_Room_add(self):
+    def test_Room_remove(self):
         x = self.initial.holding[0]
         self.initial.remove(x)
         self.assertNotIn(x, self.initial.holding)
@@ -189,7 +191,7 @@ class Action_Tester(Game_Loader):
 class Game_Tester(Game_Loader):
     def setUp(self):
         super().setUp()
-        self.G = Game(self.Reader.output)
+        self.G = Game(*self.Reader.output())
         
         #Representing objects.
         self.bauble = self.G.items["bauble"]
@@ -200,36 +202,57 @@ class Game_Tester(Game_Loader):
         self.flowers = self.G.rooms["flowers"]
         
         self.cry = self.G.actions["cry"]
-        
+      
 class Game_EngineMethod_Tester(Game_Tester):
     def setUp(self):
         super().setUp()
     
     def test_moveItem_roomXroom(self):
+        """ Testing whether Items can be moved between Rooms. """
         self.assertIn(self.bauble, self.initial)
         self.G._moveItem(self.bauble,
                          self.initial, self.basement)
         self.assertIn(self.bauble, self.basement)
         
     def test_moveItem_roomXinv(self):
+        """ Testing whether we can move Items from Rooms to Inventories. """
         self.assertIn(self.bauble, self.initial)
         self.G._moveItem(self.bauble, 
                          self.initial, self.G.inventory)
         self.assertIn(self.bauble, self.G.inventory)
         
     def test_moveItem_invXroom(self):
+        """ Testing whether we can move Items from Inventories to Rooms. """
         self.G.inventory.add(self.key)
-        self.G._moveItem(self.bauble, self.initial)
-        self.assertIn(self.bauble, self.initial)
+        self.G._moveItem(self.key, 
+                         self.G.inventory, self.initial)
+        self.assertIn(self.key, self.initial)
     
-    @unittest.skip
     def test_moveItem_errors(self):
-        return
-    @unittest.skip
+        """ Testing error catching of _moveItem method. """
+        X = [1, 2]
+        
+        with self.assertRaises(AttributeError,
+                               msg="Target lacks add() method."):
+            self.G._moveItem(self.bauble, self.initial, X)
+            
+        with self.assertRaises(AttributeError, msg="Item not in source."):
+            self.G._moveItem(self.bauble, X, self.flowers)
+        
     def test_IDtoItem(self):
-        return
-    @unittest.skip
+        """ Testing whether correct Item is returned. """
+        self.assertEqual(self.G._IDtoItem("bauble"), self.bauble)
+        self.assertEqual(self.G._IDtoItem("worn_key"), self.key)
+        
     def test_IDtoItem_error(self):
-        return
-    
+        """ Testing error catching of _IDtoItem method. """
+        with self.assertRaises(NameError, msg="No item with ID hat"):
+            self.G._IDtoItem("hat")
+
+class Game_Parser_Tester(Game_Tester):
+    @mock.patch.object(Game, '_move')
+    def test_prompt_exe_move(self, mock__move):
+        self.G.prompt_exe('north')
+        mock__move.assert_called_with('n')
+            
 if __name__ == '__main__': unittest.main()

@@ -37,10 +37,10 @@ class Room():
         return item in self.holding
             
     def add(self, item):
-        self.holding += item
+        self.holding.append(item)
         
     def remove(self, item):
-        self.holding -= item
+        self.holding.remove(item)
         
     def onEntry(self):
         """ Runs whenever a room is entered. """

@@ -1,3 +1,5 @@
+V = False
+
 class Inventory():
     """ Keeps track of items in player's possession.
     
@@ -16,11 +18,15 @@ class Inventory():
     def __contains__(self, item):
         return item in self.holding                
     
+    def __bool__(self):
+        return bool(self.holding)
+        
     def update_holding(self):
         self.holding = []
         for x in self.structured_holding.values():
-            print(x)
-            print(self.holding)
+            if V:
+                print(x)
+                print(self.holding)
             self.holding.extend(list(x))
             
     def add(self, x, target="main"):
