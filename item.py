@@ -54,19 +54,6 @@ class Item():
             error = True #if setDescription: error handle.
         return error
 
-    # NOTE: Need to figure out how to do attribute changes. 
-    """
-    def safety(self, attributeType, source):
-        # Used when changing Item attributes.
-        if type(source) == str: valve = '' 
-        elif type(source) == dict: valve = {}
-
-        if attributeType in source.keys():
-           return x
-        else:
-            return valve
-    """
-    
     ### NOTE: This could probably be moved elsewhere. ###
     ### Related: __str__ method for Items. ###
     @staticmethod
@@ -95,14 +82,3 @@ class Item():
         ##    key = x.id
         ##    items[key] = x
         return {x:Item(item_dict[x]) for x in item_dict}
-        
-    """
-    def item_fixer(input_dict):
-        sourceList = obj_reader(fileIn) if type(fileIn) is str else fileIn
-        for ele in input_dict:
-            for code in Item.codes:
-                if code[1:] not in ele.keys():
-                    ele[code[1:]] = {} if code == '#AC' \
-                                    else 'pass'
-        return fixed_dict
-    """

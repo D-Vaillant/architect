@@ -31,3 +31,51 @@ sys: System messages.
     !string: Prints string to the console.
 General:
     BPCODE1}BPCODE2: Run BPCODE1, then BPCODE2.
+
+Blueprint Rehaul:
+    Okay, so we have two classes of propositions: Statements and commands.
+    Commands have functions associated with them. Which commands I'm going to include is a bit up for grabs.
+        There's also going to be some logic: "and" is important, "if STATEMENT then COMMAND" is pretty useful.
+        Figuring out the role of Sentinel might be a bit hard; probably more of a "keeping track of things" role.
+
+    Command examples:
+        Create links between rooms.
+        Change Item properties (add/remove).
+        Add or remove Items from .holding attributes.
+        Prints a string.
+
+    Statements are truth-functions, of two kinds: static and dynamic.
+        Static statements return true or false depending on various attributes of instantiated objects.
+        Dynamic statements track Game methods and return true when the conditions are met.
+
+    Static examples:
+        Item in .holding of Container object (Inventory, Rooms, Container_Items)
+        Player in a Room
+        Item has a property
+        Room is linked to another Room.
+    Dynamic examples:
+        Room is entered/exited for the n'th time.
+        Player has performed some subset in Actions for the n'th time.
+        Player has done anything for the n'th time.
+        Player has moved n times.
+        Player has performed an Action with a subset of Items for n'th time (repeats or no repeats).
+        
+Ontology of Blueprint DSL:
+    Names: 
+        Names refer to Items, Rooms, or Actions by their IDs. Format: x.id, where x in {i:Items,r:Rooms,a:Actions}.
+            e.g. i.rock, a.throw, r.flowers
+        $ refers to the player's inventory.
+        PC refers to the player.
+
+    Sentinel Names:
+        Correspond to dynamic statements.        
+        I will figure out the syntax... later.
+
+    Relations:
+        Blueprint deals with quite a few binary relations, subsets of A x B.
+        a, b are representatives of A and B respectively.
+            @: "At", Subset of (Items U Player) X (Rooms U Inventory).
+                Item x B : True iff a in b.holding.
+                Player x Rooms: True iff self.loc == b.
+                Player x Inventory: False. 
+            _: 
