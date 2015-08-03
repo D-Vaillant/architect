@@ -56,7 +56,7 @@ from json_reader import InfoCollector
 import re
 
 # Verbose option.
-V = True
+V = False
 
 class Game():
     cardinals = {'w':0, 's':1, 'n':2, 'e':3}
@@ -179,11 +179,11 @@ class Game():
         i = prompt.lower().split() if prompt else ''
         
         # Does nothing if empty command is entered.
-        if len(i) < 1: return
+        if len(i) < 1: pass
 
         # Call _move if a movement command is entered.
-        if i[0] in self.cardinals.keys():
-            self._move(i)
+        elif i[0] in self.cardinals.keys():
+            self._move(i[0])
         elif i[0] in ['west', 'south', 'north', 'east']:
             self._move(i[0][0])
 
@@ -192,7 +192,8 @@ class Game():
             self._inv("open")
             
         # Call _act if an action is entered.
-        elif i[0] in self.actions or self.special_actions:
+        elif i[0] in self.actions or \
+             i[0] in self.special_actions:
             if V: print("Treating ", i[0], " as an action.")
             self._act(i)
         

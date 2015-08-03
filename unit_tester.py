@@ -9,12 +9,18 @@ from item import Item
 from actions import Action
 from inventory import Inventory
 
+testing_JR = False
+testing_actions = False
+testing_items = False
+testing_rooms = False
+
 class Game_Loader(unittest.TestCase):
     def setUp(self):
         self.Reader = InfoCollector()
         self.Reader.main()
         
 class JR_Tester(Game_Loader):
+    @unittest.skipUnless(testing_JR, "not testing this")
     def test_JR_rooms(self):
         roomDict = Room.room_processor(self.Reader.room_info)
         for r in roomDict:
@@ -87,6 +93,7 @@ class JR_Tester(Game_Loader):
                         self.assertEqual(grabObjVar(i_var), 'item')
                         
 class Item_Tester(Game_Loader):
+    @unittest.skipUnless(testing_items, "not testing this")
     def setUp(self):
         super().setUp()
         theItems = Item.item_processor(self.Reader.item_info)
@@ -112,6 +119,7 @@ class Item_Tester(Game_Loader):
         self.assertTrue(self.bauble.setDescription("stone", "Failure."))
 
 class Room_Tester(Game_Loader):
+    @unittest.skipUnless(testing_rooms, "not testing this")
     def setUp(self):
         super().setUp()
         theRooms = Room.room_processor(self.Reader.room_info)
@@ -143,6 +151,7 @@ class Room_Tester(Game_Loader):
         self.assertEqual(self.field.links[0], self.initial)
         
 class Action_Tester(Game_Loader):
+    @unittest.skipUnless(testing_actions, "not testing this")
     def setUp(self):
         super().setUp()
         theActions = Action.action_processor(self.Reader.action_info)
@@ -252,7 +261,33 @@ class Game_EngineMethod_Tester(Game_Tester):
 class Game_Parser_Tester(Game_Tester):
     @mock.patch.object(Game, '_move')
     def test_prompt_exe_move(self, mock__move):
-        self.G.prompt_exe('north')
-        mock__move.assert_called_with('n')
+        cardinal_list = ['north', 'south', 'east', 'west']
+        assoc = {x:x[0] for x in cardinal_list}
+        assoc.update({x:x for x in [_[0] for _ in cardinal_list]})
+        
+        for i, j in assoc.items():
+            with self.subTest(i = i):
+                self.G.prompt_exe(i)
+                mock__move.assert_called_with(j)
             
+    @mock.patch.object(Game, '_inv')
+    def test_prompt_exe_inv(self, mock__inv):
+        arr = ['inv', 'i']
+        for x in arr:
+            with self.subTest(x = x):
+                self.G.prompt_exe(x)
+                mock__inv.assert_called_with("open")
+         
+    @mock.patch.object(Game, '_act')
+    def test_prompt_exe_act(self, mock__act):
+        pass
+    
+    def test_prompt_exe_empty(self):
+        self.assertIsNone(self.G.prompt_exe(""))
+        
+    @mock.patch.object(Game, '_puts')
+    def test_prompt_exe_error(self, mock__puts):
+        self.G.prompt_exe("asdfas")
+        mock__puts.assert_called_with(self.G.ERROR["exe_pass"])
+    
 if __name__ == '__main__': unittest.main()
