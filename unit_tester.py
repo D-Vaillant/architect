@@ -196,7 +196,7 @@ class Action_Tester(Game_Loader):
     def test_Action_parseString_2_successfully(self):
         self.assertEqual(self.unlock.parseString(["dance", "with", "style"]), 
                                                  ["dance", "style"])
-
+        
 class Game_Tester(Game_Loader):
     def setUp(self):
         super().setUp()
@@ -213,9 +213,6 @@ class Game_Tester(Game_Loader):
         self.cry = self.G.actions["cry"]
       
 class Game_EngineMethod_Tester(Game_Tester):
-    def setUp(self):
-        super().setUp()
-    
     def test_moveItem_roomXroom(self):
         """ Testing whether Items can be moved between Rooms. """
         self.assertIn(self.bauble, self.initial)
@@ -282,6 +279,14 @@ class Game_Parser_Tester(Game_Tester):
     def test_prompt_exe_act(self, mock__act):
         pass
     
+    @mock.patch.object(Game, '_help')
+    def test_prompt_exe_help(self, mock__help):
+        arr = ['', 'as', '32']
+        for x in arr:
+            with self.subTest(x = x):
+                self.G.prompt_exe('? ' + x)
+                mock__help.assert_called_with(x)
+        
     def test_prompt_exe_empty(self):
         self.assertIsNone(self.G.prompt_exe(""))
         
@@ -289,5 +294,20 @@ class Game_Parser_Tester(Game_Tester):
     def test_prompt_exe_error(self, mock__puts):
         self.G.prompt_exe("asdfas")
         mock__puts.assert_called_with(self.G.ERROR["exe_pass"])
+
+    @mock.patch.object(Game, '_puts')
+    def test_itemNametoID(Game, mock__puts):
+        self.assertEqual(self.G._itemNametoID('worn key'),
+                         'worn_key')
+        self.assertEqual(self.G._itemNametoID('key'),
+                         'worn_key')
+        self.G._itemNametoID('ascvas')
+        mock__puts.assert_called_with(self.G.ERROR["item_not_found"])
+    
+class Game_ActionParser_Tester(Game_Tester):
+    @mock.patch('builtins.print')
+    def test_nonaction(self, mock_print):
+        self.G._act('ast')
+        mock_print.assert_called_with("Non-action. Why are we here?")
     
 if __name__ == '__main__': unittest.main()
