@@ -85,17 +85,19 @@ class Game():
         
 #---------------------------- Initialization ---------------------------------
     def __init__(self, rdata, tdata, adata, mdata):
+        M = lambda x: x if x in mdata else None
+
         self.rooms = Room.room_processor(rdata)
         self.items = Item.item_processor(tdata)
         self.item_names = {t.name:t.id for t in self.items.values()}
         self.actions = Action.action_processor(adata)
-        self.inventory = Inventory()
+        self.inventory = Inventory(M('inventory')) if M('inventory') \
+                                                   else Inventory()
         
         self._populate()
         
         # For eventual implementation of meta-data entry.
         ## self._meta_processor(mdata)
-        M = lambda x: x if x in mdata else None
         self.isCLI = M('isCLI') or False
         
         self.loc = self.rooms["initial"]
@@ -109,12 +111,12 @@ class Game():
                 room.holding = [self._IDtoItem(_) for _ in room.holding]
             except KeyError:
                 raise KeyError("Room holding non-existent item.")
-                
+        """     
         if self.inventory:
             for location, bag in self.inventory.structured_holding.items():
                 self.inventory.structured_holding[location] = \
                     {self._IDtoItem(_) for _ in bag}        
-            self.inventory.update_holding()
+        """
         return        
         
     def _meta_processor(self, raw_mdata):

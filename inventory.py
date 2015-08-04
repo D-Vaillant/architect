@@ -16,12 +16,19 @@ class Inventory():
         self.name = "player inventory"
  
     def __contains__(self, item):
-        return item in self.holding                
+        for x in self.structured_holding.values():
+            if item in x: return True
+        else: return False
+        ##return item in self.holding                
     
     def __bool__(self):
-        return bool(self.holding)
+        for x in self.structured_holding.values():
+            if bool(x): return True
+        else: return False
         
+    #! Possibly deprecated by operation redefinitions.
     def update_holding(self):
+        """ 'Flattens' structured_holding to easily check for containing. """
         self.holding = []
         for x in self.structured_holding.values():
             if V:
@@ -30,19 +37,19 @@ class Inventory():
             self.holding.extend(list(x))
             
     def add(self, x, target="main"):
-        ''' Used to add items to the inventory. '''
+        """ Adds items to structured_holding[target]. """
         ##if self.limits[target] >= x.weight or self.limits[target] == -1:
         ##    return "FULL"
         ##else: pass
         self.structured_holding[target].add(x)
-        self.update_holding()
+        ##self.update_holding()
         return
         
     def remove(self, x, target="main"):
         ''' Used to remove items from the inventory. '''
         try:
             self.structured_holding[target].remove(x)
-            self.update_holding()
+            ##self.update_holding()
         except KeyError:
             print("WARNING: Something went wrong.")
         return
