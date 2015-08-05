@@ -56,7 +56,7 @@ from json_reader import InfoCollector
 import re
 
 # Verbose option.
-V = True
+V = False
 
 class Game():
     cardinals = {'w':0, 's':1, 'n':2, 'e':3}
@@ -83,24 +83,24 @@ class Game():
         "quit": "Game closing."
         }
         
-    #alias = {'_':loc, '^': }
-    
 #---------------------------- Initialization ---------------------------------
     def __init__(self, rdata, tdata, adata, mdata):
+        M = lambda x: x if x in mdata else None
+
         self.rooms = Room.room_processor(rdata)
         self.items = Item.item_processor(tdata)
         self.item_names = {t.name:t.id for t in self.items.values()}
         self.actions = Action.action_processor(adata)
+        self.inventory = Inventory(M('inventory')) if M('inventory') \
+                                                   else Inventory()
         
         self._populate()
         
         # For eventual implementation of meta-data entry.
         ## self._meta_processor(mdata)
-        M = lambda x: x if x in mdata else None
         self.isCLI = M('isCLI') or False
         
         self.loc = self.rooms["initial"]
-        self.inventory = Inventory()
         self.setting_output = ''
         self.action_output = ''
         
@@ -108,13 +108,16 @@ class Game():
         for room in self.rooms.values():
             try:
                 ##if V: print([t for t in room.holding])
-                room.holding = [self.items[t_id] for t_id in room.holding]
+                room.holding = [self._IDtoItem(_) for _ in room.holding]
             except KeyError:
                 raise KeyError("Room holding non-existent item.")
+        """     
+        if self.inventory:
+            for location, bag in self.inventory.structured_holding.items():
+                self.inventory.structured_holding[location] = \
+                    {self._IDtoItem(_) for _ in bag}        
+        """
         return        
-        ## Implementation of inventory populating.
-        ## 
-        ##
         
     def _meta_processor(self, raw_mdata):
         try: 
@@ -129,7 +132,7 @@ class Game():
 
     ##def _getItem(self, item_id, holder):
     ##    return self.items[item_id] if item_id in holder.holding else None
-    # Deprecated, I'm pretty sure.
+    #!! Deprecated, I'm pretty sure.
     
 #----------------------------- Engine Methods --------------------------------
 ## Used in BP Code implementation. 
@@ -154,7 +157,11 @@ class Game():
         except KeyError:
             raise NameError("No item with ID {}.".format(id))
         
-    
+    #! Figure out how I'm going to handle this propertly.
+    #  IDtoItem gets rid of the need for the ID grabbing.
+    #  It makes sense to implement SymbolToContainer and SymbolToRoom
+    #  methods in order to capture the other things I want to do.
+    #        Depends on how Blueprint is implemented!
     def _alias(self, target):
         """ Turns an ID into its appropriate room or item. """
         
@@ -179,11 +186,11 @@ class Game():
         i = prompt.lower().split() if prompt else ''
         
         # Does nothing if empty command is entered.
-        if len(i) < 1: return
+        if len(i) < 1: pass
 
         # Call _move if a movement command is entered.
-        if i[0] in self.cardinals.keys():
-            self._move(i)
+        elif i[0] in self.cardinals.keys():
+            self._move(i[0])
         elif i[0] in ['west', 'south', 'north', 'east']:
             self._move(i[0][0])
 
@@ -192,13 +199,15 @@ class Game():
             self._inv("open")
             
         # Call _act if an action is entered.
-        elif i[0] in self.actions or self.special_actions:
+        elif i[0] in self.actions or \
+             i[0] in self.special_actions:
             if V: print("Treating ", i[0], " as an action.")
             self._act(i)
         
         # System calls. ? calls help.
+        #!! Needs to be worked out.
         elif i[0] == '?':
-            self._help(i[1:])
+            self._help(''.join(i[1:]))
             
         # Puts Quit message.
         elif i[0] == 'quit' or i[0] == 'q':
@@ -213,6 +222,7 @@ class Game():
             
     def _help(self, object):
         """ Puts help messages. """
+        #!! Work needed here.
         if object:
             pass
         else:
@@ -314,17 +324,15 @@ class Game():
         ## Could theoretically be rolled into the Action class as well.
         if action in self.special_actions:
             if V: print("Special action being run.")
-            
             self._special_act(action, specifics)
                     
         # User-specified actions.
         elif action in self.actions:
             if V: print("Ordinary action being run.")
-     
             self._user_act(action, specifics)
-        else:
-            if V: print("Non-action. Why are we here?")
             
+        else:
+            print("Non-action. Why are we here?")
         return
         
     def _special_act(self, action, specifics):
@@ -570,7 +578,7 @@ class Game():
     
     ## Should probably be a Room staticmethod.
     def _link(self, source, direction, dest, isEuclidean = True):
-        """ Tertiary function; establishes links between rooms.
+        """ Establishes links between rooms.
                 source ----direction----> dest
             If isEuclidean:
                 dest ----opposite_dir----> source
@@ -612,6 +620,7 @@ class Game():
 
     ''' Main function. Takes user input, passes it to prompt_exe. '''
     def main(self):
+        """ """
         self._puts(self.GAME_MSGS['beginning'])
         self._room_update()
         #raise NameError("Game finished.")
@@ -628,13 +637,16 @@ class Game():
             self.prompt_exe(prompt)        
 
     """ Functions which are involved in passing to GUI_Holder class. """
+    
     def _puts(self, input_string, is_setting = False):
+        """ Adds text to the output buffer. """
         if is_setting:
             self.setting_output = input_string
         else:
             self.action_output += input_string + '\n'
 
     def gets(self):
+        """ Returns text from the output buffer and clears it. """
         self._room_update()
         returning = self.setting_output + '\n' + self.action_output
         self.action_output = ''

@@ -9,12 +9,18 @@ from item import Item
 from actions import Action
 from inventory import Inventory
 
+testing_JR = True
+testing_actions = True
+testing_items = True
+testing_rooms = True
+
 class Game_Loader(unittest.TestCase):
     def setUp(self):
         self.Reader = InfoCollector()
         self.Reader.main()
         
 class JR_Tester(Game_Loader):
+    @unittest.skipUnless(testing_JR, "not testing this")
     def test_JR_rooms(self):
         roomDict = Room.room_processor(self.Reader.room_info)
         for r in roomDict:
@@ -87,6 +93,7 @@ class JR_Tester(Game_Loader):
                         self.assertEqual(grabObjVar(i_var), 'item')
                         
 class Item_Tester(Game_Loader):
+    @unittest.skipUnless(testing_items, "not testing this")
     def setUp(self):
         super().setUp()
         theItems = Item.item_processor(self.Reader.item_info)
@@ -112,6 +119,7 @@ class Item_Tester(Game_Loader):
         self.assertTrue(self.bauble.setDescription("stone", "Failure."))
 
 class Room_Tester(Game_Loader):
+    @unittest.skipUnless(testing_rooms, "not testing this")
     def setUp(self):
         super().setUp()
         theRooms = Room.room_processor(self.Reader.room_info)
@@ -143,6 +151,7 @@ class Room_Tester(Game_Loader):
         self.assertEqual(self.field.links[0], self.initial)
         
 class Action_Tester(Game_Loader):
+    @unittest.skipUnless(testing_actions, "not testing this")
     def setUp(self):
         super().setUp()
         theActions = Action.action_processor(self.Reader.action_info)
@@ -187,72 +196,5 @@ class Action_Tester(Game_Loader):
     def test_Action_parseString_2_successfully(self):
         self.assertEqual(self.unlock.parseString(["dance", "with", "style"]), 
                                                  ["dance", "style"])
-
-class Game_Tester(Game_Loader):
-    def setUp(self):
-        super().setUp()
-        self.G = Game(*self.Reader.output())
-        
-        #Representing objects.
-        self.bauble = self.G.items["bauble"]
-        self.key = self.G.items["worn_key"]
-        
-        self.initial = self.G.rooms["initial"]
-        self.basement = self.G.rooms["basement"]
-        self.flowers = self.G.rooms["flowers"]
-        
-        self.cry = self.G.actions["cry"]
-      
-class Game_EngineMethod_Tester(Game_Tester):
-    def setUp(self):
-        super().setUp()
-    
-    def test_moveItem_roomXroom(self):
-        """ Testing whether Items can be moved between Rooms. """
-        self.assertIn(self.bauble, self.initial)
-        self.G._moveItem(self.bauble,
-                         self.initial, self.basement)
-        self.assertIn(self.bauble, self.basement)
-        
-    def test_moveItem_roomXinv(self):
-        """ Testing whether we can move Items from Rooms to Inventories. """
-        self.assertIn(self.bauble, self.initial)
-        self.G._moveItem(self.bauble, 
-                         self.initial, self.G.inventory)
-        self.assertIn(self.bauble, self.G.inventory)
-        
-    def test_moveItem_invXroom(self):
-        """ Testing whether we can move Items from Inventories to Rooms. """
-        self.G.inventory.add(self.key)
-        self.G._moveItem(self.key, 
-                         self.G.inventory, self.initial)
-        self.assertIn(self.key, self.initial)
-    
-    def test_moveItem_errors(self):
-        """ Testing error catching of _moveItem method. """
-        X = [1, 2]
-        
-        with self.assertRaises(AttributeError,
-                               msg="Target lacks add() method."):
-            self.G._moveItem(self.bauble, self.initial, X)
-            
-        with self.assertRaises(AttributeError, msg="Item not in source."):
-            self.G._moveItem(self.bauble, X, self.flowers)
-        
-    def test_IDtoItem(self):
-        """ Testing whether correct Item is returned. """
-        self.assertEqual(self.G._IDtoItem("bauble"), self.bauble)
-        self.assertEqual(self.G._IDtoItem("worn_key"), self.key)
-        
-    def test_IDtoItem_error(self):
-        """ Testing error catching of _IDtoItem method. """
-        with self.assertRaises(NameError, msg="No item with ID hat"):
-            self.G._IDtoItem("hat")
-
-class Game_Parser_Tester(Game_Tester):
-    @mock.patch.object(Game, '_move')
-    def test_prompt_exe_move(self, mock__move):
-        self.G.prompt_exe('north')
-        mock__move.assert_called_with('n')
-            
+  
 if __name__ == '__main__': unittest.main()
