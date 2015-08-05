@@ -324,17 +324,15 @@ class Game():
         ## Could theoretically be rolled into the Action class as well.
         if action in self.special_actions:
             if V: print("Special action being run.")
-            
             self._special_act(action, specifics)
                     
         # User-specified actions.
         elif action in self.actions:
             if V: print("Ordinary action being run.")
-     
             self._user_act(action, specifics)
-        else:
-            if V: print("Non-action. Why are we here?")
             
+        else:
+            print("Non-action. Why are we here?")
         return
         
     def _special_act(self, action, specifics):

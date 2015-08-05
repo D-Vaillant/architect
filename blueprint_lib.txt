@@ -1,9 +1,8 @@
 Blueprint Code Library:
 Glossary:
-    r_ = room
-    p_ = prop
-    o_ = object
-    a_ = action
+    r. = room
+    i. = prop
+    a. = action
 Aliases:
     _ = current room
     $ = inventory
