@@ -137,7 +137,30 @@ class Game():
 #----------------------------- Engine Methods --------------------------------
 ## Used in BP Code implementation. 
 
-    def _moveItem(self, moved_item, source, target):
+    def _bpRouter(self, args):
+        getattr(self, '_'+args[0])(*args[1])
+
+    def _add(self, item, container, target = "main"):
+        print(item, container)
+
+        item = self._IDtoItem(item)
+        if container == '_':
+            container = self.inventory
+            container.add(item, target)
+        else:
+            container = self.rooms[container]
+            container.add(item)
+
+    def _remove(self, item, container, target = "main"):
+        if container == '_':
+            container = self.inventory
+            container.remove(item, target)
+        else:
+            container = self._IDtoItem(container)
+            container.remove(item)
+            
+
+    def _move(self, moved_item, source, target):
         """ Removes moved_item from source and adds it to target. """
         if moved_item in source:
             try: 
@@ -148,6 +171,17 @@ class Game():
         else:
             raise AttributeError("Item not in source.")
         return
+
+    def _addProperty(self, property, item):
+        item.setProperty(property)
+
+    def _removeProperty(self, property, item):
+        item.setProperty(property, False)
+
+    def _setItemDesc(self, type, text):
+        if(item.setDescription(type, text)):
+            raise AttributeError("{}_desc for {} failed.".format(type, 
+                                                                 item.id))
 
     
     def _IDtoItem(self, id):
@@ -190,9 +224,9 @@ class Game():
 
         # Call _move if a movement command is entered.
         elif i[0] in self.cardinals.keys():
-            self._move(i[0])
+            self._movePlayer(i[0])
         elif i[0] in ['west', 'south', 'north', 'east']:
-            self._move(i[0][0])
+            self._movePlayer(i[0][0])
 
         # Inventory call.
         elif i[0] in ["inv", "i"]:
@@ -246,7 +280,7 @@ class Game():
             self._puts(self.ERROR["item_not_found"])
             return None
     
-    def _move(self, direction):
+    def _movePlayer(self, direction):
         """ Attempts to change self.loc in response to movement commands. """
         # Transforms letters to Room.links array index (0-3).
         translated_direction = self.cardinals[direction[0][0]]
