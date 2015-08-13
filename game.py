@@ -48,6 +48,7 @@ InfoCollector:
     their respective classes and encode all the information about the game.
 """
 
+from parsy import Parser
 from rooms import Room
 from actions import Action
 from inventory import Inventory
@@ -89,8 +90,11 @@ class Game():
 
         self.rooms = Room.room_processor(rdata)
         self.items = Item.item_processor(tdata)
-        self.item_names = {t.name:t.id for t in self.items.values()}
+        ##self.item_names = {t.name:t.id for t in self.items.values()}
         self.actions = Action.action_processor(adata)
+
+        self.parser = Parser(self.rooms, self.items, self.actions)
+
         self.inventory = Inventory(M('inventory')) if M('inventory') \
                                                    else Inventory()
         
@@ -148,7 +152,7 @@ class Game():
             container = self.inventory
             container.add(item, target)
         else:
-            container = self.rooms[container]
+            container = self._IDtoRoom(container)
             container.add(item)
 
     def _remove(self, item, container, target = "main"):
@@ -156,7 +160,7 @@ class Game():
             container = self.inventory
             container.remove(item, target)
         else:
-            container = self._IDtoItem(container)
+            container = self._IDtoRoom(container)
             container.remove(item)
             
 
@@ -191,6 +195,12 @@ class Game():
         except KeyError:
             raise NameError("No item with ID {}.".format(id))
         
+    def _IDtoRoom(self, id):
+        try:
+            return self.rooms[id]
+        except KeyError:
+            raise NameError("No room with ID {}.".format(id))
+
     #! Figure out how I'm going to handle this propertly.
     #  IDtoItem gets rid of the need for the ID grabbing.
     #  It makes sense to implement SymbolToContainer and SymbolToRoom

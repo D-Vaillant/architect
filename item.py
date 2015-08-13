@@ -1,4 +1,3 @@
-
 __author__ = "David Vaillant"
 
 class Item():
