@@ -1,3 +1,7 @@
+""" tester_ontology: 
+        Tests the ability to read Game information from a JSON-formatted file 
+        and various internal methods of objects. """
+
 import unittest
 import mock
 
@@ -15,11 +19,13 @@ testing_items = True
 testing_rooms = True
 
 class Game_Loader(unittest.TestCase):
+    """ Abstract base class that Game testing units inherit from. """
     def setUp(self):
         self.Reader = InfoCollector()
         self.Reader.main()
         
 class JR_Tester(Game_Loader):
+    """ Tests json_reader and processor abilities to translate info. """
     @unittest.skipUnless(testing_JR, "not testing this")
     def test_JR_rooms(self):
         roomDict = Room.room_processor(self.Reader.room_info)

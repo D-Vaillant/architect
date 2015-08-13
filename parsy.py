@@ -2,6 +2,8 @@ from pyparsing import oneOf, Optional, Literal, SkipTo, StringEnd, Or
 
 class Parser:
     def __init__(self, r, i, a):
+        """ Takes information from Game class to initialize parsing. """
+
         self.rooms = r
         self.items = i
         self.actions = a
@@ -11,6 +13,8 @@ class Parser:
                            ]
         
     def BP_Parse(self, code):
+        """ Given a line of BP code, parses out the command and parameters. """
+
         j = lambda x: ' '.join(x)
         item = oneOf(j(items.keys())) # string of all the item names
         item_attr = oneOf("name nick weight ground_desc examine_desc")
@@ -42,3 +46,11 @@ class Parser:
         parameters = code[index+1:]
 
         return command, pt[command].parseString(parameters)[::2]
+
+    def Action_Parse(self, action, code):
+        """ Parses arity and item IDs from a user action command. """
+        ''' Replaces the Action implementation of the same code in the interests
+            of putting all the parsers under one umbrella.
+            Also allows the possibility of verifying the existence of these 
+            items. The action system has always been kind of a pain. '''
+        pass
