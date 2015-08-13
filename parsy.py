@@ -1,36 +1,5 @@
 from pyparsing import oneOf, Optional, Literal, SkipTo, StringEnd, Or 
 
-cmd_words = ['put', 'link', 'add', 'remove', 'move', 'change_room',
-             'change_item', 'change_inventory']
-item_ids = ['bauble', 'hat', 'rock', 'chair']
-item_attr = ['ground_desc', 'examine_desc']
-
-room_ids = ['initial', 'basement', 'entrance']
-room_attr = []
-
-def test_parsing(inpy):
-    j = lambda x: ' '.join(x)
-
-    D = {'item':    oneOf(j(item_ids)),
-         'room':    oneOf(j(room_ids)),
-         'dir' :    oneOf("W S N E"),
-         'bags':    oneOf("main"),
-         }
-    D['container'] = '_' ^ D['room']
-
-    pt = {
-            'put' : SkipTo(StringEnd()), 
-            'link': D['room'] + '-' + D['dir'] + '->' + D['room'],
-            'add': D['item'] + '@' + D['container'] + Optional('.' + D['bags']),
-            'remove': D['item'] + '@' + D['container'],
-            'move': D['item'] + '@' + D['room'] + '|' + D['room'],
-        }
-    e = inpy.find('!')
-    cmd = inpy[:e]
-    rem = inpy[e+1:]
-
-    return cmd, pt[cmd].parseString(rem)[::2]
-
 class Parser:
     def __init__(self, r, i, a):
         self.rooms = r
