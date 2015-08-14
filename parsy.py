@@ -10,7 +10,8 @@ class Parser:
         self.inventory = b
 
         self.bp_commands = ['put', 'link', 'add', 'remove', 'move',
-                            'change_room', 'change_item', 'change_inventory',
+                            'changeRoom', 'changeItem', 'changeInventory',
+                            'addProperty', 'removeProperty',
                            ]
         
     def BP_Parse(self, code):
@@ -26,14 +27,15 @@ class Parser:
         bag = oneOf(j(self.inventory.structured_holding.keys()))
         bag_attr = oneOf("add remove limit")
         container = '_' ^ room
+        rest = SkipTo(StringEnd())
 
-        change = lambda x,y: x + '.' + y + '=' + SkipTo(StringEnd())
+        change = lambda x,y: x + '.' + y + '=' + rest
 
         # hash associating commands with their calling syntax
         # all syntax has the form ARG SYM ARG SYM ARG SYM..., to allow for
         # symbols to be easily ignored when passing parsed results
         pt = {
-                'put' : SkipTo(StringEnd()),
+                'put' : rest
                 'link': room + '-' + dir + '->' + room,
                 'add': item + '@' + container + Optional('.' + bag),
                 'remove': item + '@' + container,
@@ -41,6 +43,7 @@ class Parser:
                 'changeItem': change(item, item_attr),
                 'changeRoom': change(room, room_attr),
                 'changeInv': change(bag, bag_attr),
+                'addProperty': 
              }
 
         index = code.find('!')
