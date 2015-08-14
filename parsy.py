@@ -1,12 +1,13 @@
 from pyparsing import oneOf, Optional, Literal, SkipTo, StringEnd, Or 
 
 class Parser:
-    def __init__(self, r, i, a):
+    def __init__(self, r, i, a, b):
         """ Takes information from Game class to initialize parsing. """
 
         self.rooms = r
         self.items = i
         self.actions = a
+        self.inventory = b
 
         self.bp_commands = ['put', 'link', 'add', 'remove', 'move',
                             'change_room', 'change_item', 'change_inventory',
@@ -16,9 +17,10 @@ class Parser:
         """ Given a line of BP code, parses out the command and parameters. """
 
         j = lambda x: ' '.join(x)
-        item = oneOf(j(items.keys())) # string of all the item names
+        item = oneOf(j(self.items.keys())) # string of all the item names
         item_attr = oneOf("name nick weight ground_desc examine_desc")
-        room = oneOf(j(rooms.keys())) # string of all the room names
+        room = oneOf(j(self.rooms.keys())) # string of all the room names
+        room_attr = oneOf("name")
         dir = oneOf("W S N E")
         # string of all the names of different bags
         bag = oneOf(j(self.inventory.structured_holding.keys()))
@@ -36,9 +38,9 @@ class Parser:
                 'add': item + '@' + container + Optional('.' + bag),
                 'remove': item + '@' + container,
                 'move': item + '@' + room + '|' + room,
-                'change_item': change(item, item_attr)
-                'change_room': change(room, room_attr)
-                'change_inventory': change(bag, bag_attr),
+                'changeItem': change(item, item_attr),
+                'changeRoom': change(room, room_attr),
+                'changeInv': change(bag, bag_attr),
              }
 
         index = code.find('!')

@@ -19,7 +19,7 @@ testing_items = True
 testing_rooms = True
 
 class Game_Loader(unittest.TestCase):
-    """ Abstract base class that Game testing units inherit from. """
+    """ Abstract base class that testing units inherit from. """
     def setUp(self):
         self.Reader = InfoCollector()
         self.Reader.main()

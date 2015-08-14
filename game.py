@@ -93,11 +93,13 @@ class Game():
         ##self.item_names = {t.name:t.id for t in self.items.values()}
         self.actions = Action.action_processor(adata)
 
-        self.parser = Parser(self.rooms, self.items, self.actions)
 
         self.inventory = Inventory(M('inventory')) if M('inventory') \
                                                    else Inventory()
         
+        self.parser = Parser(self.rooms, self.items,
+                             self.actions, self.inventory)
+
         self._populate()
         
         # For eventual implementation of meta-data entry.

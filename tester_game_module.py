@@ -27,37 +27,37 @@ class Game_Tester(Game_Loader):
         self.cry = self.G.actions["cry"]
       
 class Game_EngineMethod_Tester(Game_Tester):
-    def test_moveItem_roomXroom(self):
+    def test_move_roomXroom(self):
         """ Testing whether Items can be moved between Rooms. """
         self.assertIn(self.bauble, self.initial)
-        self.G._moveItem(self.bauble,
+        self.G._move(self.bauble,
                          self.initial, self.basement)
         self.assertIn(self.bauble, self.basement)
         
-    def test_moveItem_roomXinv(self):
+    def test_move_roomXinv(self):
         """ Testing whether we can move Items from Rooms to Inventories. """
         self.assertIn(self.bauble, self.initial)
-        self.G._moveItem(self.bauble, 
+        self.G._move(self.bauble, 
                          self.initial, self.G.inventory)
         self.assertIn(self.bauble, self.G.inventory)
         
-    def test_moveItem_invXroom(self):
+    def test_move_invXroom(self):
         """ Testing whether we can move Items from Inventories to Rooms. """
         self.G.inventory.add(self.key)
-        self.G._moveItem(self.key, 
+        self.G._move(self.key, 
                          self.G.inventory, self.initial)
         self.assertIn(self.key, self.initial)
     
-    def test_moveItem_errors(self):
-        """ Testing error catching of _moveItem method. """
+    def test_move_errors(self):
+        """ Testing error catching of _move method. """
         X = [1, 2]
         
         with self.assertRaises(AttributeError,
                                msg="Target lacks add() method."):
-            self.G._moveItem(self.bauble, self.initial, X)
+            self.G._move(self.bauble, self.initial, X)
             
         with self.assertRaises(AttributeError, msg="Item not in source."):
-            self.G._moveItem(self.bauble, X, self.flowers)
+            self.G._move(self.bauble, X, self.flowers)
         
     def test_IDtoItem(self):
         """ Testing whether correct Item is returned. """
@@ -70,8 +70,8 @@ class Game_EngineMethod_Tester(Game_Tester):
             self.G._IDtoItem("hat")
 
 class Game_Parser_Tester(Game_Tester):
-    @mock.patch.object(Game, '_move')
-    def test_prompt_exe_move(self, mock__move):
+    @mock.patch.object(Game, '_movePlayer')
+    def test_prompt_exe_movePlayer(self, mock__movePlayer):
         cardinal_list = ['north', 'south', 'east', 'west']
         assoc = {x:x[0] for x in cardinal_list}
         assoc.update({x:x for x in [_[0] for _ in cardinal_list]})
@@ -79,7 +79,7 @@ class Game_Parser_Tester(Game_Tester):
         for i, j in assoc.items():
             with self.subTest(i = i):
                 self.G.prompt_exe(i)
-                mock__move.assert_called_with(j)
+                mock__movePlayer.assert_called_with(j)
             
     @mock.patch.object(Game, '_inv')
     def test_prompt_exe_inv(self, mock__inv):
