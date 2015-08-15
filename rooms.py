@@ -82,15 +82,3 @@ class Room():
         for x in room_info_dict:
             r[x] = Room(room_info_dict[x])
         return r
-
-        """
-        if room_link_dict: 
-            for x in room_link_dict:
-                try:
-                    r[x].link_processor(room_link_dict[x])
-                except KeyError:
-                    print("Tried to set links of a room which doesn't exist.")
-                    print("Relevant line: ", x)
-        """
-
-   
