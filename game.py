@@ -147,8 +147,6 @@ class Game():
         getattr(self, '_'+args[0])(*args[1])
 
     def _add(self, item, container, target = "main"):
-        print(item, container)
-
         item = self._IDtoItem(item)
         if container == '_':
             container = self.inventory
@@ -158,6 +156,7 @@ class Game():
             container.add(item)
 
     def _remove(self, item, container, target = "main"):
+        item = self._IDtoItem(item)
         if container == '_':
             container = self.inventory
             container.remove(item, target)
@@ -165,30 +164,48 @@ class Game():
             container = self._IDtoRoom(container)
             container.remove(item)
             
-
     def _move(self, moved_item, source, target):
         """ Removes moved_item from source and adds it to target. """
         if moved_item in source:
             try: 
                 target.add(moved_item)
-                source.remove(moved_item)
             except AttributeError:
                 raise AttributeError("Target lacks add() method.")
+            try:
+                source.remove(moved_item)
+            except AttributeError:
+                raise AttributeError("Source lacks remove() method.")
         else:
             raise AttributeError("Item not in source.")
         return
 
-    def _addProperty(self, property, item):
+    def _addProperty(self, item, property):
+        item = self._IDtoItem(item)
         item.setProperty(property)
 
-    def _removeProperty(self, property, item):
+    def _removeProperty(self, item, property):
+        item = self._IDtoItem(item)
         item.setProperty(property, False)
 
-    def _setItemDesc(self, type, text):
-        if(item.setDescription(type, text)):
-            raise AttributeError("{}_desc for {} failed.".format(type, 
-                                                                 item.id))
+    def _changeItem(self, item, attr, text):
+        item = self._IDtoItem(item)
+        try:
+            setattr(item, attr, text)
+        except AttributeError:
+            raise AttributeError("%s is not an item attribute."%attr)
 
+    def _changeRoom(self, room, attr, text):
+        room = self._IDtoRoom(room)
+        try:
+            setattr(room, attr, text)
+        except AttributeError:
+            raise AttributeError("%s is not a room attribute."%attr)
+
+    def _changeInv(self, bag, attr, text):
+        inv = self.inventory()
+        bag = inv.structuredHolding[bag]
+        # TODO: Implement "add bag", "remove bag", and "change bag limits".
+        return
     
     def _IDtoItem(self, id):
         """ Returns an Item instance W such that W.id = id. """

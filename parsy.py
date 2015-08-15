@@ -20,15 +20,17 @@ class Parser:
         j = lambda x: ' '.join(x)
         item = oneOf(j(self.items.keys())) # string of all the item names
         item_attr = oneOf("name nick weight ground_desc examine_desc")
+
         room = oneOf(j(self.rooms.keys())) # string of all the room names
         room_attr = oneOf("name")
         dir = oneOf("W S N E")
         # string of all the names of different bags
+
         bag = oneOf(j(self.inventory.structured_holding.keys()))
         bag_attr = oneOf("add remove limit")
-        container = '_' ^ room
-        rest = SkipTo(StringEnd())
+        container = '_' ^ room + Optional('.' + bag)
 
+        rest = SkipTo(StringEnd())
         change = lambda x,y: x + '.' + y + '=' + rest
 
         # hash associating commands with their calling syntax
@@ -37,13 +39,14 @@ class Parser:
         pt = {
                 'put' : rest
                 'link': room + '-' + dir + '->' + room,
-                'add': item + '@' + container + Optional('.' + bag),
+                'add': item + '@' + container
                 'remove': item + '@' + container,
-                'move': item + '@' + room + '|' + room,
+                'move': item + '@' + room + '->' + container
                 'changeItem': change(item, item_attr),
                 'changeRoom': change(room, room_attr),
                 'changeInv': change(bag, bag_attr),
-                'addProperty': 
+                'addProperty': item + '#' + rest,
+                'removeProperty': item + '#' + rest,
              }
 
         index = code.find('!')
