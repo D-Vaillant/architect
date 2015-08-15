@@ -14,7 +14,7 @@ class Parser:
                             'addProperty', 'removeProperty',
                            ]
         
-    def BP_Parse(self, code):
+    def bpParse(self, code):
         """ Given a line of BP code, parses out the command and parameters. """
 
         j = lambda x: ' '.join(x)
@@ -55,10 +55,28 @@ class Parser:
 
         return command, pt[command].parseString(parameters)[::2]
 
-    def Action_Parse(self, action, code):
+    def actionParse(self, Act, parameters):
         """ Parses arity and item IDs from a user action command. """
-        ''' Replaces the Action implementation of the same code in the interests
-            of putting all the parsers under one umbrella.
-            Also allows the possibility of verifying the existence of these 
-            items. The action system has always been kind of a pain. '''
-        pass
+        j = lambda x: ' '.join(x)
+        item = oneOf(j(self.items.keys())) # string of all the item names        
+        
+        zero = Literal('')
+        one = item
+        two = Literal(Act.binary_prep) + item
+        
+        out = None 
+        if parameters:
+            if Act.max > 0:
+                if Act.min == 2: _ = one + two
+                else: _ = one + Optional(two)
+            else:
+                out = "$! Input > Min"
+                
+            try:
+                out = _.parseString(parameters)
+            except AttributeError:
+                out = "$! Input < Min"
+        else:
+            if Act.min == 0: out = []
+            else: out = "$! 0 < Min"
+        return out 

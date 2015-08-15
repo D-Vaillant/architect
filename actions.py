@@ -63,6 +63,7 @@ class Action:
         if max is None: max = -1
         return min, max
     
+    ''' Deprecated by Parser module implementation.
     def parseString(self, input_list):
         """ Takes a user-given list (split string) and returns a list of IDs.
         
@@ -94,6 +95,7 @@ class Action:
         
         if V: print("Action parsed string: ", val)
         return val
+    '''
     
     def unaryTest(self, single_obj, condition): 
         if condition[0:2] == 'p:':
@@ -108,16 +110,19 @@ class Action:
         return True
     
     def call(self, input_objs):
+        """ Takes either an Item or a tuple or Items, returns BP code. """
         if V: print("CALLING ACTION: ", input_objs)
-        val = None
         
+        val = None        
         if(not input_objs): return self.zero_act
+        
         elif(type(input_objs) == 'tuple'): # Two objects.
             for i,j in self.binary_act:
                 if self.pluralUnaryTest(input_objs[0], i) and \
                    self.pluralUnaryTest(input_objs[1], j):
                     val = self.binary_act[(i,j)]
-                else: pass
+                else: continue
+                
         else: # Only one object.
             for i in self.unary_act:
                 if self.pluralUnaryTest(input_objs, i):
