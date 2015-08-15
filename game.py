@@ -296,10 +296,11 @@ class Game():
 # ----------------------- User/Designer Interface ----------------------------
 
     def _local(self):
-        return self.loc.holding+self.inventory.holding  
+        return self.loc.holding+self.inventory.flatten()  
         
     def _itemNametoID(self, item_name):
-        search_arr = [x for x in self._local() if item_name in x.name]
+        search_arr = [x for x in self._local() 
+                              if (item_name == x.name or item_name == x.nick)]
         if len(search_arr) == 1:
             return search_arr[0].id
         elif len(search_arr):
@@ -413,7 +414,7 @@ class Game():
                 if specifics.isProp:
                     self._puts(self.ERROR["act_taking_prop"])
                 else:
-                    self.inventory.add_item(specifics)
+                    self.inventory.add(specifics)
                     self.loc.holding.remove(specifics)
                     self._puts("Picked up the " + specifics.name + ".")
             ## elif specifics in self.inventory.holding:
