@@ -44,6 +44,7 @@ class GUI_Holder(tk.Tk):
         self.Quit_Button.pack(side="left", expand=1, fill=tk.X)
         self.Inventory_Button.pack(side="left", expand=1, fill=tk.X)
 
+        self.G = game
         self.G.main()
         self._print_text(self.G.gets())
 

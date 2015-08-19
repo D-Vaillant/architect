@@ -99,22 +99,22 @@
 {
     "type":     "action",
     "id":     "cry",
-    "0":        "puts!You weep for a while but don't feel any better."
+    "0":        "put!You weep for a while but don't feel any better."
 },
 {
     "type":     "action",
     "id":     "tap",
     "1":[
-         ["bauble",     "a"],
-         ["p:wooden",   "a"],
-         ["p:metal",    "a"],
-         ["",           "a"]]
+         ["bauble",     "put!Clink clink."],
+         ["p:wooden",   "put!Thud thud."],
+         ["p:metal",    "put!Ting ting."],
+         ["",           "put!Tap tap."]]
 },
 {
     "type":     "action",
     "id":       "unlock",
     "prep":     "with",
-    "1":[
+    "COMMENTEDOUT1":[
          ["p:locked",   "a"],
          ["",           "a"]],
     "2":[

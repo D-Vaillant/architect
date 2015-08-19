@@ -1,4 +1,4 @@
-from pyparsing import oneOf, Optional, Literal, SkipTo, StringEnd, Or 
+from pyparsing import oneOf, Optional, Literal, SkipTo, StringEnd, Or, Empty, ParseException 
 
 class Parser:
     def __init__(self, r, i, a, b):
@@ -15,7 +15,8 @@ class Parser:
                            ]
         
     def bpParse(self, code):
-        """ Given a line of BP code, parses out the command and parameters. """
+        """ Given a line of BP code, parses out the command and parameters. 
+        INPUT: "CMD!ARGS" => OUTPUT: CMD, [ARG_0..ARG_n] """
 
         j = lambda x: ' '.join(x)
         item = oneOf(j(self.items.keys())) # string of all the item names
@@ -26,9 +27,9 @@ class Parser:
         dir = oneOf("W S N E")
         # string of all the names of different bags
 
-        bag = oneOf(j(self.inventory.structured_holding.keys()))
+        bag = oneOf(j(self.inventory.holding.keys()))
         bag_attr = oneOf("add remove limit")
-        container = '_' ^ room + Optional('.' + bag)
+        container = ('_' ^ room) + Optional(Literal('.') + bag)
 
         rest = SkipTo(StringEnd())
         change = lambda x,y: x + '.' + y + '=' + rest
@@ -37,11 +38,11 @@ class Parser:
         # all syntax has the form ARG SYM ARG SYM ARG SYM..., to allow for
         # symbols to be easily ignored when passing parsed results
         pt = {
-                'put' : rest
+                'put' : rest,
                 'link': room + '-' + dir + '->' + room,
-                'add': item + '@' + container
+                'add': item + '@' + container,
                 'remove': item + '@' + container,
-                'move': item + '@' + room + '->' + container
+                'move': item + '@' + room + '->' + container,
                 'changeItem': change(item, item_attr),
                 'changeRoom': change(room, room_attr),
                 'changeInv': change(bag, bag_attr),
@@ -49,6 +50,7 @@ class Parser:
                 'removeProperty': item + '#' + rest,
              }
 
+        # Finds the first instance of !; used to divide CMD from PARAMS.
         index = code.find('!')
         command = code[:index]
         parameters = code[index+1:]
@@ -58,24 +60,29 @@ class Parser:
     def actionParse(self, Act, parameters):
         """ Parses arity and item IDs from a user action command. """
         j = lambda x: ' '.join(x)
-        item = oneOf(j(self.items.keys())) # string of all the item names        
+        base = [_.name for _ in self.items.values()] +\
+               [_.nickname for _ in self.items.values()]
+        item = oneOf(j(base)) # string of all the item names
         
-        zero = Literal('')
+        zero = Empty()
         one = item
-        two = Literal(Act.binary_prep) + item
+        two = Literal(Act.binary_prep) + item if Act.binary_prep\
+              else Empty()
         
         out = None 
         if parameters:
             if Act.max > 0:
                 if Act.min == 2: _ = one + two
                 else: _ = one + Optional(two)
+                
+                try:
+                    out = _.parseString(parameters).asList()[::2]
+                except ParseException:
+                    out = "$! Input < Min"
             else:
                 out = "$! Input > Min"
                 
-            try:
-                out = _.parseString(parameters)
-            except AttributeError:
-                out = "$! Input < Min"
+            
         else:
             if Act.min == 0: out = []
             else: out = "$! 0 < Min"

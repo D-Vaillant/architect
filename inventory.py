@@ -17,33 +17,33 @@ class Inventory():
  
     def __contains__(self, item):
         """ Defines items being "in" Inventory instances. """
-        for x in self.structured_holding.values():
+        for x in self.holding.values():
             if item in x: return True
         else: return False
         ##return item in self.holding                
     
     def __bool__(self):
         """ Returns True if something is being held. """
-        for x in self.structured_holding.values():
+        for x in self.holding.values():
             if bool(x): return True
         else: return False
         
     def updateHoldingList(self):
         """ 'Flattens' holding into a cached sum of held items. """
         self.holding_list = []
-        for x in self.structured_holding.values():
+        for x in self.holding.values():
             if V:
                 print(x)
                 print(self.holding_list)
             self.holding_list.extend(list(x))
             
     def add(self, x, target="main"):
-        """ Adds items to structured_holding[target]. """
+        """ Adds items to holding[target]. """
         ## TODO: Implement weight.
         ##if self.limits[target] >= x.weight or self.limits[target] == -1:
         ##    return "FULL"
         ##else: pass
-        self.structured_holding[target].add(x)
+        self.holding[target].add(x)
         self.updateHoldingList()
         return
         
@@ -51,7 +51,7 @@ class Inventory():
         """ Used to remove items from the inventory. """
         ## TODO: Implement weight.
         try:
-            self.structured_holding[target].remove(x)
+            self.holding[target].remove(x)
             self.updateHoldingList()
         except KeyError:
             print("WARNING: Something went wrong.")

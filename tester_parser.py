@@ -15,55 +15,89 @@ class Parser_Tester(Game_Tester):
         self.parser = Parser(self.G.rooms, self.G.items, 
                              self.G.actions, self.G.inventory)
 
-    def subtest_bp(self, w_q, phrase):
-        w,q = w_q
-        for n in phrase:
-            with self.subTest(n=n):
-                self.assertEqual(w([n]), self.parser.BP_Parse(q(n)))
+class bpParser_Tester(Parser_Tester):
+    def subtest_bp(self, W, test_dict):
+        E_ = lambda x: W+'!'+x
+        P_ = lambda x: (W, x)
+        for entry, parsed in test_dict.items():
+            with self.subTest(entry=entry,parsed=parsed):
+                self.assertEqual(self.parser.bpParse(E_(entry)),
+                                 P_(parsed))
 
     def test_bp_put(self):
-        W = "puts"
-        w_q = lambda i: (W, i), lambda j: (W+'!'+j)
-        put_phrases = ["rocket hats", "worf@hat", "hi hi @ hi !",
-                        "believe in Ur ha_t"]
-        self.subtest_bp(w_q, put_phrases)
+        put_dict = {"rocket hats":["rocket hats"],
+                    "worf@hat"   :["worf@hat"],
+                    "hi hi @ hi !":["hi hi @ hi !"],
+                    "believe in Ur ha_t":["believe in Ur ha_t"],}
+        self.subtest_bp("put",put_dict)
 
     def test_bp_link(self):
-        W = "link"
-        w_q = lambda i: (W, [i[:i.find('-')], i[i.find('>')+1:]]),\
-              lambda j: (W+'!'+j)
-        link_phrases = ["initial-W->basement", "basement-N->flowers",
-                        "flowers-S->initial"]
-        self.subtest_bp(w_q, link_phrases)
+        link_dict = {"initial-W->basement":["initial","W","basement"],
+                    "basement-N->flowers":["basement","N","flowers"],
+                    "flowers-S->initial":["flowers","S","initial"],}
+        self.subtest_bp("link",link_dict)
 
     def test_bp_add(self):
-        W = "add"
-        w_q = lambda i: ((W, i[:i.find('.')].split('@') + [i[i.find('.')+1:]])
-                         if '.' in i else (W, i.split('@'))),\
-              lambda j: (W+'!'+j)
-        add_phrases = ["bauble@initial", "notebook@_",
-                       "bauble@_.main"]
-        self.subtest_bp(w_q, add_phrases)
+        add_dict = {"bauble@initial":["bauble", "initial"],
+                    "notebook@_":["notebook", "_"],
+                    "bauble@_.main":["bauble", "_", "main"]}
+        self.subtest_bp("add",add_dict)
 
     def test_bp_remove(self):
-        W = "remove"
-        w_q = lambda i: (W, i.split('@')),\
-              lambda j: (W+'!'+j)
-        remove_phrases = ["bauble@_", "notebook@initial",
-                          "painting@basement"]
-        self.subtest_bp(w_q, remove_phrases)
+        remove_dict = {"bauble@_"         :["bauble", "_"],
+                       "notebook@initial" :["notebook", "initial"],
+                       "painting@basement":["painting", "basement"]}
+        self.subtest_bp("remove",remove_dict)
 
     def test_bp_changeItem(self):
-        W = "changeItem"
-        w_q = lambda i: (W, i[:i.find('=')].split('.') + [i[i.find('=')+1:]]),\
-              lambda j: (W+'!'+j)
-        change_phrases = ["bauble.nick=heckball", "bauble.name=black heckball",
-                          "notebook.weight=5", "notebook.ground_desc=not real"]
-        self.subtest_bp(w_q, change_phrases)
+        change_dict = {
+            "bauble.nick=heckball":["bauble","nick","heckball"],
+            "bauble.name=black heckball":["bauble","name","black heckball"],
+            "notebook.weight=5":["notebook","weight","5"], 
+            "notebook.ground_desc=not real":
+                    ["notebook","ground_desc","not real"],
+                         }
+        self.subtest_bp("changeItem",change_dict)
     
     def test_bp_changeRoom(self):
-        change_phrases = ["basement.name=notbasement", "initial.name=house"]
-        self.subtest_bp("changeRoom", change_phrases)
+        change_dict = {
+            "basement.name=notbasement":["basement","name","notbasement"],
+            "initial.name=house":["initial","name","house"]
+                      }
+        self.subtest_bp("changeRoom",change_dict)
+
+class Action_Parser_Tester(Parser_Tester):
+    def setUp(self):
+        super().setUp()
+        theActions = self.parser.actions
+        self.unlock = theActions["unlock"]
+        self.cry = theActions["cry"]
+        self.tap = theActions["tap"]
+
+    def test_Action_actionParse_0_where_min_is_zero(self):
+        self.assertEqual(self.parser.actionParse(self.cry, ''), 
+                         [])
+
+    def test_Action_actionParse_0_where_min_greaterThan_zero(self):
+        self.assertEqual(self.parser.actionParse(self.unlock, ''),
+                         "$! 0 < Min")
+
+    def test_Action_actionParse_1_where_max_is_zero(self):
+        self.assertEqual(self.parser.actionParse(self.cry, "bauble"), 
+                         "$! Input > Min")
+
+    def test_Action_actionParse_1_successfully(self):
+        self.assertEqual(self.parser.actionParse(self.tap, "bauble"), 
+                         ["bauble"])
+
+    def test_Action_actionParse_2_where_prep_missing(self):
+        self.assertEqual(self.parser.actionParse(self.unlock, "door key"), 
+                                                 "$! Input < Min")
+
+    def test_Action_actionParse_2_successfully(self):
+        self.assertEqual(self.parser.actionParse(self.unlock, "door with key"), 
+                                                 ["door", "key"])
+  
 
 
 if __name__ == '__main__': unittest.main()

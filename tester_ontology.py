@@ -169,7 +169,7 @@ class Action_Tester(Game_Loader):
         self.assertEqual(self.cry.min, 0)
 
     def test_Action_min_unlock(self):
-        self.assertEqual(self.unlock.min, 1)
+        self.assertEqual(self.unlock.min, 2)
 
     def test_Action_min_tap(self):
         self.assertEqual(self.tap.min, 1)
@@ -182,25 +182,5 @@ class Action_Tester(Game_Loader):
 
     def test_Action_max_tap(self):
         self.assertEqual(self.tap.max, 1)
-
-    def test_Action_parseString_0_where_min_is_zero(self):
-        self.assertEqual(self.cry.parseString([]), 0)
-
-    def test_Action_parseString_0_where_min_greaterThan_zero(self):
-        self.assertEqual(self.unlock.parseString([]), "$! 0 < Min")
-
-    def test_Action_parseString_1_where_max_is_zero(self):
-        self.assertEqual(self.cry.parseString(["rock"]), "$! Input > Min")
-
-    def test_Action_parseString_1_successfully(self):
-        self.assertEqual(self.unlock.parseString(["rock"]), ["rock"])
-
-    def test_Action_parseString_2_where_prep_missing(self):
-        self.assertEqual(self.unlock.parseString(["rock", "out"]), 
-                                                 ["rock", "out"])
-
-    def test_Action_parseString_2_successfully(self):
-        self.assertEqual(self.unlock.parseString(["dance", "with", "style"]), 
-                                                 ["dance", "style"])
   
 if __name__ == '__main__': unittest.main()

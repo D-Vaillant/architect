@@ -110,6 +110,9 @@ class Game():
         self.setting_output = ''
         self.action_output = ''
         
+        # --- Overarching Settings ---
+        self.isEuclidean = M('isEuclidean') or True
+
     def _populate(self):
         for room in self.rooms.values():
             try:
@@ -117,12 +120,12 @@ class Game():
                 room.holding = [self._IDtoItem(_) for _ in room.holding]
             except KeyError:
                 raise KeyError("Room holding non-existent item.")
-        """     
+            """
         if self.inventory:
-            for location, bag in self.inventory.structured_holding.items():
-                self.inventory.structured_holding[location] = \
-                    {self._IDtoItem(_) for _ in bag}        
-        """
+            for location, bag in self.inventory.holding.items():
+                tmp_bag = {self._IDtoItem(_) for _ in bag} 
+                self.inventory.holding[location] = tmp_bag 
+            """
         return        
         
     def _meta_processor(self, raw_mdata):
@@ -156,6 +159,7 @@ class Game():
             container.add(item)
 
     def _remove(self, item, container, target = "main"):
+        """ Removes an Item from a container. """
         item = self._IDtoItem(item)
         if container == '_':
             container = self.inventory
@@ -163,7 +167,14 @@ class Game():
         else:
             container = self._IDtoRoom(container)
             container.remove(item)
-            
+    
+    def _link(self, source, dir, dest):
+        dir = self.cardinals[dir.lower()]
+        source = self._IDtoRoom(source)
+        dest = self._IDtoRoom(dest)
+
+        source.link(dest, dir, self.isEuclidean)
+        
     def _move(self, moved_item, source, target):
         """ Removes moved_item from source and adds it to target. """
         if moved_item in source:
@@ -296,11 +307,12 @@ class Game():
 # ----------------------- User/Designer Interface ----------------------------
 
     def _local(self):
-        return self.loc.holding+self.inventory.flatten()  
+        return self.loc.holding+self.inventory.holding_list  
         
     def _itemNametoID(self, item_name):
         search_arr = [x for x in self._local() 
-                              if (item_name == x.name or item_name == x.nick)]
+                              if (item_name == x.name 
+                              or item_name == x.nickname)]
         if len(search_arr) == 1:
             return search_arr[0].id
         elif len(search_arr):
@@ -431,7 +443,7 @@ class Game():
         
         # Transforms specifics into either an error message string
         # or an array of Item names.
-        specifics = action.parseString(specifics)
+        specifics = Parser.actionParse(action, specifics)
         
         
         # If parseString returns a "$! " prefixed string, put
@@ -478,191 +490,190 @@ class Game():
 # ----------------------- Designer/Engine Interface --------------------------
     """ A great deal of work must be done here. Revamping this whole thing, 
         in all probability. """
-    
-    def blueprint_main(self, words):
-        """ Main function for Blueprint code.
-        
-        Takes a string of BP code and splits it up into a 
-        pre-functional character, functional character, and a
-        post-functional character. """
-        if words == "pass": return
-        print("INPUT: "+ str(words))
-        type_code = words[:3]
-        
-        finder = re.search(Game.blueprint_keywords, words)
-        if finder is None:
-            self._puts("MCode lacking functional character: " + words)
-            raise AttributeError("No functional character found.")
-        
-        functional_char = words[finder.span()[0]]
-        target = words[4:finder.span()[0]]
-        parameters = words[finder.span()[1]:]
-        #if type_code == 'prp': type_code = 'obj'
-        getattr(self, type_code+"_func")(functional_char, target, parameters)
-        #self._puts(type_code, functional_char, parameters)
-        return
-        
-    def ift_func(self, functional_char, thing_in_question,
-                 condition):
-        """ Conditional blueprint processor.
-        
-        Isolates the condition from the post-functional part and enters an 
-        if-ifelse-else structure to find which condition corresponds to
-        the Blueprint code. 
-        
-        If condition is true, runs each BP code line found after the >
-        (separated by }) by calling blueprint_main. Otherwise, runs BP code
-        found after the <. """
-                 
-        # < divides the "on true" command from the "on false" one.
-        condition = condition.split('<')
-        else_condition = condition[1].split('}')
-        condition = condition[0].split('}')
-        
-        # At this point condition has the following form:
-        #          [parameter>mcode0, mcode1, mcode2,...]
-        # We split up the parameter and the mcode0 part using the >,
-        # assign parameter to second_thing, and assign mcode0 to condition[0].
-        then_finder = re.search('>', condition[0])
-        try:
-            second_thing = condition[0][:then_finder.span()[0]]
-            condition[0] = condition[0][then_finder.span()[1]:]
-        except AttributeError:
-            raise AttributeError("> not found.")
-        
-        # Turns second_thing into a class instance.
-        second_thing = self._alias(second_thing)        
-        
-
-        ### Redo inventory isHolding checks.
-        # @: True if thing_in_question is in second_thing, where second_thing
-        #    must be a room or an inventory (with a "holding" attribute).
-        if functional_char == '@':
-            try:
-                if thing_in_question in second_thing.holding:
-                    status = True
-                else: 
-                    status = False
-            except KeyError:
-                raise AttributeError("@ error.\n"+ second_thing.name + 
-                                     " has no holding attribute.")
-
-        # = : True if thing_in_question is identical with second_thing.
-        #     Generally used in conjunction with the _ alias.
-        elif functional_char == '=':
-            if thing_in_question == second_thing:
-                status = True
-            else:
-                status = False
-                
-        tmp = condition if status else else_condition
-        for i in tmp: self.blueprint_main(i)
-        
-        return
-    
-    def sys_func(self, functional_char, target, instruct):
-        """ System mcode processor. Used to print messages to the terminal. """
-        if V: self._puts("### Entering system functions.")
-        if functional_char == '!':
-            self._puts(instruct)
-        else:
-            pass
-        return
-    
-    ### Inventory complication project continues onwards.
-    def inv_func(self, functional_char, target, instruct):
-        """ Inventory mcode processor. Used for storage operations. """
-        if V: self._puts("### Entering inventory functions.")
-        
-        if functional_char == '+':
-            self.inventory.add_item(target)
-        elif functional_char == '-':
-            self.inventory.remove_item(target)
-        else:
-            pass
-        return
-    
-
-    ### Do some cleaning up here.
-    def rom_func(self, functional_char, target, instruct):
-        """ Room mcode processor. Used to manipulate Rooms. """
-        if V: self._puts("### Entering room functions.")
-
-        #tmp_instruct = ' '.join(instruct)
-        tmp_instruct = instruct
-        
-        # Changes a room name or _ into a Room class instance.
-        target = self._alias(target)
-        
-        ### Aren't they suppose.d to hold instances, not names?
-        if functional_char == '+':
-            target.holding.append(tmp_instruct)
-        elif functional_char == '-':
-            target.holding.remove(tmp_instruct)
-            
-        elif functional_char == '&':
-            self._link(target, instruct[0], instruct[1:])
-            
-        ### Make sure this works properly.
-        elif functional_char == '#':
-            try:
-                attr = Room.codes['#' + instruct[:2]]
-            except KeyError:
-                raise AttributeError("No corresponding Room attribute.")
-            self.change_var(target, attr, instruct[2:])
-        return
-
-    def obj_func(self, functional_char, target, instruct):
-        """ Item mcode processor. Used to manipulate Items. """
-        if V: self._puts("### Entering object functions.")
-        
-        target = self._alias(target)
-        
-        ### Give this a looksee.
-        if functional_char == '#':
-            try:
-                attr = Item.codes['#'+instruct[:2]]
-            except KeyError:
-                raise AttributeError("No corresponding Item attribute.")
-            #self.change_var(target, attr, instruct[2:])
-            if V: self._puts("#### Setting the new attribute now.")
-            setattr(getattr(self, "things")[target.alias], attr, instruct[2:])
-        return
-    
-    ### Is this even used?
-    def change_var(self, target, attribute, new_desc):
-        """ Tertiary function used to change the attributes of instances of
-            Room and Item. """
-        try:
-            setattr(target, attribute, new_desc) 
-        except AttributeError:
-            raise AttributeError(target + " does not have attribute "
-                                        + attribute)
-        return        
-    
-    ## Should probably be a Room staticmethod.
-    def _link(self, source, direction, dest, isEuclidean = True):
-        """ Establishes links between rooms.
-                source ----direction----> dest
-            If isEuclidean:
-                dest ----opposite_dir----> source
-            where opposite_dir should be clear. (N <-> S, W <-> E) """
-            
-        direction = self.cardinals[direction.lower()]
-        dest = self._alias(dest)
-        
-        if isEuclidean:
-            if source == dest:
-                raise Error("Euclidean rooms enabled; no loops allowed.")
-        source.links[direction] = dest.name
-        if isEuclidean:
-            if direction == 0: direction = 3
-            elif direction == 1: direction = 2
-            elif direction == 2: direction = 1
-            elif direction == 3: direction = 0
-            dest.links[direction] = source.name
-        return
-
+#    def blueprint_main(self, words):
+#        """ Main function for Blueprint code.
+#        
+#        Takes a string of BP code and splits it up into a 
+#        pre-functional character, functional character, and a
+#        post-functional character. """
+#        if words == "pass": return
+#        print("INPUT: "+ str(words))
+#        type_code = words[:3]
+#        
+#        finder = re.search(Game.blueprint_keywords, words)
+#        if finder is None:
+#            self._puts("MCode lacking functional character: " + words)
+#            raise AttributeError("No functional character found.")
+#        
+#        functional_char = words[finder.span()[0]]
+#        target = words[4:finder.span()[0]]
+#        parameters = words[finder.span()[1]:]
+#        #if type_code == 'prp': type_code = 'obj'
+#        getattr(self, type_code+"_func")(functional_char, target, parameters)
+#        #self._puts(type_code, functional_char, parameters)
+#        return
+#        
+#    def ift_func(self, functional_char, thing_in_question,
+#                 condition):
+#        """ Conditional blueprint processor.
+#        
+#        Isolates the condition from the post-functional part and enters an 
+#        if-ifelse-else structure to find which condition corresponds to
+#        the Blueprint code. 
+#        
+#        If condition is true, runs each BP code line found after the >
+#        (separated by }) by calling blueprint_main. Otherwise, runs BP code
+#        found after the <. """
+#                 
+#        # < divides the "on true" command from the "on false" one.
+#        condition = condition.split('<')
+#        else_condition = condition[1].split('}')
+#        condition = condition[0].split('}')
+#        
+#        # At this point condition has the following form:
+#        #          [parameter>mcode0, mcode1, mcode2,...]
+#        # We split up the parameter and the mcode0 part using the >,
+#        # assign parameter to second_thing, and assign mcode0 to condition[0].
+#        then_finder = re.search('>', condition[0])
+#        try:
+#            second_thing = condition[0][:then_finder.span()[0]]
+#            condition[0] = condition[0][then_finder.span()[1]:]
+#        except AttributeError:
+#            raise AttributeError("> not found.")
+#        
+#        # Turns second_thing into a class instance.
+#        second_thing = self._alias(second_thing)        
+#        
+#
+#        ### Redo inventory isHolding checks.
+#        # @: True if thing_in_question is in second_thing, where second_thing
+#        #    must be a room or an inventory (with a "holding" attribute).
+#        if functional_char == '@':
+#            try:
+#                if thing_in_question in second_thing.holding:
+#                    status = True
+#                else: 
+#                    status = False
+#            except KeyError:
+#                raise AttributeError("@ error.\n"+ second_thing.name + 
+#                                     " has no holding attribute.")
+#
+#        # = : True if thing_in_question is identical with second_thing.
+#        #     Generally used in conjunction with the _ alias.
+#        elif functional_char == '=':
+#            if thing_in_question == second_thing:
+#                status = True
+#            else:
+#                status = False
+#                
+#        tmp = condition if status else else_condition
+#        for i in tmp: self.blueprint_main(i)
+#        
+#        return
+#    
+#    def sys_func(self, functional_char, target, instruct):
+#        """ System mcode processor. Used to print messages to the terminal. """
+#        if V: self._puts("### Entering system functions.")
+#        if functional_char == '!':
+#            self._puts(instruct)
+#        else:
+#            pass
+#        return
+#    
+#    ### Inventory complication project continues onwards.
+#    def inv_func(self, functional_char, target, instruct):
+#        """ Inventory mcode processor. Used for storage operations. """
+#        if V: self._puts("### Entering inventory functions.")
+#        
+#        if functional_char == '+':
+#            self.inventory.add_item(target)
+#        elif functional_char == '-':
+#            self.inventory.remove_item(target)
+#        else:
+#            pass
+#        return
+#    
+#
+#    ### Do some cleaning up here.
+#    def rom_func(self, functional_char, target, instruct):
+#        """ Room mcode processor. Used to manipulate Rooms. """
+#        if V: self._puts("### Entering room functions.")
+#
+#        #tmp_instruct = ' '.join(instruct)
+#        tmp_instruct = instruct
+#        
+#        # Changes a room name or _ into a Room class instance.
+#        target = self._alias(target)
+#        
+#        ### Aren't they suppose.d to hold instances, not names?
+#        if functional_char == '+':
+#            target.holding.append(tmp_instruct)
+#        elif functional_char == '-':
+#            target.holding.remove(tmp_instruct)
+#            
+#        elif functional_char == '&':
+#            self._link(target, instruct[0], instruct[1:])
+#            
+#        ### Make sure this works properly.
+#        elif functional_char == '#':
+#            try:
+#                attr = Room.codes['#' + instruct[:2]]
+#            except KeyError:
+#                raise AttributeError("No corresponding Room attribute.")
+#            self.change_var(target, attr, instruct[2:])
+#        return
+#
+#    def obj_func(self, functional_char, target, instruct):
+#        """ Item mcode processor. Used to manipulate Items. """
+#        if V: self._puts("### Entering object functions.")
+#        
+#        target = self._alias(target)
+#        
+#        ### Give this a looksee.
+#        if functional_char == '#':
+#            try:
+#                attr = Item.codes['#'+instruct[:2]]
+#            except KeyError:
+#                raise AttributeError("No corresponding Item attribute.")
+#            #self.change_var(target, attr, instruct[2:])
+#            if V: self._puts("#### Setting the new attribute now.")
+#            setattr(getattr(self, "things")[target.alias], attr, instruct[2:])
+#        return
+#    
+#    ### Is this even used?
+#    def change_var(self, target, attribute, new_desc):
+#        """ Tertiary function used to change the attributes of instances of
+#            Room and Item. """
+#        try:
+#            setattr(target, attribute, new_desc) 
+#        except AttributeError:
+#            raise AttributeError(target + " does not have attribute "
+#                                        + attribute)
+#        return        
+#
+#    ## Should probably be a Room staticmethod.
+#    def _link(self, source, direction, dest, isEuclidean = True):
+#        """ Establishes links between rooms.
+#                source ----direction----> dest
+#            If isEuclidean:
+#                dest ----opposite_dir----> source
+#            where opposite_dir should be clear. (N <-> S, W <-> E) """
+#            
+#        direction = self.cardinals[direction.lower()]
+#        dest = self._alias(dest)
+#        
+#        if isEuclidean:
+#            if source == dest:
+#                raise Error("Euclidean rooms enabled; no loops allowed.")
+#        source.links[direction] = dest.name
+#        if isEuclidean:
+#            if direction == 0: direction = 3
+#            elif direction == 1: direction = 2
+#            elif direction == 2: direction = 1
+#            elif direction == 3: direction = 0
+#            dest.links[direction] = source.name
+#        return
+#
     '''
     def _on_entry(self):
         self._puts(self.loc.on_entry(), True)
@@ -682,9 +693,8 @@ class Game():
         self._puts(setting_info, True)
         return
 
-    ''' Main function. Takes user input, passes it to prompt_exe. '''
     def main(self):
-        """ """
+        """ Main function. Takes user input, passes it to prompt_exe. """
         self._puts(self.GAME_MSGS['beginning'])
         self._room_update()
         #raise NameError("Game finished.")

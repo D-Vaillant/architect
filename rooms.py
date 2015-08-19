@@ -48,9 +48,18 @@ class Room():
         out = "\n".join(self.entry_desc)
         return out
         
-    def link(self, linked_room, dir):
-        self.links[dir] = linked_room
+    def link(self, linked_room, dir, isEuclidean = True):
+        if isEuclidean and self == linked_room:
+            raise TypeError("Euclidean rooms enabled; no loops allowed.")
 
+        self.links[dir] = linked_room
+        if isEuclidean:
+            if dir == 0: dir = 3
+            elif dir == 1: dir = 2
+            elif dir == 2: dir = 1
+            elif dir == 3: dir = 0
+            linked_room.links[dir] = self
+ 
     def __str__(self):  
         string = ("Name: {0}\n"
                   "ID: {1}\n"
