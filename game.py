@@ -62,7 +62,8 @@ V = False
 class Game():
     cardinals = {'w':0, 's':1, 'n':2, 'e':3}
     special_actions = ['take'] ## Special actions are... weird.
-    blueprint_keywords = '[&!\-\+@#]' ## Blueprint needs to be reworked.
+    ##TODO: Figure out the role of special actions.
+
     ERROR = {
         "exe_pass": "Invalid command.",
         "ambiguity": "Be more specific!",
@@ -111,6 +112,7 @@ class Game():
         self.action_output = ''
         
         # --- Overarching Settings ---
+        # Euclidean forces links to be irreflexive and symmetric.
         self.isEuclidean = M('isEuclidean') or True
 
     def _populate(self):
@@ -120,6 +122,7 @@ class Game():
                 room.holding = [self._IDtoItem(_) for _ in room.holding]
             except KeyError:
                 raise KeyError("Room holding non-existent item.")
+            # TODO: Figure out why Inventory is already holding Items.
             """
         if self.inventory:
             for location, bag in self.inventory.holding.items():
@@ -128,14 +131,15 @@ class Game():
             """
         return        
         
-    def _meta_processor(self, raw_mdata):
-        try: 
-            firstRoomID = raw_mdata["firstRoom"]
-            self.loc = self._alias(firstRoomID)
-        except KeyError: 
-            raise KeyError("Initial room unspecified.")
-        except NameError:
-            raise NameError("Initial room not found.")
+    # TODO: Integrate this into init; it's too sad on its own.
+    #def _meta_processor(self, raw_mdata):
+    #    try: 
+    #        firstRoomID = raw_mdata["firstRoom"]
+    #        self.loc = self._alias(firstRoomID)
+    #    except KeyError: 
+    #        raise KeyError("Initial room unspecified.")
+    #    except NameError:
+    #        raise NameError("Initial room not found.")
         
 #------------------------------ Utility Functions ----------------------------
 
@@ -231,7 +235,7 @@ class Game():
         except KeyError:
             raise NameError("No room with ID {}.".format(id))
 
-    #! Figure out how I'm going to handle this propertly.
+    # TODO: Figure out how I'm going to handle this propertly.
     #  IDtoItem gets rid of the need for the ID grabbing.
     #  It makes sense to implement SymbolToContainer and SymbolToRoom
     #  methods in order to capture the other things I want to do.
@@ -256,7 +260,7 @@ class Game():
     def prompt_exe(self, prompt):
         """ Takes user input and passes it to the appropriate method. """
             
-        # Turns string inputs into arrays of strings.
+        # Turns string inputs into array of strings.
         i = prompt.lower().split() if prompt else ''
         
         # Does nothing if empty command is entered.
@@ -310,6 +314,7 @@ class Game():
         return self.loc.holding+self.inventory.holding_list  
         
     def _itemNametoID(self, item_name):
+        """ Gets an Item's ID from its name or nickname. """
         search_arr = [x for x in self._local() 
                               if (item_name == x.name 
                               or item_name == x.nickname)]
@@ -322,6 +327,10 @@ class Game():
             self._puts(self.ERROR["item_not_found"])
             return None
     
+    def _itemNametoItem(self, item_name):
+        _ = self._itemNametoID(item_name)
+        return self._IDtoItem(_) if _ else None 
+
     def _movePlayer(self, direction):
         """ Attempts to change self.loc in response to movement commands. """
         # Transforms letters to Room.links array index (0-3).
@@ -389,6 +398,7 @@ class Game():
     """
     
     def _act(self, command):
+        # TODO: Write an actual docstring.
         """ Does actiony stuff. Don't ask me! """
         if V: print("Running action prompt.")
        
@@ -412,16 +422,15 @@ class Game():
         return
         
     def _special_act(self, action, specifics):
+        # TODO: Docstring.
         if action == "take":
             try: 
-                specifics = self._IDtoItem(self._itemNametoID(specifics))
-            except NameError: 
-                if V: print("Failed to get Item: {}".format(specifics)) 
-            
-            if specifics == "room": # More of an Easter Egg.
-                if V: print("Taking: Room.")
-                self._puts(self.ERROR["act_using_rooms"])
-            elif specifics:
+                specifics = self._itemNametoItem(specifics)
+            ## elif specifics in self.inventory.holding:
+            ##     self._puts(self.ERROR["act_already_holding"])
+            except NameError:
+                self._puts(self.ERROR["act_item_not_found"])
+            else:
                 if V: print("Taking: ", specifics)
                 if specifics.isProp:
                     self._puts(self.ERROR["act_taking_prop"])
@@ -429,12 +438,9 @@ class Game():
                     self.inventory.add(specifics)
                     self.loc.holding.remove(specifics)
                     self._puts("Picked up the " + specifics.name + ".")
-            ## elif specifics in self.inventory.holding:
-            ##     self._puts(self.ERROR["act_already_holding"])
-            else:
-                self._puts(self.ERROR["act_item_not_found"])
-                    
+             
     def _user_act(self, action, specifics):
+        # TODO: Docstring.
         """ Text processing part. """
         breaker = True
         
@@ -443,7 +449,7 @@ class Game():
         
         # Transforms specifics into either an error message string
         # or an array of Item names.
-        specifics = Parser.actionParse(action, specifics)
+        specifics = self.parser.actionParse(action, specifics)
         
         
         # If parseString returns a "$! " prefixed string, put
@@ -452,32 +458,22 @@ class Game():
             self._puts(ACT_MSGS[specifics[2:]])
         
         # Turns the parsed string into (hopefully) an array of Item IDs.
-        try:
-            specifics = specifics.split()
-            print(specifics)
-            for i, x in enumerate(specifics):
-                if x:
-                    print("Working! ", i, x)
-                    try:
-                        # Changes specifics into an array of Items.
-                        x = self._itemNametoID(x)
-                        specifics[i] = self._IDtoItem(x) 
-                        print(specifics)
-                    except KeyError: 
-                        # If one of the item IDs doesn't correspond to the ID 
-                        # of an Item, put a "Cannot be found." message.
-                        self._puts(self.ERROR["act_item_not_found"])
-                        breaker = False
-                        
-        except AttributeError:
-            if specifics != 0: 
-                raise AttributeError("specifics is not splittable.")
+        else:
+            #try:
+            #    specifics = specifics.split() if specifics else 0
+            #except AttributeError:
+            #    raise AttributeError("specifics is not splittable.")
 
-        """ Acting part. """
-        if breaker:
-            # Calls the action, returning an array of instructions and runs it.
-            bp_code = action.call(specifics)
-            for x in bp_code: self.blueprint_main(x)
+            if V: print(specifics)
+
+            try:
+                specifics = [self._itemNametoItem(_) for _ in specifics] \
+                                                     if specifics else 0
+            except NameError:
+                self._puts(self.ERROR["act_item_not_found"])
+            else:
+                bp_code = action.call(specifics)
+                for x in bp_code: self._bpRouter(x)
 
     def _inv(self, command):
         """ Inventory menu commands. """
