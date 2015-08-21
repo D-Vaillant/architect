@@ -28,6 +28,8 @@ class Room():
             self.entry_desc = _ or ["This is a room."]
            
         self.holding = d('hold') or []
+        # Used to catch lazy settings of holding to a string instead of a list.
+        if type(self.holding) == 'str': self.holding = [self.holding]
         ##if d('data'): self.data = []
 
         self.is_visited = False

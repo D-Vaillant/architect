@@ -1,6 +1,7 @@
 from collections import OrderedDict as OrdDict
 
-V = False
+V = False # Verbose, talks about what's being done.
+E = False # Error-checking, raises Exceptions if there are hiccups in JSON.
 
 class Action:
     codes = {
@@ -29,7 +30,7 @@ class Action:
         A = OrdDict()
 
         for x, y in act_list: # [ [x_0, y_0],...,[x_n,y_n] ]
-            x = tuple(x.split('&')) #[ (xp_0, xp_1), y]
+            x = tuple(x.split('&')) #[ (x_0.0, x_0.1), y]
             A[x] = y
         return A 
         
@@ -37,12 +38,21 @@ class Action:
         """ Takes a list of lists of length 2, produces an OrderedDict. """
         A = OrdDict()
 
-        for x, y in act_list: # [ [x_0, y_0],...,[x_n,y_n] ]
+        for x, y in act_list: # act_list == [ [x_0, y_0],...,[x_n,y_n] ]
+            # | splits the conditions for object 1 from conditions for object 2.
+            ''' If a binary condition is lacking the | separator, adds it on.
+                Complains if the E flag is checked. '''
+            if '|' not in x:
+                if E: raise SyntaxError("Binary conditional missing |.")
+                x = x + '|'
+
             x = x.split("|") # [[a,b], y_0]
             for i in [0,1]:
-                # [ [(ap_0,ap_1), (bp_0,bp_1)], y_0]
+                # [ [(a_0.0, a_0.1), (b_0.0, b_0.1)], y_0]
+                # & splits combined conditions, 
+                #   i.e. "item must fulfill a_0.0 AND a_0.1."
                 x[i] = tuple(x[i].split('&')) 
-            x = tuple(x) # [ ((ap_0,ap_1), (bp_0,bp_1)), y ]
+            x = tuple(x) # [ ((a_0.0, a_0.1), (b_0.0, b_0.1)), y ]
             A[x] = y
         return A 
         
@@ -120,7 +130,7 @@ class Action:
             for i,j in self.binary_act:
                 if self.pluralUnaryTest(input_objs[0], i) and \
                    self.pluralUnaryTest(input_objs[1], j):
-                    val = self.binary_act[(i,j)]
+                        val = self.binary_act[(i,j)]
                 else: continue
                 
         else: # Only one object.

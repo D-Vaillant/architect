@@ -69,7 +69,7 @@ class Game_EngineMethod_Tester(Game_Tester):
         with self.assertRaises(NameError, msg="No item with ID hat"):
             self.G._IDtoItem("hat")
 
-class Game_Parser_Tester(Game_Tester):
+class Game_Prompt_Tester(Game_Tester):
     @mock.patch.object(Game, '_movePlayer')
     def test_prompt_exe_movePlayer(self, mock__movePlayer):
         cardinal_list = ['north', 'south', 'east', 'west']
@@ -91,7 +91,11 @@ class Game_Parser_Tester(Game_Tester):
          
     @mock.patch.object(Game, '_act')
     def test_prompt_exe_act(self, mock__act):
-        pass
+       arr = ["take rocket ship", "unlock red door", "cry"]
+       for x in arr:
+           with self.subTest(x = x):
+               self.G.prompt_exe(x)
+               mock__act.assert_called_with(x.split())
     
     @mock.patch.object(Game, '_help')
     def test_prompt_exe_help(self, mock__help):
@@ -119,10 +123,28 @@ class Game_Parser_Tester(Game_Tester):
         self.G._itemNametoID('ascvas')
         mock__puts.assert_called_with(self.G.ERROR["item_not_found"])
     
-class Game_ActionParser_Tester(Game_Tester):
+class Game_ActionSystem_Tester(Game_Tester):
     @mock.patch('builtins.print', autospec=True)
     def test_nonaction(self, mock_print):
         self.G._act(['ast'])
         mock_print.assert_called_with("Non-action. Why are we here?")
     
+    @mock.patch.object(Game, '_specialAct')
+    def test_actToSpecialAct(self, mock__specialAct):
+        self.G._act(["take", "rocketship", "moon"])
+        mock__specialAct.assert_called_with("take", "rocketship moon")
+
+    @mock.patch.object(Game, '_puts')
+    def test_userAct_invalidAct(self, mock__puts):
+        act_dict = {("unlock","door"):Game.ACT_MSGS["Input < Min"],
+                    ("cry","door")   :Game.ACT_MSGS["Input > Max"],
+                    ("unlock",)       :Game.ACT_MSGS["0 < Min"],}
+        for cmd, output in act_dict.items():
+            cmd = list(cmd)
+            with self.subTest(cmd=cmd,output=output):
+                self.G._act(cmd)
+                mock__puts.assert_called_with(output)
+
+class Game_Simulator_Tester(Game_Tester):
+    pass 
 if __name__ == '__main__': unittest.main()

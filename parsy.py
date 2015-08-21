@@ -9,7 +9,7 @@ class Parser:
         self.actions = a
         self.inventory = b
 
-        self.bp_commands = ['put', 'link', 'add', 'remove', 'move',
+        self.bp_commands = ['puts', 'link', 'add', 'remove', 'move',
                             'changeRoom', 'changeItem', 'changeInventory',
                             'addProperty', 'removeProperty',
                            ]
@@ -38,11 +38,11 @@ class Parser:
         # all syntax has the form ARG SYM ARG SYM ARG SYM..., to allow for
         # symbols to be easily ignored when passing parsed results
         pt = {
-                'put' : rest,
+                'puts' : rest,
                 'link': room + '-' + dir + '->' + room,
                 'add': item + '@' + container,
                 'remove': item + '@' + container,
-                'move': item + '@' + room + '->' + container,
+                'move': item + '@' + container + '->' + container,
                 'changeItem': change(item, item_attr),
                 'changeRoom': change(room, room_attr),
                 'changeInv': change(bag, bag_attr),
@@ -80,7 +80,7 @@ class Parser:
                 except ParseException:
                     out = "$! Input < Min"
             else:
-                out = "$! Input > Min"
+                out = "$! Input > Max"
                 
             
         else:

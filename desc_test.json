@@ -99,16 +99,16 @@
 {
     "type":     "action",
     "id":     "cry",
-    "0":        "put!You weep for a while but don't feel any better."
+    "0":        "puts!You weep for a while but don't feel any better."
 },
 {
     "type":     "action",
     "id":     "tap",
     "1":[
-         ["bauble",     "put!Clink clink."],
-         ["p:wooden",   "put!Thud thud."],
-         ["p:metal",    "put!Ting ting."],
-         ["",           "put!Tap tap."]]
+         ["bauble",     "puts!Clink clink."],
+         ["p:wooden",   "puts!Thud thud."],
+         ["p:metal",    "puts!Ting ting."],
+         ["",           "puts!Tap tap."]]
 },
 {
     "type":     "action",
@@ -118,8 +118,9 @@
          ["p:locked",   "a"],
          ["",           "a"]],
     "2":[
-         ["old_door&p:locked|worn_key", "a"],
-         ["old_door|", "a"]]
+         ["old_door&p:locked|worn_key", "link!entrance-N->house&puts!The door has been unlocked.&addProperty!old_door#unlocked&removeProperty!old_door#locked"],
+         ["old_door&p:unlocked|", "puts!The door's already been unlocked."],
+         ["old_door|", "puts!Unlock it with what?"]]
            
 }
 ]

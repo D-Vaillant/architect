@@ -77,8 +77,8 @@ class Game():
         }
     ACT_MSGS = {
         "Input < Min":"What do you want to do that to?",
-        "0 < Min:":"You need to do that with something.",
-        "Input > Min":"That doesn't make sense."
+        "0 < Min":"You need to do that with something.",
+        "Input > Max":"That doesn't make sense."
         }
     GAME_MSGS = {
         "beginning": "Welcome to the demo!",
@@ -162,7 +162,7 @@ class Game():
             container = self._IDtoRoom(container)
             container.add(item)
 
-    def _remove(self, item, container, target = "main"):
+    def _remove(self, item, container, target = None):
         """ Removes an Item from a container. """
         item = self._IDtoItem(item)
         if container == '_':
@@ -204,10 +204,16 @@ class Game():
 
     def _changeItem(self, item, attr, text):
         item = self._IDtoItem(item)
+        if '_desc' in attr: 
+            print("WARNING: You should be calling changeDescription.")
+            return
         try:
             setattr(item, attr, text)
         except AttributeError:
             raise AttributeError("%s is not an item attribute."%attr)
+
+    def _changeDescription(self, object, type, index=0, text=''):
+        pass
 
     def _changeRoom(self, room, attr, text):
         room = self._IDtoRoom(room)
@@ -410,18 +416,18 @@ class Game():
         ## Could theoretically be rolled into the Action class as well.
         if action in self.special_actions:
             if V: print("Special action being run.")
-            self._special_act(action, specifics)
+            self._specialAct(action, specifics)
                     
         # User-specified actions.
         elif action in self.actions:
             if V: print("Ordinary action being run.")
-            self._user_act(action, specifics)
+            self._userAct(action, specifics)
             
         else:
             print("Non-action. Why are we here?")
         return
         
-    def _special_act(self, action, specifics):
+    def _specialAct(self, action, specifics):
         # TODO: Docstring.
         if action == "take":
             try: 
@@ -439,10 +445,9 @@ class Game():
                     self.loc.holding.remove(specifics)
                     self._puts("Picked up the " + specifics.name + ".")
              
-    def _user_act(self, action, specifics):
+    def _userAct(self, action, specifics):
         # TODO: Docstring.
         """ Text processing part. """
-        breaker = True
         
         # Turns action names into Action instances.
         action = self.actions[action]
@@ -454,8 +459,8 @@ class Game():
         
         # If parseString returns a "$! " prefixed string, put
         # an error message.
-        if specifics and specifics[:2] == "$! ":
-            self._puts(ACT_MSGS[specifics[2:]])
+        if specifics and specifics[:3] == "$! ":
+            self._puts(self.ACT_MSGS[specifics[3:]])
         
         # Turns the parsed string into (hopefully) an array of Item IDs.
         else:
@@ -467,13 +472,13 @@ class Game():
             if V: print(specifics)
 
             try:
-                specifics = [self._itemNametoItem(_) for _ in specifics] \
+               specifics = [self._itemNametoItem(_) for _ in specifics] \
                                                      if specifics else 0
             except NameError:
                 self._puts(self.ERROR["act_item_not_found"])
             else:
                 bp_code = action.call(specifics)
-                for x in bp_code: self._bpRouter(x)
+                for x in bp_code: self._bpRouter(self.parser.bpParse(x))
 
     def _inv(self, command):
         """ Inventory menu commands. """

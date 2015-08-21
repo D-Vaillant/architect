@@ -11,7 +11,7 @@ class Inventory():
         
         self.updateHoldingList()
         
-        self.containers = default.keys()
+        #self.containers = default.keys()
         self.limits = limits
         self.name = "player inventory"
  
@@ -50,19 +50,22 @@ class Inventory():
     def remove(self, x, target="main"):
         """ Used to remove items from the inventory. """
         ## TODO: Implement weight.
-        try:
-            self.holding[target].remove(x)
-            self.updateHoldingList()
-        except KeyError:
-            print("WARNING: Something went wrong.")
+        if target is None:
+            target = self.isIn(x)
+        if target:
+            try:
+                self.holding[target].remove(x)
+                self.updateHoldingList()
+            except KeyError:
+                print("WARNING: Something went wrong.")
         return
         
-    ## TODO: Figure out where this plays in.
     def isIn(self, x, target="all"):
-        """ Returns True if x is in target. Defaults to checking all. """
-        for pouch in self.containers:
-            if x in pouch: return True
-        return False
+        """ If x is in a bag, returns the bag. Otherwise, returns None. """
+        if target == "all":
+            for bag_name, bag in self.holding:
+                if x in bag: return bag_name
+        return None
         
         
     def __str__(self):
