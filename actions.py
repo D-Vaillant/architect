@@ -17,9 +17,10 @@ class Action:
 
         self.id = act_dict["id"] # id not in act_dict => something went wrong
         
-        self.zero_act = a('0') or ''
-        self.unary_act = self.unaryHelper(a('1') or [])
-        self.binary_act = self.binaryHelper(a('2') or [])
+        self.zero_act = a('0').split('&') if a('0') else 'pass'
+
+        self.unary_act = self.unaryHelper(a('1') or {})
+        self.binary_act = self.binaryHelper(a('2') or {})
                                    
         self.binary_prep = a('prep') or ''
                
@@ -31,7 +32,7 @@ class Action:
 
         for x, y in act_list: # [ [x_0, y_0],...,[x_n,y_n] ]
             x = tuple(x.split('&')) #[ (x_0.0, x_0.1), y]
-            A[x] = y
+            A[x] = y.split('&')
         return A 
         
     def binaryHelper(self, act_list):
@@ -124,7 +125,7 @@ class Action:
         if V: print("CALLING ACTION: ", input_objs)
         
         val = None        
-        if(not input_objs): return self.zero_act
+        if (not input_objs): val = self.zero_act
         
         elif(type(input_objs) == 'tuple'): # Two objects.
             for i,j in self.binary_act:
@@ -138,9 +139,8 @@ class Action:
                 if self.pluralUnaryTest(input_objs, i):
                     val = self.unary_act[i]
                 else: pass
+
         if V: print("Returning {}.".format(val))                
-            
-        if V: print(val)
         return val or 'pass'
         
     @staticmethod    

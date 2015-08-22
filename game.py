@@ -151,7 +151,8 @@ class Game():
 ## Used in BP Code implementation. 
 
     def _bpRouter(self, args):
-        getattr(self, '_'+args[0])(*args[1])
+        if args == "pass": return
+        else: getattr(self, '_'+args[0])(*args[1])
 
     def _add(self, item, container, target = "main"):
         item = self._IDtoItem(item)
@@ -448,27 +449,19 @@ class Game():
     def _userAct(self, action, specifics):
         # TODO: Docstring.
         """ Text processing part. """
-        
         # Turns action names into Action instances.
         action = self.actions[action]
-        
+
         # Transforms specifics into either an error message string
         # or an array of Item names.
+        # See Parser.actionParse.__doc__.
         specifics = self.parser.actionParse(action, specifics)
-        
-        
         # If parseString returns a "$! " prefixed string, put
         # an error message.
         if specifics and specifics[:3] == "$! ":
             self._puts(self.ACT_MSGS[specifics[3:]])
-        
         # Turns the parsed string into (hopefully) an array of Item IDs.
         else:
-            #try:
-            #    specifics = specifics.split() if specifics else 0
-            #except AttributeError:
-            #    raise AttributeError("specifics is not splittable.")
-
             if V: print(specifics)
 
             try:

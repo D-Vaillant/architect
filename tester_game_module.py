@@ -145,6 +145,9 @@ class Game_ActionSystem_Tester(Game_Tester):
                 self.G._act(cmd)
                 mock__puts.assert_called_with(output)
 
-class Game_Simulator_Tester(Game_Tester):
-    pass 
+    @mock.patch.object(Game, '_puts')
+    def test_userAct_exceptionRaise(self, mock__puts):
+        self.G._act("tap florgisborg".split())
+        mock__puts.assert_called_with(Game.ERROR["act_item_not_found"])
+
 if __name__ == '__main__': unittest.main()

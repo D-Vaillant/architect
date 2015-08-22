@@ -17,6 +17,7 @@ class Parser:
     def bpParse(self, code):
         """ Given a line of BP code, parses out the command and parameters. 
         INPUT: "CMD!ARGS" => OUTPUT: CMD, [ARG_0..ARG_n] """
+        if code=='pass': return code
 
         j = lambda x: ' '.join(x)
         item = oneOf(j(self.items.keys())) # string of all the item names
@@ -54,8 +55,11 @@ class Parser:
         index = code.find('!')
         command = code[:index]
         parameters = code[index+1:]
-
-        return command, pt[command].parseString(parameters)[::2]
+        
+        try:
+            return command, pt[command].parseString(parameters)[::2]
+        except KeyError:
+            raise KeyError("Attempted to call the %s command."%command)
 
     def actionParse(self, Act, parameters):
         """ Parses arity and item IDs from a user action command. """
