@@ -62,16 +62,20 @@ class JR_Tester(Game_Loader):
 
         for key, a_var in actionOBJ.codes.items():
             if key in actionJR:
-                if key not in {"1", "2"}: 
+                if key not in {"0", "1", "2"}: 
                     self.assertEqual(grabObjVar(a_var), actionJR[key])
+                elif key == "0":
+                    self.assertEqual(grabObjVar(a_var), [actionJR[key]])
                 else:
                     pass
             else:
-                if key in {"1", "2"}:
-                    self.assertEqual(grabObjVar(a_var), OrderedDict())
-                else:
-                    self.assertEqual(grabObjVar(a_var), '')
-        
+                if key == '0': 
+                    self.assertEqual(grabObjVar(a_var), ['pass'])
+                elif key == '1':
+                    self.assertEqual(grabObjVar(a_var), {'':['pass']})
+                elif key == '2':
+                    self.assertEqual(grabObjVar(a_var), {'|':['pass']})
+                else: continue
     
     def test_JR_items(self):
         itemDict = Item.item_processor(self.Reader.item_info)
@@ -160,10 +164,10 @@ class Action_Tester(Game_Loader):
     @unittest.skipUnless(testing_actions, "not testing this")
     def setUp(self):
         super().setUp()
-        theActions = Action.action_processor(self.Reader.action_info)
-        self.unlock = theActions["unlock"]
-        self.cry = theActions["cry"]
-        self.tap = theActions["tap"]
+        self.theActions = Action.action_processor(self.Reader.action_info)
+        self.unlock = self.theActions["unlock"]
+        self.cry = self.theActions["cry"]
+        self.tap = self.theActions["tap"]
 
     def test_Action_min_cry(self):
         self.assertEqual(self.cry.min, 0)
@@ -182,5 +186,30 @@ class Action_Tester(Game_Loader):
 
     def test_Action_max_tap(self):
         self.assertEqual(self.tap.max, 1)
-  
+
+    def test_zeroAction_format(self):
+        for x in self.theActions.values():
+            if x.zero_act == '': continue
+            else: self.assertIsInstance(x.zero_act, list)
+
+    def test_unaryAction_format(self):
+        for x in self.theActions.values():
+            if x.unary_act == {'':['pass']}: continue
+            self.assertIsInstance(x.unary_act, OrderedDict)
+            for key, value in x.unary_act.items():
+                with self.subTest(key=key,value=value):
+                    self.assertIsInstance(key, tuple)
+                    self.assertIsInstance(value, list)
+
+    def test_binaryAction_format(self):
+        for x in self.theActions.values():
+            if x.binary_act == {'|':['pass']}: continue
+            self.assertIsInstance(x.binary_act, OrderedDict)
+            for key, value in x.binary_act.items():
+                with self.subTest(key=key,value=value):
+                    for _ in key:
+                        self.assertIsInstance(_, tuple)
+                        for __ in _: self.assertIsInstance(__, str)
+                    self.assertIsInstance(value, list)
+
 if __name__ == '__main__': unittest.main()

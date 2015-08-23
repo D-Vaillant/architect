@@ -57,7 +57,7 @@ from json_reader import InfoCollector
 import re
 
 # Verbose option.
-V = False
+V = True
 
 class Game():
     cardinals = {'w':0, 's':1, 'n':2, 'e':3}
@@ -86,6 +86,7 @@ class Game():
         }
         
 #---------------------------- Initialization ---------------------------------
+
     def __init__(self, rdata, tdata, adata, mdata):
         M = lambda x: x if x in mdata else None
 
@@ -141,14 +142,286 @@ class Game():
     #    except NameError:
     #        raise NameError("Initial room not found.")
         
-#------------------------------ Utility Functions ----------------------------
-
-    ##def _getItem(self, item_id, holder):
-    ##    return self.items[item_id] if item_id in holder.holding else None
-    #!! Deprecated, I'm pretty sure.
+# --------------------------- GUI-User Interface -----------------------------
     
-#----------------------------- Engine Methods --------------------------------
-## Used in BP Code implementation. 
+    def main(self):
+        """ Takes user input, passes it to prompt_exe. """
+        self._puts(self.GAME_MSGS['beginning'])
+        self._room_update()
+        #raise NameError("Game finished.")
+        return
+        
+    def cliMain(self):
+        """ Takes user input via the CLI, passes it to prompt_exe. """
+        self.main()
+        prompt = ' '
+        while (prompt[0] != 'q' and prompt[0] != 'quit'):
+            print(self.gets())
+            prompt = input('> ').lower()
+            ##prompt = x.split() if x != '' else ''
+            if prompt == '': prompt = ' '
+            self.prompt_exe(prompt)        
+
+    def _room_update(self):
+        """ Adds item and setting information to the output buffer. """
+        item_info = Item.item_printer(self.loc.holding)
+        setting_info = self.loc.onEntry() + '\n'
+        if item_info:
+            setting_info += item_info + '\n'
+        self._puts(setting_info, True)
+        return
+
+    """ Functions involved in passing to GUI_Holder class. """
+    def _puts(self, input_string, is_setting = False):
+        """ Adds text to the output buffer. """
+        if is_setting:
+            self.setting_output = input_string
+        else:
+            self.action_output += input_string + '\n'
+
+    def gets(self):
+        """ Returns text from the output buffer and clears it. """
+        self._room_update()
+        returning = self.setting_output + '\n' + self.action_output
+        self.action_output = ''
+        return returning
+
+# ------------------------------- User Methods ---------------------------------
+
+    def prompt_exe(self, prompt):
+        """ Takes user input and passes it to the appropriate method. """
+            
+        # Turns string inputs into array of strings.
+        i = prompt.lower().split() if prompt else ''
+        
+        # Does nothing if empty command is entered.
+        if len(i) < 1: pass
+
+        # Call _move if a movement command is entered.
+        elif i[0] in self.cardinals.keys():
+            self._movePlayer(i[0])
+        elif i[0] in ['west', 'south', 'north', 'east']:
+            self._movePlayer(i[0][0])
+
+        # Inventory call.
+        elif i[0] in ["inv", "i"]:
+            self._inv("open")
+            
+        # Call _act if an action is entered.
+        elif i[0] in self.actions or \
+             i[0] in self.special_actions:
+            if V: print("Treating ", i[0], " as an action.")
+            self._act(i)
+        
+        # System calls. ? calls help.
+        #!! Needs to be worked out.
+        elif i[0] == '?':
+            self._help(''.join(i[1:]))
+            
+        # Puts Quit message.
+        elif i[0] == 'quit' or i[0] == 'q':
+            self._puts(self.GAME_MSGS["quit"])
+        
+        # Puts an error message if an unrecognised command is entered.
+        else:
+            self._puts(self.ERROR["exe_pass"])
+            
+        if V: print()
+        return        
+            
+    def _help(self, object):
+        """ Puts help messages. """
+        #!! Work needed here.
+        if object:
+            pass
+        else:
+            self._puts("Movement: north, south, east, west")
+            self._puts("Actions: " + ', '.join(self.actions))
+        return
+            
+# ---------------------------- Utility Functions -------------------------------
+
+    def _local(self):
+        """ Returns a list of Items near the player. """
+        return self.loc.holding+self.inventory.holding_list  
+
+    def _IDtoRoom(self, id):
+        """ Returns a Room instance R such that R.id = id. """
+        try:
+            return self.rooms[id]
+        except KeyError:
+            raise NameError("No room with ID {}.".format(id))
+   
+    def _IDtoItem(self, id):
+        """ Returns an Item instance W such that W.id = id. """
+        try:
+            return self.items[id]
+        except KeyError:
+            raise NameError("No item with ID {}.".format(id))
+        
+    def _itemNametoID(self, item_name):
+        """ Gets an Item's ID from its name or nickname. """
+        search_arr = [x for x in self._local() 
+                              if (item_name == x.name 
+                              or item_name == x.nickname)]
+        if len(search_arr) == 1:
+            return search_arr[0].id
+        elif len(search_arr):
+            self._puts(self.ERROR["ambiguity"])
+            return None
+        else: 
+            self._puts(self.ERROR["item_not_found"])
+            return None
+    
+    def _itemNametoItem(self, item_name):
+        """ Composition of _itemNametoID and _IDtoItem. """
+        _ = self._itemNametoID(item_name)
+        return self._IDtoItem(_) if _ else None 
+
+# ------------------------- User-Engine Interface ------------------------------
+# Includes some simple Engine methods (_movePlayer, let's be real here) and 
+# the first component of the Action pipeline.
+
+    def _movePlayer(self, direction):
+        """ Attempts to change self.loc in response to movement commands. """
+        # Transforms letters to Room.links array index (0-3).
+        translated_direction = self.cardinals[direction[0][0]]
+        
+        try:
+            self.loc = self.rooms[self.loc.links[translated_direction]]
+        except KeyError:
+            self._puts("I can't go that way.")
+            return
+        #self._room_update()
+            
+    # Act: Takes a command.
+    # Deprecated by new action system.
+    """
+    def act(self, command):
+        ''' Action function. '''
+        tmp = ' '.join(command[1:])
+
+        # If no object specified.
+        if tmp == '':
+            if command[0] == "examine":
+                self._puts(self.loc.on_examine())
+                #self._puts(Item.item_printer([self.items[x] 
+                     for x in self.loc.holding]))
+            else: 
+                self._puts(self.ERROR["act_item_not_found"])
+        # Examining.
+        elif command[0] == "examine":
+            if tmp == "room":
+                self._puts(self.loc.on_examine())
+                #self._puts(Item.item_printer([self.items[x] 
+                     for x in self.loc.holding]))
+            elif tmp in self.loc.holding or tmp in self.inventory.holding:
+                self._puts(self.items[tmp].examine_desc)
+            else: self._puts(self.ERROR["act_item_not_found"])
+        # Other actions.
+        else:
+            if tmp == "room":
+                self._puts(self.ERROR["act_using_rooms"])
+            elif tmp in self.loc.holding or tmp in self.inventory.holding:
+                try:
+                    for x in self.items[tmp].action_dict[command[0]]:
+                        self.blueprint_main(x)
+                except KeyError:
+                    self._puts(self.ERROR["act_not_for_item"])
+            else:
+                self._puts(self.ERROR["act_item_not_found"])
+        return
+    """
+    
+    def _act(self, command):
+        # TODO: Write an actual docstring.
+        """ Does actiony stuff. Don't ask me! """
+        if V: print("Running action prompt.")
+       
+        # Parses input as [action, specifics*].
+        action = command[0]
+        specifics = ' '.join(command[1:])
+        
+        # Hard coding of some actions like take, examine.
+        ## Could theoretically be rolled into the Action class as well.
+        if action in self.special_actions:
+            if V: print("Special action being run.")
+            self._specialAct(action, specifics)
+                    
+        # User-specified actions.
+        elif action in self.actions:
+            if V: print("Ordinary action being run.")
+            self._userAct(action, specifics)
+            
+        else:
+            print("Non-action. Why are we here?")
+        return
+        
+    def _specialAct(self, action, specifics):
+        # TODO: Docstring.
+        if action == "take":
+            try: 
+                specifics = self._itemNametoItem(specifics)
+            ## elif specifics in self.inventory.holding:
+            ##     self._puts(self.ERROR["act_already_holding"])
+            except NameError:
+                self._puts(self.ERROR["act_item_not_found"])
+            else:
+                if V: print("Taking: ", specifics)
+                if specifics.isProp:
+                    self._puts(self.ERROR["act_taking_prop"])
+                else:
+                    self.inventory.add(specifics)
+                    self.loc.holding.remove(specifics)
+                    self._puts("Picked up the " + specifics.name + ".")
+             
+    def _userAct(self, action, specifics):
+        # TODO: Docstring.
+        """ Text processing part. """
+        # Turns action names into Action instances.
+        action = self.actions[action]
+
+        # Transforms specifics into either an error message string
+        # or an array of Item names.
+        # See Parser.actionParse.__doc__.
+        specifics = self.parser.actionParse(action, specifics)
+        # If parseString returns a "$! " prefixed string, put
+        # an error message.
+        if specifics and specifics[:3] == "$! ":
+            self._puts(self.ACT_MSGS[specifics[3:]])
+        # Turns the parsed string into (hopefully) an array of Item IDs.
+        else:
+            if V: print(specifics)
+
+            try:
+                specifics = [self._itemNametoItem(_) for _ in specifics] \
+                                                     if specifics else 0
+                if V:
+                    print("Specifics generated:")
+                    try:
+                        for _ in specifics: 
+                            print("{}".format(_.id))
+                    except AttributeError:
+                        print("{} is not an Item!".format(_))
+                    except TypeError:
+                        print("{} is 0!".format(specifics))
+
+            except NameError:
+                self._puts(self.ERROR["act_item_not_found"])
+            else:
+                bp_code = action.call(specifics)
+                if V: print("Generated BP Code: {}".format(bp_code))
+                for x in bp_code: self._bpRouter(self.parser.bpParse(x))
+
+    def _inv(self, command):
+        """ Inventory menu commands. """
+        if command == "open":
+            self._puts(self.inventory.__str__())
+        else: pass
+        return
+
+# ------------------------------ Engine Methods --------------------------------
+# Used in BP Code implementation. 
 
     def _bpRouter(self, args):
         if args == "pass": return
@@ -229,258 +502,26 @@ class Game():
         # TODO: Implement "add bag", "remove bag", and "change bag limits".
         return
     
-    def _IDtoItem(self, id):
-        """ Returns an Item instance W such that W.id = id. """
-        try:
-            return self.items[id]
-        except KeyError:
-            raise NameError("No item with ID {}.".format(id))
-        
-    def _IDtoRoom(self, id):
-        try:
-            return self.rooms[id]
-        except KeyError:
-            raise NameError("No room with ID {}.".format(id))
-
     # TODO: Figure out how I'm going to handle this propertly.
     #  IDtoItem gets rid of the need for the ID grabbing.
     #  It makes sense to implement SymbolToContainer and SymbolToRoom
     #  methods in order to capture the other things I want to do.
     #        Depends on how Blueprint is implemented!
-    def _alias(self, target):
-        """ Turns an ID into its appropriate room or item. """
-        
-        if target == '_':
-            return self.loc
-        elif target == '$':
-            return self.inventory
-        elif target in self.rooms:
-            return self.rooms[target]
-        elif target in self.item_names:
-            return self.items[self.item_names[target]]
-        else:
-            raise NameError(target + " not a Item, Room, or alias.")
+    #def _alias(self, target):
+    #    """ Turns an ID into its appropriate room or item. """
+    #    
+    #    if target == '_':
+    #        return self.loc
+    #    elif target == '$':
+    #        return self.inventory
+    #    elif target in self.rooms:
+    #        return self.rooms[target]
+    #    elif target in self.item_names:
+    #        return self.items[self.item_names[target]]
+    #    else:
+    #        raise NameError(target + " not a Item, Room, or alias.")
             
 
-#-------------------------------- User Methods -------------------------------
-
-    def prompt_exe(self, prompt):
-        """ Takes user input and passes it to the appropriate method. """
-            
-        # Turns string inputs into array of strings.
-        i = prompt.lower().split() if prompt else ''
-        
-        # Does nothing if empty command is entered.
-        if len(i) < 1: pass
-
-        # Call _move if a movement command is entered.
-        elif i[0] in self.cardinals.keys():
-            self._movePlayer(i[0])
-        elif i[0] in ['west', 'south', 'north', 'east']:
-            self._movePlayer(i[0][0])
-
-        # Inventory call.
-        elif i[0] in ["inv", "i"]:
-            self._inv("open")
-            
-        # Call _act if an action is entered.
-        elif i[0] in self.actions or \
-             i[0] in self.special_actions:
-            if V: print("Treating ", i[0], " as an action.")
-            self._act(i)
-        
-        # System calls. ? calls help.
-        #!! Needs to be worked out.
-        elif i[0] == '?':
-            self._help(''.join(i[1:]))
-            
-        # Puts Quit message.
-        elif i[0] == 'quit' or i[0] == 'q':
-            self._puts(self.GAME_MSGS["quit"])
-        
-        # Puts an error message if an unrecognised command is entered.
-        else:
-            self._puts(self.ERROR["exe_pass"])
-            
-        if V: print()
-        return        
-            
-    def _help(self, object):
-        """ Puts help messages. """
-        #!! Work needed here.
-        if object:
-            pass
-        else:
-            self._puts("Movement: north, south, east, west")
-            self._puts("Actions: " + ', '.join(self.actions))
-        return
-            
-# ----------------------- User/Designer Interface ----------------------------
-
-    def _local(self):
-        return self.loc.holding+self.inventory.holding_list  
-        
-    def _itemNametoID(self, item_name):
-        """ Gets an Item's ID from its name or nickname. """
-        search_arr = [x for x in self._local() 
-                              if (item_name == x.name 
-                              or item_name == x.nickname)]
-        if len(search_arr) == 1:
-            return search_arr[0].id
-        elif len(search_arr):
-            self._puts(self.ERROR["ambiguity"])
-            return None
-        else: 
-            self._puts(self.ERROR["item_not_found"])
-            return None
-    
-    def _itemNametoItem(self, item_name):
-        _ = self._itemNametoID(item_name)
-        return self._IDtoItem(_) if _ else None 
-
-    def _movePlayer(self, direction):
-        """ Attempts to change self.loc in response to movement commands. """
-        # Transforms letters to Room.links array index (0-3).
-        translated_direction = self.cardinals[direction[0][0]]
-        
-        try:
-            self.loc = self.rooms[self.loc.links[translated_direction]]
-        except KeyError:
-            self._puts("I can't go that way.")
-            return
-        #self._room_update()
-            
-    # Act: Takes a command.
-    # Deprecated by new action system.
-    """
-    def act(self, command):
-        ''' Action function. '''
-        tmp = ' '.join(command[1:])
-
-        # If no object specified.
-        if tmp == '':
-            if command[0] == "examine":
-                self._puts(self.loc.on_examine())
-                #self._puts(Item.item_printer([self.items[x] 
-                     for x in self.loc.holding]))
-            else: 
-                self._puts(self.ERROR["act_item_not_found"])
-        # Examining.
-        elif command[0] == "examine":
-            if tmp == "room":
-                self._puts(self.loc.on_examine())
-                #self._puts(Item.item_printer([self.items[x] 
-                     for x in self.loc.holding]))
-            elif tmp in self.loc.holding or tmp in self.inventory.holding:
-                self._puts(self.items[tmp].examine_desc)
-            else: self._puts(self.ERROR["act_item_not_found"])
-        # Taking.
-        elif command[0] == "take":
-            if tmp == "room":
-                self._puts(self.ERROR["act_using_rooms"])
-            elif tmp in self.loc.holding:
-                if self._alias(tmp).isProp:
-                    self._puts(self.ERROR["act_taking_prop"])
-                else:
-                    self.inventory.add_item(tmp)
-                    self.loc.holding.remove(tmp)
-                    self._puts("Picked up the " + tmp + ".")
-            elif tmp in self.inventory.holding:
-                self._puts(self.ERROR["act_already_holding"])
-            else:
-                self._puts(self.ERROR["act_item_not_found"])
-        # Other actions.
-        else:
-            if tmp == "room":
-                self._puts(self.ERROR["act_using_rooms"])
-            elif tmp in self.loc.holding or tmp in self.inventory.holding:
-                try:
-                    for x in self.items[tmp].action_dict[command[0]]:
-                        self.blueprint_main(x)
-                except KeyError:
-                    self._puts(self.ERROR["act_not_for_item"])
-            else:
-                self._puts(self.ERROR["act_item_not_found"])
-        return
-    """
-    
-    def _act(self, command):
-        # TODO: Write an actual docstring.
-        """ Does actiony stuff. Don't ask me! """
-        if V: print("Running action prompt.")
-       
-        # Parses input as [action, specifics*].
-        action = command[0]
-        specifics = ' '.join(command[1:])
-        
-        # Hard coding of some actions like take, examine.
-        ## Could theoretically be rolled into the Action class as well.
-        if action in self.special_actions:
-            if V: print("Special action being run.")
-            self._specialAct(action, specifics)
-                    
-        # User-specified actions.
-        elif action in self.actions:
-            if V: print("Ordinary action being run.")
-            self._userAct(action, specifics)
-            
-        else:
-            print("Non-action. Why are we here?")
-        return
-        
-    def _specialAct(self, action, specifics):
-        # TODO: Docstring.
-        if action == "take":
-            try: 
-                specifics = self._itemNametoItem(specifics)
-            ## elif specifics in self.inventory.holding:
-            ##     self._puts(self.ERROR["act_already_holding"])
-            except NameError:
-                self._puts(self.ERROR["act_item_not_found"])
-            else:
-                if V: print("Taking: ", specifics)
-                if specifics.isProp:
-                    self._puts(self.ERROR["act_taking_prop"])
-                else:
-                    self.inventory.add(specifics)
-                    self.loc.holding.remove(specifics)
-                    self._puts("Picked up the " + specifics.name + ".")
-             
-    def _userAct(self, action, specifics):
-        # TODO: Docstring.
-        """ Text processing part. """
-        # Turns action names into Action instances.
-        action = self.actions[action]
-
-        # Transforms specifics into either an error message string
-        # or an array of Item names.
-        # See Parser.actionParse.__doc__.
-        specifics = self.parser.actionParse(action, specifics)
-        # If parseString returns a "$! " prefixed string, put
-        # an error message.
-        if specifics and specifics[:3] == "$! ":
-            self._puts(self.ACT_MSGS[specifics[3:]])
-        # Turns the parsed string into (hopefully) an array of Item IDs.
-        else:
-            if V: print(specifics)
-
-            try:
-               specifics = [self._itemNametoItem(_) for _ in specifics] \
-                                                     if specifics else 0
-            except NameError:
-                self._puts(self.ERROR["act_item_not_found"])
-            else:
-                bp_code = action.call(specifics)
-                for x in bp_code: self._bpRouter(self.parser.bpParse(x))
-
-    def _inv(self, command):
-        """ Inventory menu commands. """
-        if command == "open":
-            self._puts(self.inventory.__str__())
-        else: pass
-        return
-
-    
 # ----------------------- Designer/Engine Interface --------------------------
     """ A great deal of work must be done here. Revamping this whole thing, 
         in all probability. """
@@ -676,50 +717,6 @@ class Game():
                     [self.things[x] for x in self.loc.holding]),True)
         return
     '''
-
-# --------------------------- GUI/User Interface -----------------------------
-    
-    def _room_update(self):
-        item_info = Item.item_printer(self.loc.holding)
-        setting_info = self.loc.onEntry() + '\n'
-        if item_info:
-            setting_info += item_info + '\n'
-        self._puts(setting_info, True)
-        return
-
-    def main(self):
-        """ Main function. Takes user input, passes it to prompt_exe. """
-        self._puts(self.GAME_MSGS['beginning'])
-        self._room_update()
-        #raise NameError("Game finished.")
-        return
-        
-    def cliMain(self):
-        self.main()
-        prompt = ' '
-        while (prompt[0] != 'q' and prompt[0] != 'quit'):
-            print(self.gets())
-            prompt = input('> ').lower()
-            ##prompt = x.split() if x != '' else ''
-            if prompt == '': prompt = ' '
-            self.prompt_exe(prompt)        
-
-    """ Functions which are involved in passing to GUI_Holder class. """
-    
-    def _puts(self, input_string, is_setting = False):
-        """ Adds text to the output buffer. """
-        if is_setting:
-            self.setting_output = input_string
-        else:
-            self.action_output += input_string + '\n'
-
-    def gets(self):
-        """ Returns text from the output buffer and clears it. """
-        self._room_update()
-        returning = self.setting_output + '\n' + self.action_output
-        self.action_output = ''
-        return returning
-
 
 # ------------------------- Testing -----------------------------------------
 

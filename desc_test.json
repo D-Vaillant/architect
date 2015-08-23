@@ -104,23 +104,23 @@
 {
     "type":     "action",
     "id":     "tap",
-    "1":[
-         ["bauble",     "puts!Clink clink."],
-         ["p:wooden",   "puts!Thud thud."],
-         ["p:metal",    "puts!Ting ting."],
-         ["",           "puts!Tap tap."]]
+    "1":{
+         "bauble":     "puts!Clink clink.",
+         "p:wooden":   "puts!Thud thud.",
+         "p:metal":    "puts!Ting ting.",
+         "":           "puts!Tap tap."}
 },
 {
     "type":     "action",
     "id":       "unlock",
     "prep":     "with",
-    "COMMENTEDOUT1":[
-         ["p:locked",   "a"],
-         ["",           "a"]],
-    "2":[
-         ["old_door&p:locked|worn_key", "link!entrance-N->house&puts!The door has been unlocked.&addProperty!old_door#unlocked&removeProperty!old_door#locked"],
-         ["old_door&p:unlocked|", "puts!The door's already been unlocked."],
-         ["old_door|", "puts!Unlock it with what?"]]
+    "COMMENTEDOUT1":{
+         "p:locked":   "a",
+         "":           "a"},
+    "2":{
+         "old_door&p:locked|worn_key":"link!entrance-N->house&puts!The door has been unlocked.&addProperty!old_door#unlocked&removeProperty!old_door#locked",
+         "old_door&p:unlocked|":"puts!The door's already been unlocked.",
+         "old_door|":"puts!Unlock it with what?"}
            
 }
 ]

@@ -18,7 +18,7 @@ class InfoCollector:
 
     def main(self):
         with open(self.f, 'r') as F:
-            p = json.load(F)
+            p = json.load(F, object_pairs_hook=OrdDict)
         
         for x in p:
             getattr(self, x["type"]+"_info").update({x["id"]:x})

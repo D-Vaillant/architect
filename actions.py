@@ -17,10 +17,11 @@ class Action:
 
         self.id = act_dict["id"] # id not in act_dict => something went wrong
         
-        self.zero_act = a('0').split('&') if a('0') else 'pass'
+        self.zero_act = a('0').split('&') if a('0') else ['pass']
 
-        self.unary_act = self.unaryHelper(a('1') or {})
-        self.binary_act = self.binaryHelper(a('2') or {})
+        self.unary_act = self.unaryHelper(a('1')) if a('1') else {'': ['pass']}
+        self.binary_act = self.binaryHelper(a('2')) if a('2') \
+                                                    else {'|': ['pass']}
                                    
         self.binary_prep = a('prep') or ''
                
@@ -28,45 +29,36 @@ class Action:
         
     def unaryHelper(self, act_list):
         """ Takes a list of lists of length 2, produces an OrderedDict. """
-        A = OrdDict()
-
-        for x, y in act_list: # [ [x_0, y_0],...,[x_n,y_n] ]
-            x = tuple(x.split('&')) #[ (x_0.0, x_0.1), y]
-            A[x] = y.split('&')
-        return A 
+        K = lambda x: tuple(x.split('&'))
+        V = lambda y: y if type(y) is list else y.split('&')
+        
+        return OrdDict((K(x),V(y)) for x, y in act_list.items())
         
     def binaryHelper(self, act_list):
         """ Takes a list of lists of length 2, produces an OrderedDict. """
-        A = OrdDict()
+        def K(k):
+            if '|' not in k:
+                if E: raise SyntaxError("Binary conditional key missing |.")
+                k = k + '|'
+            k = k.split('|')
+            for index, val in enumerate(k):
+                k[index] = tuple(val.split('&'))
+            return tuple(k)
 
-        for x, y in act_list: # act_list == [ [x_0, y_0],...,[x_n,y_n] ]
-            # | splits the conditions for object 1 from conditions for object 2.
-            ''' If a binary condition is lacking the | separator, adds it on.
-                Complains if the E flag is checked. '''
-            if '|' not in x:
-                if E: raise SyntaxError("Binary conditional missing |.")
-                x = x + '|'
+        V = lambda y: y if type(y) is list else y.split('&')
 
-            x = x.split("|") # [[a,b], y_0]
-            for i in [0,1]:
-                # [ [(a_0.0, a_0.1), (b_0.0, b_0.1)], y_0]
-                # & splits combined conditions, 
-                #   i.e. "item must fulfill a_0.0 AND a_0.1."
-                x[i] = tuple(x[i].split('&')) 
-            x = tuple(x) # [ ((a_0.0, a_0.1), (b_0.0, b_0.1)), y ]
-            A[x] = y
-        return A 
+        return OrdDict((K(x),V(y)) for x, y in act_list.items())
         
     def min_maxHelper(self):
         min, max = None, None
         
-        if self.zero_act:
+        if self.zero_act != ['pass']:
             min = 0
             max = 0
-        if self.unary_act:
+        if self.unary_act != {'':['pass']}:
             if min is None: min = 1
             max = 1
-        if self.binary_act:
+        if self.binary_act != {'|':['pass']}:
             if min is None: min = 2
             max = 2
             
