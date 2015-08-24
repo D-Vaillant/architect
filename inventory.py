@@ -5,7 +5,7 @@ class Inventory():
     
     Implements weight as well. Eventually... """
 
-    def __init__(self, default = {"main":set()}, limits = {"main":-1}):
+    def __init__(self, default = OrdDict({"main":set()}), limits = {"main":-1}):
         """ Allows for a non-empty initial inventory. """
         self.holding = default
         
@@ -69,9 +69,18 @@ class Inventory():
         
         
     def __str__(self):
-        out_str = 'You are holding:\n'
-        if not self.holding:
+        if not self:
             return "You are not holding anything."
-        for x in self.holding:
-            out_str += x.name + '\n'
+        elif len(self.holding) == 1:
+            out_str = 'You are holding:\n'
+            for x in self.holding_list:
+                out_str += '\t' + x.name + '\n'
+        else:
+            out_str = "Inventory contents:\n"
+            for bag_name, bag in self.holding.items():
+                out_str += '\t' + bag_name + '\n'
+                if bag:
+                    for x in bag: out_str += '\t\t' + x.name + '\n'
+                else:
+                    out_str += '\t\t' + "Empty!\n"
         return out_str

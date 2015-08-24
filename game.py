@@ -179,6 +179,7 @@ class Game():
         return
 
     """ Functions involved in passing to GUI_Holder class. """
+
     def _puts(self, input_string, is_setting = False):
         """ Adds text to the output buffer. """
         if is_setting:
@@ -323,7 +324,7 @@ class Game():
         translated_direction = self.cardinals[direction[0][0]]
         destination = self.loc.links[translated_direction]
 
-        if destination: 
+        if destination is not None: 
             self.loc = destination 
         else: 
             self._puts("I can't go that way.")
