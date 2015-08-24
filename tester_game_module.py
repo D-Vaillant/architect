@@ -19,6 +19,7 @@ class Game_Tester(Game_Loader):
         #Representing objects.
         self.bauble = self.G.items["bauble"]
         self.key = self.G.items["worn_key"]
+        self.door = self.G.items["old_door"]
         
         self.initial = self.G.rooms["initial"]
         self.basement = self.G.rooms["basement"]
@@ -114,13 +115,13 @@ class Game_Prompt_Tester(Game_Tester):
         mock__puts.assert_called_with(self.G.ERROR["exe_pass"])
 
     @mock.patch.object(Game, '_puts')
-    def test_itemNametoID(self, mock__puts):
+    def test_itemNametoItem(self, mock__puts):
         self.G.loc = self.G.rooms['entrance']
-        self.assertEqual(self.G._itemNametoID('worn key'),
-                         'worn_key')
-        self.assertEqual(self.G._itemNametoID('key'),
-                         'worn_key')
-        self.G._itemNametoID('ascvas')
+        self.assertEqual(self.G._itemNametoItem('worn key'),
+                         self.key)
+        self.assertEqual(self.G._itemNametoItem('key'),
+                         self.key)
+        self.G._itemNametoItem('ascvas')
         mock__puts.assert_called_with(self.G.ERROR["item_not_found"])
     
 class Game_ActionSystem_Tester(Game_Tester):
@@ -148,6 +149,42 @@ class Game_ActionSystem_Tester(Game_Tester):
     @mock.patch.object(Game, '_puts')
     def test_userAct_exceptionRaise(self, mock__puts):
         self.G._act("tap florgisborg".split())
-        mock__puts.assert_called_with(Game.ERROR["act_item_not_found"])
+        mock__puts.assert_called_with(Game.ERROR["item_not_found"])
+
+    def test_unaryTester(self):
+        prop_dict = {
+                        "p:wooden"  :[False,False,True],
+                        "p:metal"   :[False,True,False],
+                        "p:glass"   :[True,False,False],
+                        "bauble"    :[True,False,False],
+                        "old_door"  :[False,False,True],
+                        "p:locked"  :[False,False,True],
+                        ""          :[True,True,True],
+                        "grue"      :[False,False,False],
+                    }
+        test_arr = [self.bauble, self.key, self.door]
+        for number, item in enumerate(test_arr):
+            for key, value in prop_dict.items():
+                with self.subTest(key=key,value=value):
+                    self.assertEqual(Action.unaryTest(item, key),value[number])
+
+    def test_pluralUnaryTester(self):
+        prop_dict = {
+                ("old_door","p:locked") :[False,False,True],
+                ("p:wooden","p:locked") :[False,False,True],
+                ("p:glass","p:wooden")  :[False,False,False],
+                ("",)                   :[True,True,True],
+                ("grue",)               :[False,False,False],
+                ("p:glass","bauble")    :[True,False,False],
+                ("p:wooden",)           :[False,False,True],
+                ("p:metal",)            :[False,True,False],
+                }
+        test_arr = [self.bauble, self.key, self.door]
+        for number,item in enumerate(test_arr):
+            for key, value in prop_dict.items():
+                with self.subTest(key=key,value=value):
+                    self.assertEqual(Action.pluralUnaryTest(item,key),
+                                     value[number])
+    
 
 if __name__ == '__main__': unittest.main()

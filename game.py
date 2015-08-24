@@ -2,13 +2,13 @@
 Project name: Architect
 
 game.py:
-        The engine for the command-line based game. 
+        The engine for the command-line based game.
         Some vocabulary needs to be clarified, many things need to be
     implemented. I'll document the individual modules here.
 
 Blueprint:
         A domain specific language.
-        
+
         I didn't want to define a new class for each room but different
     instances of classes can only differ semantically; changing Items
     required syntactic commands. Thus: I created a small system of commands
@@ -22,7 +22,7 @@ Room:
 
         Also contains the room_reader function which takes a Room info dict
     (see File_Processor) to create a Room class dict, one of the input
-    parameters for the Game class. 
+    parameters for the Game class.
 
 Item:
         Container class for the objects that the PC encounters. Come in two
@@ -33,12 +33,12 @@ Item:
         Also contains the object_reader function which takes a Item info dict
     and creates a Item class dict, one of the input parameters for the
     Game class.
-    
+
 Action:
-        Contains information about player actions. 
+        Contains information about player actions.
 
 Inventory:
-        Container class for the PC's inventory. Contains items which 
+        Container class for the PC's inventory. Contains items which
     can be used from the inventory menu.
 
 InfoCollector:
@@ -67,7 +67,7 @@ class Game():
     ERROR = {
         "exe_pass": "Invalid command.",
         "ambiguity": "Be more specific!",
-        "item_not_found": "It's not clear what thing " 
+        "item_not_found": "It's not clear what thing "
                           "you're talking about.",
         "act_not_for_item": "That item cannot be used that way.",
         "act_using_rooms": "You can't do that with an entire room.",
@@ -84,7 +84,7 @@ class Game():
         "beginning": "Welcome to the demo!",
         "quit": "Game closing."
         }
-        
+
 #---------------------------- Initialization ---------------------------------
 
     def __init__(self, rdata, tdata, adata, mdata):
@@ -98,59 +98,66 @@ class Game():
 
         self.inventory = Inventory(M('inventory')) if M('inventory') \
                                                    else Inventory()
-        
+
         self.parser = Parser(self.rooms, self.items,
                              self.actions, self.inventory)
 
         self._populate()
-        
+
         # For eventual implementation of meta-data entry.
         ## self._meta_processor(mdata)
         self.isCLI = M('isCLI') or False
-        
+
         self.loc = self.rooms["initial"]
         self.setting_output = ''
         self.action_output = ''
-        
+
         # --- Overarching Settings ---
         # Euclidean forces links to be irreflexive and symmetric.
         self.isEuclidean = M('isEuclidean') or True
 
     def _populate(self):
         for room in self.rooms.values():
+            R = lambda i: self._IDtoRoom(i) if i else None
+            try:
+                room.links = [R(x) for x in room.links]
+            except KeyError:
+                raise KeyError("Room {} has invalid links: {}".format(
+                                                     room,room.links))
             try:
                 ##if V: print([t for t in room.holding])
                 room.holding = [self._IDtoItem(_) for _ in room.holding]
             except KeyError:
-                raise KeyError("Room holding non-existent item.")
+                raise KeyError("Room {} holding non-existent items: {}.".format(
+                                                             room,room.holding))
             # TODO: Figure out why Inventory is already holding Items.
             """
         if self.inventory:
             for location, bag in self.inventory.holding.items():
-                tmp_bag = {self._IDtoItem(_) for _ in bag} 
-                self.inventory.holding[location] = tmp_bag 
+                tmp_bag = {self._IDtoItem(_) for _ in bag}
+                self.inventory.holding[location] = tmp_bag
             """
-        return        
-        
+        return
+
     # TODO: Integrate this into init; it's too sad on its own.
     #def _meta_processor(self, raw_mdata):
-    #    try: 
+    #    try:
     #        firstRoomID = raw_mdata["firstRoom"]
     #        self.loc = self._alias(firstRoomID)
-    #    except KeyError: 
+    #    except KeyError:
     #        raise KeyError("Initial room unspecified.")
     #    except NameError:
     #        raise NameError("Initial room not found.")
-        
+
 # --------------------------- GUI-User Interface -----------------------------
-    
+
     def main(self):
         """ Takes user input, passes it to prompt_exe. """
         self._puts(self.GAME_MSGS['beginning'])
         self._room_update()
         #raise NameError("Game finished.")
         return
-        
+
     def cliMain(self):
         """ Takes user input via the CLI, passes it to prompt_exe. """
         self.main()
@@ -160,7 +167,7 @@ class Game():
             prompt = input('> ').lower()
             ##prompt = x.split() if x != '' else ''
             if prompt == '': prompt = ' '
-            self.prompt_exe(prompt)        
+            self.prompt_exe(prompt)
 
     def _room_update(self):
         """ Adds item and setting information to the output buffer. """
@@ -190,10 +197,9 @@ class Game():
 
     def prompt_exe(self, prompt):
         """ Takes user input and passes it to the appropriate method. """
-            
         # Turns string inputs into array of strings.
         i = prompt.lower().split() if prompt else ''
-        
+
         # Does nothing if empty command is entered.
         if len(i) < 1: pass
 
@@ -206,29 +212,28 @@ class Game():
         # Inventory call.
         elif i[0] in ["inv", "i"]:
             self._inv("open")
-            
+
         # Call _act if an action is entered.
         elif i[0] in self.actions or \
              i[0] in self.special_actions:
             if V: print("Treating ", i[0], " as an action.")
             self._act(i)
-        
+
         # System calls. ? calls help.
         #!! Needs to be worked out.
         elif i[0] == '?':
             self._help(''.join(i[1:]))
-            
+
         # Puts Quit message.
         elif i[0] == 'quit' or i[0] == 'q':
             self._puts(self.GAME_MSGS["quit"])
-        
+
         # Puts an error message if an unrecognised command is entered.
         else:
             self._puts(self.ERROR["exe_pass"])
-            
-        if V: print()
-        return        
-            
+
+        return
+
     def _help(self, object):
         """ Puts help messages. """
         #!! Work needed here.
@@ -236,64 +241,93 @@ class Game():
             pass
         else:
             self._puts("Movement: north, south, east, west")
-            self._puts("Actions: " + ', '.join(self.actions))
+            self._puts("Actions: " + ', '.join(
+                                          [a for a,A in self.actions.items() 
+                                                     if A.isKnown]))
         return
-            
+
 # ---------------------------- Utility Functions -------------------------------
 
     def _local(self):
         """ Returns a list of Items near the player. """
-        return self.loc.holding+self.inventory.holding_list  
+        return self.loc.holding+self.inventory.holding_list
 
     def _IDtoRoom(self, id):
         """ Returns a Room instance R such that R.id = id. """
         try:
             return self.rooms[id]
         except KeyError:
-            raise NameError("No room with ID {}.".format(id))
-   
-    def _IDtoItem(self, id):
+            raise KeyError("No room with ID {}.".format(id))
+
+    def _scopeGetter(self, scope):
+        """ Takes a scope and returns a corresponding list of Items.
+
+            scope parameters:
+                held:       in inventory
+                held.bag:   in inventory.holding[bag]
+                around:     in self.loc
+                local:      in self.loc or inventory
+                [room_ids]: in one of the given rooms
+                global:     in anything
+        """
+        val_list = []
+        if scope == "held":
+            val_list = self.inventory.holding_list
+        elif "held." in scope:
+            val_list = self.inventory.holding[scope[5:]]
+        elif scope == "around":
+            val_list = self.loc.holding
+        elif scope == "local":
+            val_list = self.loc.holding+self.inventory.holding_list
+        elif scope == "global":
+            val_list = list(self.items.values)
+        return val_list
+
+    def _IDtoItem(self, id, scope="global"):
         """ Returns an Item instance W such that W.id = id. """
         try:
             return self.items[id]
         except KeyError:
             raise NameError("No item with ID {}.".format(id))
-        
-    def _itemNametoID(self, item_name):
-        """ Gets an Item's ID from its name or nickname. """
-        search_arr = [x for x in self._local() 
-                              if (item_name == x.name 
+
+    def _itemNametoItem(self, item_name, scope="local"):
+        """ Gets an Item from its name or nickname.
+                By default, only looks for Items in the local scope.
+        """
+        search_arr = [x for x in self._scopeGetter(scope)
+                              if (item_name == x.name
                               or item_name == x.nickname)]
         if len(search_arr) == 1:
-            return search_arr[0].id
+            return search_arr[0]
+        ## TODO: Revamp this so that the error reporting isn't handled by this.
+        ## Probably best to use error numbers.
         elif len(search_arr):
             self._puts(self.ERROR["ambiguity"])
-            return None
-        else: 
+            return 99 # Error code for ambiguity.
+        else:
             self._puts(self.ERROR["item_not_found"])
-            return None
-    
-    def _itemNametoItem(self, item_name):
-        """ Composition of _itemNametoID and _IDtoItem. """
-        _ = self._itemNametoID(item_name)
-        return self._IDtoItem(_) if _ else None 
+            return -1
+
+    #def _itemNametoItem(self, item_name, **kwargs):
+    #    """ Composition of _itemNametoID and _IDtoItem. """
+    #    _ = self._itemNametoID(item_name, **kwargs)
+    #    return self._IDtoItem(_) if (type(_) is not int) else None
 
 # ------------------------- User-Engine Interface ------------------------------
-# Includes some simple Engine methods (_movePlayer, let's be real here) and 
+# Includes some simple Engine methods (_movePlayer, let's be real here) and
 # the first component of the Action pipeline.
 
     def _movePlayer(self, direction):
         """ Attempts to change self.loc in response to movement commands. """
         # Transforms letters to Room.links array index (0-3).
         translated_direction = self.cardinals[direction[0][0]]
-        
-        try:
-            self.loc = self.rooms[self.loc.links[translated_direction]]
-        except KeyError:
+        destination = self.loc.links[translated_direction]
+
+        if destination: 
+            self.loc = destination 
+        else: 
             self._puts("I can't go that way.")
-            return
-        #self._room_update()
-            
+
     # Act: Takes a command.
     # Deprecated by new action system.
     """
@@ -305,15 +339,15 @@ class Game():
         if tmp == '':
             if command[0] == "examine":
                 self._puts(self.loc.on_examine())
-                #self._puts(Item.item_printer([self.items[x] 
+                #self._puts(Item.item_printer([self.items[x]
                      for x in self.loc.holding]))
-            else: 
+            else:
                 self._puts(self.ERROR["act_item_not_found"])
         # Examining.
         elif command[0] == "examine":
             if tmp == "room":
                 self._puts(self.loc.on_examine())
-                #self._puts(Item.item_printer([self.items[x] 
+                #self._puts(Item.item_printer([self.items[x]
                      for x in self.loc.holding]))
             elif tmp in self.loc.holding or tmp in self.inventory.holding:
                 self._puts(self.items[tmp].examine_desc)
@@ -332,35 +366,35 @@ class Game():
                 self._puts(self.ERROR["act_item_not_found"])
         return
     """
-    
+
     def _act(self, command):
         # TODO: Write an actual docstring.
         """ Does actiony stuff. Don't ask me! """
         if V: print("Running action prompt.")
-       
+
         # Parses input as [action, specifics*].
         action = command[0]
         specifics = ' '.join(command[1:])
-        
+
         # Hard coding of some actions like take, examine.
         ## Could theoretically be rolled into the Action class as well.
         if action in self.special_actions:
             if V: print("Special action being run.")
             self._specialAct(action, specifics)
-                    
+
         # User-specified actions.
         elif action in self.actions:
             if V: print("Ordinary action being run.")
             self._userAct(action, specifics)
-            
+
         else:
             print("Non-action. Why are we here?")
         return
-        
+
     def _specialAct(self, action, specifics):
         # TODO: Docstring.
         if action == "take":
-            try: 
+            try:
                 specifics = self._itemNametoItem(specifics)
             ## elif specifics in self.inventory.holding:
             ##     self._puts(self.ERROR["act_already_holding"])
@@ -374,7 +408,7 @@ class Game():
                     self.inventory.add(specifics)
                     self.loc.holding.remove(specifics)
                     self._puts("Picked up the " + specifics.name + ".")
-             
+
     def _userAct(self, action, specifics):
         # TODO: Docstring.
         """ Text processing part. """
@@ -394,19 +428,20 @@ class Game():
             if V: print(specifics)
 
             try:
+                # Setting specifics to a list of Item instances.
                 specifics = [self._itemNametoItem(_) for _ in specifics] \
                                                      if specifics else 0
                 if V:
                     print("Specifics generated:")
                     try:
-                        for _ in specifics: 
+                        for _ in specifics:
                             print("{}".format(_.id))
                     except AttributeError:
                         print("{} is not an Item!".format(_))
                     except TypeError:
                         print("{} is 0!".format(specifics))
 
-            except NameError:
+            except KeyError:
                 self._puts(self.ERROR["act_item_not_found"])
             else:
                 bp_code = action.call(specifics)
@@ -421,7 +456,7 @@ class Game():
         return
 
 # ------------------------------ Engine Methods --------------------------------
-# Used in BP Code implementation. 
+# Used in BP Code implementation.
 
     def _bpRouter(self, args):
         if args == "pass": return
@@ -445,18 +480,18 @@ class Game():
         else:
             container = self._IDtoRoom(container)
             container.remove(item)
-    
+
     def _link(self, source, dir, dest):
         dir = self.cardinals[dir.lower()]
         source = self._IDtoRoom(source)
         dest = self._IDtoRoom(dest)
 
         source.link(dest, dir, self.isEuclidean)
-        
+
     def _move(self, moved_item, source, target):
         """ Removes moved_item from source and adds it to target. """
         if moved_item in source:
-            try: 
+            try:
                 target.add(moved_item)
             except AttributeError:
                 raise AttributeError("Target lacks add() method.")
@@ -478,7 +513,7 @@ class Game():
 
     def _changeItem(self, item, attr, text):
         item = self._IDtoItem(item)
-        if '_desc' in attr: 
+        if '_desc' in attr:
             print("WARNING: You should be calling changeDescription.")
             return
         try:
@@ -501,7 +536,7 @@ class Game():
         bag = inv.structuredHolding[bag]
         # TODO: Implement "add bag", "remove bag", and "change bag limits".
         return
-    
+
     # TODO: Figure out how I'm going to handle this propertly.
     #  IDtoItem gets rid of the need for the ID grabbing.
     #  It makes sense to implement SymbolToContainer and SymbolToRoom
@@ -509,7 +544,7 @@ class Game():
     #        Depends on how Blueprint is implemented!
     #def _alias(self, target):
     #    """ Turns an ID into its appropriate room or item. """
-    #    
+    #
     #    if target == '_':
     #        return self.loc
     #    elif target == '$':
@@ -520,51 +555,28 @@ class Game():
     #        return self.items[self.item_names[target]]
     #    else:
     #        raise NameError(target + " not a Item, Room, or alias.")
-            
 
-# ----------------------- Designer/Engine Interface --------------------------
-    """ A great deal of work must be done here. Revamping this whole thing, 
-        in all probability. """
-#    def blueprint_main(self, words):
-#        """ Main function for Blueprint code.
-#        
-#        Takes a string of BP code and splits it up into a 
-#        pre-functional character, functional character, and a
-#        post-functional character. """
-#        if words == "pass": return
-#        print("INPUT: "+ str(words))
-#        type_code = words[:3]
-#        
-#        finder = re.search(Game.blueprint_keywords, words)
-#        if finder is None:
-#            self._puts("MCode lacking functional character: " + words)
-#            raise AttributeError("No functional character found.")
-#        
-#        functional_char = words[finder.span()[0]]
-#        target = words[4:finder.span()[0]]
-#        parameters = words[finder.span()[1]:]
-#        #if type_code == 'prp': type_code = 'obj'
-#        getattr(self, type_code+"_func")(functional_char, target, parameters)
-#        #self._puts(type_code, functional_char, parameters)
-#        return
-#        
+############ Graveyard of Blueprint Past ###################################
+#
+#   Implemented aspects are wiped clean here.
+#
 #    def ift_func(self, functional_char, thing_in_question,
 #                 condition):
 #        """ Conditional blueprint processor.
-#        
-#        Isolates the condition from the post-functional part and enters an 
+#
+#        Isolates the condition from the post-functional part and enters an
 #        if-ifelse-else structure to find which condition corresponds to
-#        the Blueprint code. 
-#        
+#        the Blueprint code.
+#
 #        If condition is true, runs each BP code line found after the >
 #        (separated by }) by calling blueprint_main. Otherwise, runs BP code
 #        found after the <. """
-#                 
+#
 #        # < divides the "on true" command from the "on false" one.
 #        condition = condition.split('<')
 #        else_condition = condition[1].split('}')
 #        condition = condition[0].split('}')
-#        
+#
 #        # At this point condition has the following form:
 #        #          [parameter>mcode0, mcode1, mcode2,...]
 #        # We split up the parameter and the mcode0 part using the >,
@@ -575,10 +587,10 @@ class Game():
 #            condition[0] = condition[0][then_finder.span()[1]:]
 #        except AttributeError:
 #            raise AttributeError("> not found.")
-#        
+#
 #        # Turns second_thing into a class instance.
-#        second_thing = self._alias(second_thing)        
-#        
+#        second_thing = self._alias(second_thing)
+#
 #
 #        ### Redo inventory isHolding checks.
 #        # @: True if thing_in_question is in second_thing, where second_thing
@@ -587,10 +599,10 @@ class Game():
 #            try:
 #                if thing_in_question in second_thing.holding:
 #                    status = True
-#                else: 
+#                else:
 #                    status = False
 #            except KeyError:
-#                raise AttributeError("@ error.\n"+ second_thing.name + 
+#                raise AttributeError("@ error.\n"+ second_thing.name +
 #                                     " has no holding attribute.")
 #
 #        # = : True if thing_in_question is identical with second_thing.
@@ -600,124 +612,12 @@ class Game():
 #                status = True
 #            else:
 #                status = False
-#                
+#
 #        tmp = condition if status else else_condition
 #        for i in tmp: self.blueprint_main(i)
-#        
-#        return
-#    
-#    def sys_func(self, functional_char, target, instruct):
-#        """ System mcode processor. Used to print messages to the terminal. """
-#        if V: self._puts("### Entering system functions.")
-#        if functional_char == '!':
-#            self._puts(instruct)
-#        else:
-#            pass
-#        return
-#    
-#    ### Inventory complication project continues onwards.
-#    def inv_func(self, functional_char, target, instruct):
-#        """ Inventory mcode processor. Used for storage operations. """
-#        if V: self._puts("### Entering inventory functions.")
-#        
-#        if functional_char == '+':
-#            self.inventory.add_item(target)
-#        elif functional_char == '-':
-#            self.inventory.remove_item(target)
-#        else:
-#            pass
-#        return
-#    
 #
-#    ### Do some cleaning up here.
-#    def rom_func(self, functional_char, target, instruct):
-#        """ Room mcode processor. Used to manipulate Rooms. """
-#        if V: self._puts("### Entering room functions.")
-#
-#        #tmp_instruct = ' '.join(instruct)
-#        tmp_instruct = instruct
-#        
-#        # Changes a room name or _ into a Room class instance.
-#        target = self._alias(target)
-#        
-#        ### Aren't they suppose.d to hold instances, not names?
-#        if functional_char == '+':
-#            target.holding.append(tmp_instruct)
-#        elif functional_char == '-':
-#            target.holding.remove(tmp_instruct)
-#            
-#        elif functional_char == '&':
-#            self._link(target, instruct[0], instruct[1:])
-#            
-#        ### Make sure this works properly.
-#        elif functional_char == '#':
-#            try:
-#                attr = Room.codes['#' + instruct[:2]]
-#            except KeyError:
-#                raise AttributeError("No corresponding Room attribute.")
-#            self.change_var(target, attr, instruct[2:])
 #        return
 #
-#    def obj_func(self, functional_char, target, instruct):
-#        """ Item mcode processor. Used to manipulate Items. """
-#        if V: self._puts("### Entering object functions.")
-#        
-#        target = self._alias(target)
-#        
-#        ### Give this a looksee.
-#        if functional_char == '#':
-#            try:
-#                attr = Item.codes['#'+instruct[:2]]
-#            except KeyError:
-#                raise AttributeError("No corresponding Item attribute.")
-#            #self.change_var(target, attr, instruct[2:])
-#            if V: self._puts("#### Setting the new attribute now.")
-#            setattr(getattr(self, "things")[target.alias], attr, instruct[2:])
-#        return
-#    
-#    ### Is this even used?
-#    def change_var(self, target, attribute, new_desc):
-#        """ Tertiary function used to change the attributes of instances of
-#            Room and Item. """
-#        try:
-#            setattr(target, attribute, new_desc) 
-#        except AttributeError:
-#            raise AttributeError(target + " does not have attribute "
-#                                        + attribute)
-#        return        
-#
-#    ## Should probably be a Room staticmethod.
-#    def _link(self, source, direction, dest, isEuclidean = True):
-#        """ Establishes links between rooms.
-#                source ----direction----> dest
-#            If isEuclidean:
-#                dest ----opposite_dir----> source
-#            where opposite_dir should be clear. (N <-> S, W <-> E) """
-#            
-#        direction = self.cardinals[direction.lower()]
-#        dest = self._alias(dest)
-#        
-#        if isEuclidean:
-#            if source == dest:
-#                raise Error("Euclidean rooms enabled; no loops allowed.")
-#        source.links[direction] = dest.name
-#        if isEuclidean:
-#            if direction == 0: direction = 3
-#            elif direction == 1: direction = 2
-#            elif direction == 2: direction = 1
-#            elif direction == 3: direction = 0
-#            dest.links[direction] = source.name
-#        return
-#
-    '''
-    def _on_entry(self):
-        self._puts(self.loc.on_entry(), True)
-        self._puts(
-                Item.thing_printer( \
-                    [self.things[x] for x in self.loc.holding]),True)
-        return
-    '''
-
 # ------------------------- Testing -----------------------------------------
 
 def gui_init():
