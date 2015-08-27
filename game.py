@@ -53,7 +53,9 @@ from rooms import Room
 from actions import Action
 from inventory import Inventory
 from item import Item
+from event import Event
 from json_reader import InfoCollector
+from collections import OrderedDict
 import re
 
 # Verbose option.
@@ -85,6 +87,16 @@ class Game():
         "quit": "Game closing."
         }
 
+    special_actions = {
+        "take": Action({
+            "id": "take",
+            "0" : "puts!What are you picking up?",
+            "1" : OrderedDict(
+                {"p:prop":  "puts!That's too big to carry.",
+                 ""      :  "move!%i"})
+            })
+                     }
+
 #---------------------------- Initialization ---------------------------------
 
     def __init__(self, rdata, tdata, adata, mdata):
@@ -114,7 +126,7 @@ class Game():
 
         # --- Overarching Settings ---
         # Euclidean forces links to be irreflexive and symmetric.
-        self.isEuclidean = M('isEuclidean') or True
+        self.is_euclidean = M('isEuclidean') or True
 
     def _populate(self):
         for room in self.rooms.values():
@@ -464,6 +476,7 @@ class Game():
         else: getattr(self, '_'+args[0])(*args[1])
 
     def _add(self, item, container, target = "main"):
+        """ Adds an Item to a container. """
         item = self._IDtoItem(item)
         if container == '_':
             container = self.inventory
@@ -487,7 +500,7 @@ class Game():
         source = self._IDtoRoom(source)
         dest = self._IDtoRoom(dest)
 
-        source.link(dest, dir, self.isEuclidean)
+        source.link(dest, dir, self.is_euclidean)
 
     def _move(self, moved_item, source, target):
         """ Removes moved_item from source and adds it to target. """
@@ -537,25 +550,6 @@ class Game():
         bag = inv.structuredHolding[bag]
         # TODO: Implement "add bag", "remove bag", and "change bag limits".
         return
-
-    # TODO: Figure out how I'm going to handle this propertly.
-    #  IDtoItem gets rid of the need for the ID grabbing.
-    #  It makes sense to implement SymbolToContainer and SymbolToRoom
-    #  methods in order to capture the other things I want to do.
-    #        Depends on how Blueprint is implemented!
-    #def _alias(self, target):
-    #    """ Turns an ID into its appropriate room or item. """
-    #
-    #    if target == '_':
-    #        return self.loc
-    #    elif target == '$':
-    #        return self.inventory
-    #    elif target in self.rooms:
-    #        return self.rooms[target]
-    #    elif target in self.item_names:
-    #        return self.items[self.item_names[target]]
-    #    else:
-    #        raise NameError(target + " not a Item, Room, or alias.")
 
 ############ Graveyard of Blueprint Past ###################################
 #

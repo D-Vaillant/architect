@@ -1,3 +1,5 @@
+from collections import OrderedDict as OrdDict
+
 V = False
 
 class Inventory():

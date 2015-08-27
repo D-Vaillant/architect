@@ -69,10 +69,13 @@ class Action:
     def unaryTest(item, condition):
         """ Tests if item fulfills the given condition. """
         if V: print("Testing condition: {}".format(condition))
+        
+        is_negated = (condition[0] == '~')
         if condition[:2] == 'p:':
-            return (condition[2:] in item.properties)
+            val = (condition[2:] in item.properties)
         else:
-            return (condition == item.id) or (not condition)
+            val = (condition == item.id) or (not condition)
+        return (not val) if is_negated else val
     
     @staticmethod
     def pluralUnaryTest(single_obj, condition_array):

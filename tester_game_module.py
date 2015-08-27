@@ -23,11 +23,19 @@ class Game_Tester(Game_Loader):
         
         self.initial = self.G.rooms["initial"]
         self.basement = self.G.rooms["basement"]
+        self.entrance = self.G.rooms["entrance"]
+        self.house = self.G.rooms["house"]
         self.flowers = self.G.rooms["flowers"]
         
         self.cry = self.G.actions["cry"]
       
 class Game_EngineMethod_Tester(Game_Tester):
+    """ Responsible for testing Blueprint functions. """
+    def test_linking(self):
+        self.assertNotIn(self.house, self.entrance.links)
+        self.G._link("entrance", 'N', "house")
+        self.assertIs(self.entrance.links[2], self.house)
+
     def test_move_roomXroom(self):
         """ Testing whether Items can be moved between Rooms. """
         self.assertIn(self.bauble, self.initial)
