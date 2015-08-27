@@ -5,26 +5,29 @@ E = False # Error-checking, raises Exceptions if there are hiccups in JSON.
 
 class Action:
     codes = {
-        "id":"id",
-        "0":"zero_act",
-        "1":"unary_act",
-        "2":"binary_act",
-        "prep":"binary_prep"
+        "id":   "id",
+        "zero": "zero_act",
+        "one":  "unary_act",
+        "two":  "binary_act",
+        "prep": "binary_prep"
         }
 
-    def __init__(self, act_dict):
-        a = lambda s: act_dict[s] if s in act_dict else None
+    def __init__(self, id,
+                       zero =   'pass',
+                       one =    {'' : 'pass'},
+                       two =    {'|': 'pass'},
+                       prep =    '',
+                       isKnown = True,
+                       **kwargs):
+        self.id = id
 
-        self.id = act_dict["id"] # id not in act_dict => something went wrong
-
-        self.zero_act = a('0').split('&') if a('0') else ['pass']
-        self.unary_act = self.unaryHelper(a('1')) if a('1') else {'': ['pass']}
-        self.binary_act = self.binaryHelper(a('2')) if a('2') \
-                                                    else {'|': ['pass']}
-        self.binary_prep = a('prep') or ''
+        self.zero_act = zero.split('&')
+        self.unary_act = self.unaryHelper(one)
+        self.binary_act = self.binaryHelper(two)
+        self.binary_prep = prep
 
         self.min, self.max = self.min_maxHelper()
-        self.isKnown = a('isKnown') or True
+        self.isKnown = isKnown
 
     def unaryHelper(self, act_list):
         """ Takes a list of lists of length 2, produces an OrderedDict. """
@@ -69,12 +72,17 @@ class Action:
     def unaryTest(item, condition):
         """ Tests if item fulfills the given condition. """
         if V: print("Testing condition: {}".format(condition))
-        
+    
+        # Skip evaluation if empty condition is given.
+        if condition == '': return True
+
         is_negated = (condition[0] == '~')
+        if is_negated: condition = condition[1:] 
+
         if condition[:2] == 'p:':
             val = (condition[2:] in item.properties)
         else:
-            val = (condition == item.id) or (not condition)
+            val = (condition == item.id)
         return (not val) if is_negated else val
     
     @staticmethod
@@ -114,7 +122,7 @@ class Action:
         actions = {}
 
         for i,j in action_dict.items():
-            actions[i] = Action(j)
+            actions[i] = Action(**j)
 
         return actions
 
