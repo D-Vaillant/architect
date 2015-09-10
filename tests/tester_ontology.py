@@ -5,13 +5,8 @@
 import unittest
 import mock
 
-from collections import OrderedDict
-from json_reader import InfoCollector
-from game import Game
-from rooms import Room
-from item import Item
-from actions import Action
-from inventory import Inventory
+from architect.utils import JSON_Reader, Parser
+from architect.ontology import Room, Item, Inventory, Action
 
 testing_JR = True
 testing_actions = True
@@ -21,7 +16,7 @@ testing_rooms = True
 class Game_Loader(unittest.TestCase):
     """ Abstract base class that testing units inherit from. """
     def setUp(self):
-        self.Reader = InfoCollector()
+        self.Reader = JSON_Reader()
         self.Reader.main()
         
 class JR_Tester(Game_Loader):

@@ -1,8 +1,9 @@
 import tkinter as tk
 from idlelib.WidgetRedirector import WidgetRedirector
+
 import game
 
-V = False
+verbose = False
 
 # Credit to tkinter.unpythonic.net/wiki/ReadOnlyText.
 class ReadOnlyText(tk.Text):
@@ -58,12 +59,12 @@ class GUI_Holder(tk.Tk):
             
         print("## Calling game. ##")
         if entered_text in ['q', 'quit', 'exit']:
-            if V: print('Quitting.')
+            if verbose: print('Quitting.')
             self.destroy()
         else:
             self.G.prompt_exe(entered_text)
             received_text = self.G.gets()
-            if V: print("Not quitting.")
+            if verbose: print("Not quitting.")
             #print(received_text)
             self._print_text(received_text)
 
@@ -79,11 +80,11 @@ class GUI_Holder(tk.Tk):
         return None
 
     def _enter_text(self, event, entered_text = None):
-        if V: print("## Entering enter text. ##")
+        if verbose: print("## Entering enter text. ##")
         if entered_text == None: 
             entered_text = self.Entry.get()
-        if V: print("entered_text = {0}".format(entered_text))
-        if V: print("Entry.get() = {0}".format(self.Entry.get()))
+        if verbose: print("entered_text = {0}".format(entered_text))
+        if verbose: print("Entry.get() = {0}".format(self.Entry.get()))
         self._wipe_entry()
         self._call_game(entered_text)  
 
@@ -94,11 +95,11 @@ class GUI_Holder(tk.Tk):
         self._enter_text(tk.Event(), 'inv')
 
     def _wipe_entry(self):
-        if V: print("Wiping entry.")
+        if verbose: print("Wiping entry.")
         self.Entry.delete("0", tk.END)
 
     def _wipe_display(self):
-        if V: print("Wiping display.")
+        if verbose: print("Wiping display.")
         self.TextDisplay.delete("0.0", tk.END)
     
 if __name__ == "__main__":

@@ -41,21 +41,16 @@ Inventory:
         Container class for the PC's inventory. Contains items which
     can be used from the inventory menu.
 
-InfoCollector:
+JSON_Reader:
         Only used when initializing the Game; reads a JSON file
     and translates it into three different dictionaries: a Room info dict,
     an Action info dict, and a Item info dict. These info dicts are used by
     their respective classes and encode all the information about the game.
 """
 
-from parsy import Parser
-from rooms import Room
-from actions import Action
-from inventory import Inventory
-from item import Item
-from event import Event
-from json_reader import InfoCollector
-from collections import OrderedDict
+from ontology import Room, Action, Inventory, Item
+from utils import Parser, JSON_Reader
+
 import re
 
 # Verbose option.
@@ -616,7 +611,7 @@ class Game():
 # ------------------------- Testing -----------------------------------------
 
 def gui_init():
-    F = InfoCollector()
+    F = JSON_Reader()
     F.meta_info['isCLI'] = False
     G = Game(*F.output())
     return G

@@ -1,4 +1,7 @@
-from pyparsing import oneOf, Optional, Literal, SkipTo, StringEnd, Or, Empty, ParseException 
+import json
+from collections import OrderedDict as OrdDict
+from pyparsing import oneOf, Optional, Literal
+from pyparsing import StringEnd, Or, Empty, SkipTo, ParseException 
 
 class Parser:
     def __init__(self, r, i, a, b):
@@ -91,3 +94,28 @@ class Parser:
             if Act.min == 0: out = []
             else: out = "$! 0 < Min"
         return out 
+
+class JSON_Reader:
+    def __init__(self, filename = "resource_files/desc_test.json"):
+        self.f = filename
+
+        self.action_info = {}
+        self.item_info = {}
+        self.room_info = {}
+        self.meta_info = {}
+        
+        self.main()
+
+    def main(self):
+        with open(self.f, 'r') as F:
+            p = json.load(F, object_pairs_hook=OrdDict)
+        
+        for x in p:
+            getattr(self, x["type"]+"_info").update({x["id"]:x})
+        return
+        
+    def output(self):
+        return (self.room_info, self.item_info, 
+                self.action_info, self.meta_info)
+
+

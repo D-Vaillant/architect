@@ -24,12 +24,12 @@ class bpParser_Tester(Parser_Tester):
                 self.assertEqual(self.parser.bpParse(E_(entry)),
                                  P_(parsed))
 
-    def test_bp_put(self):
-        put_dict = {"rocket hats":["rocket hats"],
+    def test_bp_puts(self):
+        puts_dict = {"rocket hats":["rocket hats"],
                     "worf@hat"   :["worf@hat"],
                     "hi hi @ hi !":["hi hi @ hi !"],
                     "believe in Ur ha_t":["believe in Ur ha_t"],}
-        self.subtest_bp("put",put_dict)
+        self.subtest_bp("puts",put_dict)
 
     def test_bp_link(self):
         link_dict = {"initial-W->basement":["initial","W","basement"],
