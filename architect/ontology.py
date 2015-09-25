@@ -29,7 +29,6 @@ class Inventory():
         for x in self.holding.values():
             if item in x: return True
         else: return False
-        ##return item in self.holding                
     
     def __bool__(self):
         """ Returns True if something is being held. """
@@ -166,14 +165,6 @@ class Item():
     @staticmethod
     def item_processor(item_dict):
         """ Returns a Item class dictionary using a Item info dictionary. """
-        items = {}
-        ##item_dict = item_fixer(item_dict)
-         
-        # iterates over 
-        ##for t in item_dict.values():
-        ##    x = Item(t)
-        ##    key = x.id
-        ##    items[key] = x
         return {x:Item(item_dict[x]) for x in item_dict}
 
 class Room():
@@ -392,3 +383,16 @@ class Action:
 
         return actions
 
+class Actor:
+    def __init__(self, id,
+                       name = "Nameless",
+                       health = None,
+                       attributes = {},
+                       isPC = False
+                       carrying = None):
+        self.id = id
+        self.name = name
+        self.health = health
+        self.isPC = isPC
+
+class Player(Actor)

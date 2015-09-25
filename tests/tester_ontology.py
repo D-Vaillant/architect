@@ -4,6 +4,7 @@
 
 import unittest
 import mock
+from collections import OrderedDict
 
 from architect.utils import JSON_Reader, Parser
 from architect.ontology import Room, Item, Inventory, Action

@@ -1,7 +1,8 @@
 import tkinter as tk
+from collections import OrderedDict
 from idlelib.WidgetRedirector import WidgetRedirector
 
-import game
+import architect.game as game
 
 verbose = False
 

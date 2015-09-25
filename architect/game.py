@@ -48,8 +48,9 @@ JSON_Reader:
     their respective classes and encode all the information about the game.
 """
 
-from ontology import Room, Action, Inventory, Item
-from utils import Parser, JSON_Reader
+from architect.ontology import Room, Action, Inventory, Item
+from architect.utils import Parser, JSON_Reader
+from collections import OrderedDict
 
 import re
 
