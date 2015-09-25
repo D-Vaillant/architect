@@ -90,13 +90,22 @@ Commands:
         B: A key of Inventory.holding.
         d: W|S|N|E 
         *_attr: An attribute of *, where * in {R:Room, I:Item, B:Bag} 
-    puts!x : Displays x on the screen.
-    link!R-d->S: Creates a link from R to S in direction d. (Going d from R leads to S.)
-    add!i@C: Adds i to C. If C is Inventory and B is specified, adds it to C.holding[B].
-    remove!i@C: Removes i from C. If C is Inventory and B is specified, attempts to remove it from C.holding[B].
-    move!i@C->K: Equivalent to add!i@K & remove!i@C.
-    changeItem!i.I_attr=x: Sets i.I_attr to x.
-    changeRoom!R.R_attr=x: Sets R.R_attr to x.
+    puts(x) : Displays x on the screen.
+    link(R, S, d): Creates a link from R to S in direction d. (Going d from R leads to S.)
+    add(C, i): Adds i to C. If C is Inventory and B is specified, adds it to C.holding[B].
+    remove(C, i): Removes i from C. If C is Inventory and B is specified, attempts to remove it from C.holding[B].
+    move(C, K, i): Equivalent to add!i@K & remove!i@C.
+    changeItem(i.I_attr, x): Sets i.I_attr to x.
+    changeRoom(R.R_attr, x): Sets R.R_attr to x.
     changeInv!B.[add|remove|limit=#]: Adds B to Inventory, remove B from Inventory, or changes B's weight limit. 
-    addProperty!i#x: Adds x to i.properties.
-    removeProperty!i#x: Attempts to remove x from i.properties.
+    addProperty(i, x): Adds x to i.properties.
+    removeProperty(i, x): Attempts to remove x from i.properties.
+    
+Sentinels:
+    Probably want to reuse some commands as conditions and maybe add in some way to mark an imperative apart
+    from a "whisper" (a conditional.)
+    
+    isLinked(R, S)
+    hasProperty(i, x)
+    hasItem(C, i)
+    isEqual(O.$attr, x)

@@ -1,4 +1,6 @@
-import json
+
+"import json
+import re
 from collections import OrderedDict as OrdDict
 from pyparsing import oneOf, Optional, Literal
 from pyparsing import StringEnd, Or, Empty, SkipTo, ParseException 
@@ -19,9 +21,10 @@ class Parser:
         
     def bpParse(self, code):
         """ Given a line of BP code, parses out the command and parameters. 
-        INPUT: "CMD!ARGS" => OUTPUT: CMD, [ARG_0..ARG_n] """
+        INPUT: "CMD(ARGS)" => OUTPUT: CMD, [ARG_0..ARG_n] """
         if code=='pass': return code
 
+        """
         j = lambda x: ' '.join(x)
         item = oneOf(j(self.items.keys())) # string of all the item names
         item_attr = oneOf("name nick weight ground_desc examine_desc")
@@ -53,34 +56,39 @@ class Parser:
                 'addProperty': item + '#' + rest,
                 'removeProperty': item + '#' + rest,
              }
-
-        # Finds the first instance of !; used to divide CMD from PARAMS.
-        index = code.find('!')
-        command = code[:index]
-        parameters = code[index+1:]
+        """
         
+        # Finds the first instance of !; used to divide CMD from PARAMS.
+        argumentRegex = "([A-Za-z0-9, ]+)"
+        functionRegex = "(\w+)" + "\(" + argumentRegex + "\)"
+        _ = re.search(functionRegex, code)
+        command = _.group(1)
+        parameters = [x.strip() for x in _.group(2).split(',')]
+        
+        """
         try:
             return command, pt[command].parseString(parameters)[::2]
         except KeyError:
             raise KeyError("Attempted to call the %s command."%command)
-
+        """
+        return command, parameters
+        
     def actionParse(self, Act, parameters):
         """ Parses arity and item IDs from a user action command. """
-        j = lambda x: ' '.join(x)
-        base = [_.name for _ in self.items.values()] +\
+        item_names_list = [_.name for _ in self.items.values()] +\
                [_.nickname for _ in self.items.values()]
-        item = oneOf(j(base)) # string of all the item names
+        item = oneOf(' '.join(item_names_list))
         
         zero = Empty()
-        one = item
-        two = Literal(Act.binary_prep) + item if Act.binary_prep\
+        first = item
+        second = Literal(Act.binary_prep) + item if Act.binary_prep\
               else Empty()
         
         out = None 
         if parameters:
             if Act.max > 0:
-                if Act.min == 2: _ = one + two
-                else: _ = one + Optional(two)
+                if Act.min == 2: _ = first + second
+                else: _ = first + Optional(second)
                 
                 try:
                     out = _.parseString(parameters).asList()[::2]

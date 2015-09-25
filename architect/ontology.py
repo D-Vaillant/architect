@@ -380,7 +380,6 @@ class Action:
 
         for i,j in action_dict.items():
             actions[i] = Action(**j)
-
         return actions
 
 class Actor:
@@ -395,4 +394,5 @@ class Actor:
         self.health = health
         self.isPC = isPC
 
-class Player(Actor)
+class Player(Actor):
+    pass
