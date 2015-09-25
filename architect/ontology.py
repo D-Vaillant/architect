@@ -391,4 +391,3 @@ class Action:
             actions[i] = Action(**j)
 
         return actions
-
