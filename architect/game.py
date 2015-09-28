@@ -268,6 +268,7 @@ class Game():
         except KeyError:
             raise KeyError("No room with ID {}.".format(id))
 
+    # TODO: Write a test for this.
     def _scopeGetter(self, scope):
         """ Takes a scope and returns a corresponding list of Items.
 
@@ -283,7 +284,11 @@ class Game():
         if scope == "held":
             val_list = self.inventory.holding_list
         elif "held." in scope:
-            val_list = self.inventory.holding[scope[5:]]
+            try:
+                val_list = self.inventory.holding[scope[5:]]
+            except KeyError:
+                raise KeyError("Tried to access {}, but no bag exists with"+
+                               " that name.".format(scope[5:])
         elif scope == "around":
             val_list = self.loc.holding
         elif scope == "local":
@@ -301,26 +306,23 @@ class Game():
 
     def _itemNametoItem(self, item_name, scope="local"):
         """ Gets an Item from its name or nickname.
-                By default, only looks for Items in the local scope.
+
+            By default, only looks for Items in the local scope.
+            If no item found, puts the appropriate error message and
+                returns None.
         """
         search_arr = [x for x in self._scopeGetter(scope)
-                              if (item_name == x.name
-                              or item_name == x.nickname)]
+                              if (item_name == x.name or
+                                  item_name == x.nickname)]
+
+        out = None
         if len(search_arr) == 1:
-            return search_arr[0]
-        ## TODO: Revamp this so that the error reporting isn't handled by this.
-        ## Probably best to use error numbers.
+            out = search_arr[0]
         elif len(search_arr):
             self._puts(self.ERROR["ambiguity"])
-            return 99 # Error code for ambiguity.
         else:
             self._puts(self.ERROR["item_not_found"])
-            return -1
-
-    #def _itemNametoItem(self, item_name, **kwargs):
-    #    """ Composition of _itemNametoID and _IDtoItem. """
-    #    _ = self._itemNametoID(item_name, **kwargs)
-    #    return self._IDtoItem(_) if (type(_) is not int) else None
+        return out
 
 # ------------------------- User-Engine Interface ------------------------------
 # Includes some simple Engine methods (_movePlayer, let's be real here) and
@@ -403,13 +405,10 @@ class Game():
     def _specialAct(self, action, specifics):
         # TODO: Docstring.
         if action == "take":
-            try:
-                specifics = self._itemNametoItem(specifics)
+            specifics = self._itemNametoItem(specifics)
             ## elif specifics in self.inventory.holding:
             ##     self._puts(self.ERROR["act_already_holding"])
-            except NameError:
-                self._puts(self.ERROR["act_item_not_found"])
-            else:
+            if specifics is not None:
                 if V: print("Taking: ", specifics)
                 if specifics.isProp:
                     self._puts(self.ERROR["act_taking_prop"])
@@ -428,31 +427,30 @@ class Game():
         # or an array of Item names.
         # See Parser.actionParse.__doc__.
         specifics = self.parser.actionParse(action, specifics)
+
         # If parseString returns a "$! " prefixed string, put
         # an error message.
         if specifics and specifics[:3] == "$! ":
             self._puts(self.ACT_MSGS[specifics[3:]])
+
         # Turns the parsed string into (hopefully) an array of Item IDs.
         else:
             if V: print(specifics)
 
-            try:
-                # Setting specifics to a list of Item instances.
-                specifics = [self._itemNametoItem(_) for _ in specifics] \
-                                                     if specifics else 0
-                if V:
-                    print("Specifics generated:")
-                    try:
-                        for _ in specifics:
-                            print("{}".format(_.id))
-                    except AttributeError:
-                        print("{} is not an Item!".format(_))
-                    except TypeError:
-                        print("{} is 0!".format(specifics))
+            # Setting specifics to a list of Item instances.
+            specifics = [self._itemNametoItem(_) for _ in specifics] \
+                                                 if specifics else 0
+            if V:
+                print("Specifics generated:")
+                try:
+                    for _ in specifics:
+                        print("{}".format(_.id))
+                except AttributeError:
+                    print("{} is not an Item!".format(_))
+                except TypeError:
+                    print("{} is 0!".format(specifics))
 
-            except KeyError:
-                self._puts(self.ERROR["act_item_not_found"])
-            else:
+            if None not in specifics:
                 bp_code = action.call(specifics)
                 if V: print("Generated BP Code: {}".format(bp_code))
                 for x in bp_code: self._bpRouter(self.parser.bpParse(x))

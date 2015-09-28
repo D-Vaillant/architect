@@ -383,16 +383,16 @@ class Action:
         return actions
 
 class Actor:
+    """ Parent class for any Player-esque character. """
     def __init__(self, id,
                        name = "Nameless",
                        health = None,
                        attributes = {},
-                       isPC = False
                        carrying = None):
         self.id = id
         self.name = name
         self.health = health
-        self.isPC = isPC
 
 class Player(Actor):
-    pass
+    def __init__(self, id, **kwargs):
+        self.super().__init__(id, kwargs)
