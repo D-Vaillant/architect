@@ -287,8 +287,8 @@ class Game():
             try:
                 val_list = self.inventory.holding[scope[5:]]
             except KeyError:
-                raise KeyError("Tried to access {}, but no bag exists with"+
-                               " that name.".format(scope[5:])
+                raise KeyError("Tried to access {}, but no bag exists with " +
+                               "that name.".format(scope[5:]))
         elif scope == "around":
             val_list = self.loc.holding
         elif scope == "local":

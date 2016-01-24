@@ -1,3 +1,9 @@
+""" aeneas_gui.py:
+        The graphical interface which allows for simplified mechanic and
+        level design. 
+
+        Ideally usable by a clever 10 year old. """
+
 import tkinter as tk
 from collections import OrderedDict
 

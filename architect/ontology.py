@@ -372,7 +372,7 @@ class Action:
         actions = {}
 
         for i,j in action_dict.items():
-            actions[i] = Action(**j)
+            actions[i] = Action(j)
         return actions
 
 class Actor:

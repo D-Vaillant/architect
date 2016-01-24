@@ -1,0 +1,15 @@
+=== Architectural Considerations ===
+
+* Implement a Chapter System - allow episodes.
+
+* Implement Endings. I can't end a game naturally so far.
+
+* Implement Saving! Very important.
+
+* Implement obfuscation of resource files. Also very important.
+
+=== Engine Features ===
+
+* Add in Sentinel.
+
+* Write BP for Sentinel features - watching and triggering.

@@ -31,3 +31,21 @@ AI thoughts and actions are events as well. I can probably set up a way to
         up with itself, a lot.
 
 * A prop. Essentially just an item which can't be kept in an inventory. 
+
+===
+
+Some thoughts on Blueprint:
+    It makes the most sense to have Blueprint be an extension of Python:
+a series of simple commands that I can reuse for various rooms.
+
+Aeneas would be the simpler implementation built off of Blueprint.
+
+The issue I'm having is that the implementation of this "simpler language"
+is in-of-itself a simpler language: instead of writing, "r@h" I can just
+write "r in h" and have Python override the containment operators in order
+to make this happen. 
+
+I have the rough draft for the first act of "Going Down" written: I should
+work on trying to implement it and use that as a grounds for everything else.
+
+
