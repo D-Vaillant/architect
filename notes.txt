@@ -1,0 +1,33 @@
+Okay, so I've been having layers of abstraction issues.
+
+The Event system will be manipulated by both a syntactic language and an expressive, 
+pictoral one based on conditional chains. Think Steve's Factory Manager.
+
+The pictorial language will be tedious but simple, the syntactic language is, well - 
+another language. Actually I can just implement it as a subsection of Python!
+    Note: actually do this. Identify the atomic functions which I want to be
+          done and just code those directly.
+
+In designing the Event system I should start with a very broad idea of the use-conditions:
+    what I plan on using the Event system for. Maybe, "questions" is what I need here.
+    The questions that the Event system answers.
+
+===
+
+Broad strokes:
+The ES governs how the player's interactions with the world have push-back.
+If the player moves to a cave where a gorilla lives, the gorilla might attack
+    the player. 
+
+If the player presses a button, a door might open. Or if the player places an
+    item in a piece of scenery*.
+
+AI thoughts and actions are events as well. I can probably set up a way to 
+    program AI using just connective logic. Thoughts can just be sequences of
+    symbols and AI system can take them in. We can divide up thoughts into 
+    "concept-words", and have the system go through a long chain of decisions
+    to come to the appropriate action. 
+        Long chain is a binary tree - "is X concept present?". It can connect
+        up with itself, a lot.
+
+* A prop. Essentially just an item which can't be kept in an inventory. 

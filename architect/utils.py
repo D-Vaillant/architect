@@ -1,6 +1,6 @@
-
-"import json
+import json
 import re
+
 from collections import OrderedDict as OrdDict
 from pyparsing import oneOf, Optional, Literal
 from pyparsing import StringEnd, Or, Empty, SkipTo, ParseException 

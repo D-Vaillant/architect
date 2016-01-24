@@ -111,22 +111,22 @@ class Item():
 
     def __init__(self, itemD):
         """ Populates attributes using a Item info dictionary. """
-        t = lambda s: itemD[s] if s in itemD.keys() else None
+        self.id = itemD.get("id")
+        self.name = itemD.get("name")
         
-        self.id = t('id')
-        self.name = t('name')
+        self.nickname = itemD.get("nick") or itemD.get("name", "item")
+        # figure this out
+        self.properties = set(itemD.get('property', {}))
+        self.weight = itemD.get("weight", 0)
+        self.isProp = ("static" in self.properties)  
         
-        self.nickname = t('nick') or t('name') or 'item'                
-        self.properties = set(t('property') or {})
-        self.weight = t('weight') or 0
-        self.isProp = ('static' in self.properties)  
+        self.examine_desc = itemD.get("examine", '')
+        self.ground_desc = itemD.get("ground", '')
         
-        self.examine_desc = t('examine') or ''
-        self.ground_desc = t('ground') or ''
-        
-        self.on_acquire = t('acquire') or 'pass'
+        self.on_acquire = itemD.get("acquire", "pass")
 
     def setProperty(self, property_input, isAdding = True):
+        """ Adds or removes a property from an Item. """
         error = False
         
         if isAdding:
@@ -138,6 +138,7 @@ class Item():
         return error #if setProperty: error handle.
 
     def setDescription(self, type, text = ""):
+        """ Changes type_desc attribute to specified text. """
         error = False
         
         if hasattr(self, type+"_desc"):
@@ -177,22 +178,20 @@ class Room():
         'links':'links'
             }
         
-    def __init__(self, r):
-        d = lambda s: r[s] if s in r else None
+    def __init__(self, roomD):
+        self.id = roomD.get("id") 
 
-        self.id = d('id') 
-
-        self.links = d('links') or [None]*4
-        self.name = d('name') or ''
+        self.links = roomD.get("links", [None,None,None,None])
+        self.name = roomD.get("name", '')
         
-        _ = d('desc')
+        _ = roomD.get("desc")
         if type(_) == str:
             self.entry_desc = [_]
         else:
             self.entry_desc = _ or ["This is a room."]
            
-        self.holding = d('hold') or []
-        # Used to catch lazy settings of holding to a string instead of a list.
+        self.holding = roomD.get("hold", [])
+        # Used to catch setting holding to a string instead of a list.
         if type(self.holding) == 'str': self.holding = [self.holding]
         ##if d('data'): self.data = []
 
@@ -267,22 +266,16 @@ class Action:
         "prep": "binary_prep"
         }
 
-    def __init__(self, id,
-                       zero =   'pass',
-                       one =    {'' : 'pass'},
-                       two =    {'|': 'pass'},
-                       prep =    '',
-                       isKnown = True,
-                       **kwargs):
-        self.id = id
+    def __init__(self, actionD):
+        self.id = actionD.get("id") 
 
-        self.zero_act = zero.split('&')
-        self.unary_act = self.unaryHelper(one)
-        self.binary_act = self.binaryHelper(two)
-        self.binary_prep = prep
+        self.zero_act = actionD.get("zero", "pass").split('&')
+        self.unary_act = self.unaryHelper(actionD.get("one", {'':"pass"}))
+        self.binary_act = self.binaryHelper(actionD.get("two", {'|':"pass"}))
+        self.binary_prep = actionD.get("prep", "")
 
         self.min, self.max = self.min_maxHelper()
-        self.isKnown = isKnown
+        self.isKnown = actionD.get("isKnown", True)
 
     def unaryHelper(self, act_list):
         """ Takes a list of lists of length 2, produces an OrderedDict. """
@@ -387,7 +380,7 @@ class Actor:
                        name = "Nameless",
                        health = None,
                        attributes = {},
-                       isPC = False
+                       isPC = False,
                        carrying = None):
         self.id = id
         self.name = name
