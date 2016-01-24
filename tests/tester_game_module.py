@@ -1,15 +1,12 @@
 import unittest
 import mock
-
 from collections import OrderedDict
-from json_reader import InfoCollector
-from game import Game
-from rooms import Room
-from item import Item
-from actions import Action
-from inventory import Inventory
 
-from tester_ontology import Game_Loader
+from architect.game import Game
+from architect.utils import JSON_Reader
+from architect.ontology import Room, Item, Action, Inventory
+
+from tests.tester_ontology import Game_Loader
        
 class Game_Tester(Game_Loader):
     def setUp(self):
@@ -194,5 +191,13 @@ class Game_ActionSystem_Tester(Game_Tester):
                     self.assertEqual(Action.pluralUnaryTest(item,key),
                                      value[number])
     
+
+class GameUtilityTester(Game_Tester):
+    def setUp(self):
+        super().setUp()
+        self.inventory.add(self.key)
+
+    def test_scopeGetter(self):
+        scopes
 
 if __name__ == '__main__': unittest.main()

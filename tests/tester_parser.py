@@ -1,13 +1,10 @@
 import unittest
 
-from parsy import Parser
-from game import Game
-from item import Item
-from rooms import Room
-from inventory import Inventory
-from actions import Action
+from architect.game import Game
+from architect.utils import Parser
+from architect.ontology import Item, Room, Inventory, Action
 
-from tester_game_module import Game_Tester
+from tests.tester_game_module import Game_Tester
 
 class Parser_Tester(Game_Tester):
     def setUp(self):
