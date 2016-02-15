@@ -9,16 +9,12 @@ from collections import OrderedDict
 from architect.utils import JSON_Reader, Parser
 from architect.ontology import Room, Item, Inventory, Action
 
+from tests.tester_game_module import Game_Loader, Game_Tester
+
 testing_JR = True
 testing_actions = True
 testing_items = True
 testing_rooms = True
-
-class Game_Loader(unittest.TestCase):
-    """ Abstract base class that testing units inherit from. """
-    def setUp(self):
-        self.Reader = JSON_Reader()
-        self.Reader.main()
         
 class JR_Tester(Game_Loader):
     """ Tests json_reader and processor abilities to translate info. """
@@ -207,5 +203,24 @@ class Action_Tester(Game_Loader):
                         self.assertIsInstance(_, tuple)
                         for __ in _: self.assertIsInstance(__, str)
                     self.assertIsInstance(value, list)
+
+class Ontology_InventoryTester(Game_Tester):
+    def setUp(self):
+        super().setUp()
+        self.inv = self.G.inventory
+        self.inv.holding["main"] = set(self.key)
+
+    def test_adding(self):
+        self.inv.add(self.bauble)
+        self.assertIn(self.bauble, self.inv.holding["main"])
+
+    def test_contains:(self):
+        self.assertTrue(self.key in self.inv)
+        self.assertFalse(self.door in self.inv)
+
+    def test_listCasting(self):
+        self.assertEqual([self.key], list(self.inv))
+        self.inv.add(self.bauble)
+        self.assertEqual([self.key, self.bauble], list(self.inv))
 
 if __name__ == '__main__': unittest.main()

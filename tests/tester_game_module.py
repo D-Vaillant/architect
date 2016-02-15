@@ -6,8 +6,13 @@ from architect.game import Game
 from architect.utils import JSON_Reader
 from architect.ontology import Room, Item, Action, Inventory
 
-from tests.tester_ontology import Game_Loader
-       
+# TODO: Find this guy a nice home.
+class Game_Loader(unittest.TestCase):
+    """ Abstract base class that testing units inherit from. """
+    def setUp(self):
+        self.Reader = JSON_Reader()
+        self.Reader.main()
+      
 class Game_Tester(Game_Loader):
     def setUp(self):
         super().setUp()
@@ -191,13 +196,5 @@ class Game_ActionSystem_Tester(Game_Tester):
                     self.assertEqual(Action.pluralUnaryTest(item,key),
                                      value[number])
     
-
-class GameUtilityTester(Game_Tester):
-    def setUp(self):
-        super().setUp()
-        self.inventory.add(self.key)
-
-    def test_scopeGetter(self):
-        scopes
 
 if __name__ == '__main__': unittest.main()

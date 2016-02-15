@@ -75,7 +75,12 @@ class Inventory():
                 if x in bag: return bag_name
         return None
         
-        
+    def __iter__(self):
+        returned = []
+        for x in self.holding.values(): returned.extend(list(x))
+
+        return returned 
+
     def __str__(self):
         if not self:
             return "You are not holding anything."

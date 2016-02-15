@@ -57,6 +57,13 @@ import re
 # Verbose option.
 V = True
 
+class Module():
+    """ ... holds Rooms. """
+    def __init__(self, rdata = {}, mdata = {}):
+        self.rooms = rdata
+        self.meta_data = {}
+
+
 class Game():
     cardinals = {'w':0, 's':1, 'n':2, 'e':3}
     special_actions = ['take'] ## Special actions are... weird.
@@ -96,8 +103,6 @@ class Game():
 #---------------------------- Initialization ---------------------------------
 
     def __init__(self, rdata, tdata, adata, mdata):
-        M = lambda x: x if x in mdata else None
-
         self.rooms = Room.room_processor(rdata)
         self.items = Item.item_processor(tdata)
         ##self.item_names = {t.name:t.id for t in self.items.values()}
@@ -114,15 +119,17 @@ class Game():
 
         # For eventual implementation of meta-data entry.
         ## self._meta_processor(mdata)
-        self.isCLI = M('isCLI') or False
+        self.isCLI = mdata.get('isCLI', False)
 
-        self.loc = self.rooms["initial"]
+        init_loc = mdata.get('initialRoomName', "initial")
+        self.loc = self.rooms[init_loc]
+
         self.setting_output = ''
         self.action_output = ''
 
         # --- Overarching Settings ---
         # Euclidean forces links to be irreflexive and symmetric.
-        self.is_euclidean = M('isEuclidean') or True
+        self.is_euclidean = mdata.get('isEuclidean', True)
 
     def _populate(self):
         for room in self.rooms.values():
@@ -160,21 +167,23 @@ class Game():
 # --------------------------- GUI-User Interface -----------------------------
 
     def main(self):
-        """ Takes user input, passes it to prompt_exe. """
+        """ Run on game initialization...? """
+        """ I feel like this... might not be needed. """
         self._puts(self.GAME_MSGS['beginning'])
         self._room_update()
         #raise NameError("Game finished.")
         return
 
     def cliMain(self):
-        """ Takes user input via the CLI, passes it to prompt_exe. """
+        """ Takes user input via terminal, passes it to prompt_exe. """
         self.main()
         prompt = ' '
         while (prompt[0] != 'q' and prompt[0] != 'quit'):
             print(self.gets())
             prompt = input('> ').lower()
-            ##prompt = x.split() if x != '' else ''
-            if prompt == '': prompt = ' '
+
+            # turns empty strings into a single space
+            # something goes wrong if I don't do this.
             self.prompt_exe(prompt)
 
     def _room_update(self):
@@ -188,6 +197,7 @@ class Game():
 
     """ Functions involved in passing to GUI_Holder class. """
 
+    # TODO: Make sure GUI - Game is firmly split.
     def _puts(self, input_string, is_setting = False):
         """ Adds text to the output buffer. """
         if is_setting:
@@ -206,13 +216,20 @@ class Game():
 
     def prompt_exe(self, prompt):
         """ Takes user input and passes it to the appropriate method. """
-        # Turns string inputs into array of strings.
+        # Strings to arrays of lower-case words.
+        # ["strings", "to", "arrays", "of", "words"]
         i = prompt.lower().split() if prompt else ''
 
+        try:
+            i.gsub
+
         # Does nothing if empty command is entered.
+        # TODO: Allow thing to be configurable!
+        #       E.G., aliasing '' to "wait".
         if len(i) < 1: pass
 
-        # Call _move if a movement command is entered.
+        # Call _move if a cardinal direction is entered.
+        #   Accepts full names and (w|s|n|e).
         elif i[0] in self.cardinals.keys():
             self._movePlayer(i[0])
         elif i[0] in ['west', 'south', 'north', 'east']:
@@ -220,9 +237,13 @@ class Game():
 
         # Inventory call.
         elif i[0] in ["inv", "i"]:
-            self._inv("open")
+            # Prints the contents of the inventory.
+            # TODO: When the Actor class is properly integrated and Inventory
+            #       is an attribute, make sure to patch this accordingly.
+            self._puts(str(self.inventory))
 
         # Call _act if an action is entered.
+        # All terms for actions are stored as keys 
         elif i[0] in self.actions or \
              i[0] in self.special_actions:
             if V: print("Treating ", i[0], " as an action.")
@@ -231,7 +252,7 @@ class Game():
         # System calls. ? calls help.
         #!! Needs to be worked out.
         elif i[0] == '?':
-            self._help(''.join(i[1:]))
+            self._help(i[1:])
 
         # Puts Quit message.
         elif i[0] == 'quit' or i[0] == 'q':
@@ -243,10 +264,10 @@ class Game():
 
         return
 
-    def _help(self, object):
+    def _help(self, arg):
         """ Puts help messages. """
         #!! Work needed here.
-        if object:
+        if arg:
             pass
         else:
             self._puts("Movement: north, south, east, west")

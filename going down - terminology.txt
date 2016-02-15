@@ -1,0 +1,5 @@
+going down terminology
+
+<x>: x as an event
+{A => ~, B => ~}: choice dialogue
+<>: empty event

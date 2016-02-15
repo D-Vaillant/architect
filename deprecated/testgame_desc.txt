@@ -1,0 +1,161 @@
+// Things for the test_game.
+// Comments only work at the beginning of lines. The presence of "//"
+// in a line causes the reader to ignore that line.
+
+// Game input files have four parts: Meta, Room, Links, and Things. (M,R,L,T)
+// All entries must be placed on their own line; turning on word wrap is 
+// advised.
+
+~M
+// Meta.
+
+
+~R
+// Rooms.
+// Example room page:
+// #IDEN Unique ID. Used to specify the room.
+// #NAME Name Goes Here
+// #DESC Put each line of text in its own #DESC line.
+// #HOLD Put the names of items you want to have the room hold here.
+
+#IDEN initial 
+#NAME A Grassy Meadow
+#DESC The green grass meadows softly. The sky is blue and all around you grass blooms.
+#DESC To your north you see a strange house.
+#HOLD bauble
+
+#IDEN house_entrance
+#NAME In Front of the House
+#DESC A rickety old house stands in front of you, dead north. 
+#DESC A sad-looking [door] guards the house.
+#HOLD worn_key | door
+
+#IDEN house
+#NAME Inside of the House
+#DESC The house is barren: no furniture, drapes in tatters. To your west there is a staircase down.
+#HOLD painting
+
+#IDEN basement
+#NAME The Basement.
+#DESC The walls are covered with strange writings.
+#HOLD notebook
+
+#IDEN void
+#NAME The Void
+#DESC How did you get here?
+
+#IDEN hell
+#NAME Hell
+#DESC You fucked up.
+
+~L
+// Links.
+// If you want a room to connect to any other room you need to have an entry.
+// Format: ROOM_ID | WEST_R_NAME | SOUTH_R_NAME | NORTH_R_NAME | EAST_R_NAME
+
+// Rooms not specified default to having no links. "None" is reserved for
+// specifying a lack of links in that direction.
+
+initial | None | None | house_entrance | None
+house_entrance | None | initial | None | None
+house | basement | entrance | None | None
+basement | None | None | None | house
+
+// Example object page.
+// NA: name, EX: examine desc, OA: mcode for on acquire, TY: item or prop
+// AC: mcode for various actions. new line for each action
+// int:nameCODEparameter
+// sys:CODEparameter
+// prop:nameCODEparameter
+// int:name-#, remove # of name from inventory
+// sys:!test, print test to screen
+// prop:name+name2, put prop name in room name2. _ is current room.
+
+
+~I
+// Things.
+#IDEN bauble
+#NAME shiny bauble
+#NICK bauble
+#EXMN A small, blue sphere made of solid polished glass.
+#GRND There is a tiny blue [bauble] on the ground.
+#ONAQ pass
+#PROP glass
+
+#IDEN shards
+#NAME glass shards
+#NICK shards
+#GRND There are some [glass shards] scattered about.
+#EXMN Bluish shards from a shattered bauble.
+#PROP glass static
+
+#IDEN worn_key
+#NAME worn key
+#NICK key
+#EXMN An slightly rusted worn key. Hopefully it still works.
+#GRND A battered-looking [worn key] is lying here.
+#PROP metal
+#TYPE item
+
+#IDEN unused_rock
+#NAME rock
+#EXMN A rock that's unloved.
+#GRND A rock sits here.
+#PROP stone
+#TYPE item
+
+#IDEN painting
+#NAME old painting
+#NICK painting
+#EXMN The old man's face glares at you accusingly. Are those eyes following you?
+#GRND A tattered [painting] hangs on the wall.
+#PROP cloth static
+
+#IDEN notebook
+#NAME black notebook
+#EXMN The notebook is filled with translations of hieroglyphs. There's some space in the back for notes.
+#GRND A black [notebook] sits on the ground.
+#DATA None
+#TYPE item
+
+#IDEN door
+#NAME battered door
+#DS A battered %n
+#NICK door
+#EXMN The door looks weak, but not weak enough to knock down. Unfortunately. It is locked.
+#GRND pass
+#PROP wooden locked static
+
+~A
+// Actions.
+
+// All actions run some line of MCODE.
+// Priority is in order of specification.
+
+// name/MCODE: Action on Thing with given name runs MCODE.
+// p:prop/MCODE: Action on Thing with given property runs MCODE.
+// /MCODE: Action on anything not specified runs MCODE. Generally just a sys:!.
+
+#cry
+0/sys.!You weep in desperation, but don't feel any better.
+
+#throw
+!2 at
+bauble/ift:bauble@$>inv:bauble-1}sys:!The bauble shatters into pieces.}rom:_+glass shards<sys:!You should pick that up first.
+/sys:!You probably shouldn't throw that.
+
+#tap
+bauble/sys.!Ting ting. It sounds like solid glass.
+p:wooden/sys.!Thud thud.
+p:metal/sys.!Ding ding.
+/sys.!Tap tap.
+
+#unlock
+!2 with
+door_battered&p:locked|worn key/rom:_&NInside of the house.|obj:door_battered#EXAMThe once proud guardian of this house stands defeated and ajar.|obj:door_battered#PROP-p:locked|sys.!You use the worn key to unlock the door. It works, but the key breaks off in the lock.|inv:worn key-1
+p:door/sys.!Unlock that with what?
+p:locked/sys.!How is that going to unlock anything?
+/sys.!That's not the sort of thing you can unlock.
+
+#use
+notebook/ift:room=The basement.>sys.!You translate the hieroglyphs and write down what they mean.<sys.!There's nothing to use the notebook with.

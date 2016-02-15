@@ -1,0 +1,6 @@
+architect library:
+    a new take on architect
+    
+    My new idea is to make it so that architect is a library in the same way that pygame is: a general purpose library of functions, classes, and so on which faciliate making a game.
+    
+    I should try playing with Twine.
