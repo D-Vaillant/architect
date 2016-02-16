@@ -14,18 +14,21 @@ class Inventory():
     
     Implements weight as well. Eventually... """
 
-    def __init__(self, contents = None, limits = {"main":-1}):
+    def __init__(self, contents = None, limits = None):
         """ Allows for a non-empty initial inventory. """
         if contents is None:
             self.holding = OrdDict({"main":set()})
         else:
             self.holding = contents
+
+        if limits is None:
+            self.capacities = {x:-1 for x in self.holding}
+        else:
+            self.capacities = limits
         
-        self.updateHoldingList()
+        #self.updateHoldingList()
         
-        #self.containers = default.keys()
-        self.limits = limits
-        self.name = "player inventory"
+        self.name = "Generic Inventory"
  
     def __contains__(self, item):
         """ Defines items being "in" Inventory instances. """
@@ -35,10 +38,16 @@ class Inventory():
     
     def __bool__(self):
         """ Returns True if something is being held. """
-        for x in self.holding.values():
-            if bool(x): return True
-        else: return False
+        #for x in self.holding.values():
+        #    if bool(x): return True
+        #else: return False
+        return any(self.holding.values())
         
+    def _canHold(self, bag, item):
+        if self.capacities[bag] < 0: return True 
+
+        return self.capacities[bag] >= item.weight
+
     def updateHoldingList(self):
         """ 'Flattens' holding into a cached sum of held items. """
         self.holding_list = []
@@ -48,14 +57,23 @@ class Inventory():
                 print(self.holding_list)
             self.holding_list.extend(list(x))
             
-    def add(self, x, target="main"):
+    def add(self, x, target = None):
         """ Adds items to holding[target]. """
         ## TODO: Implement weight.
-        ##if self.limits[target] >= x.weight or self.limits[target] == -1:
-        ##    return "FULL"
-        ##else: pass
+        if target is None:
+            for bag_name, bag in self.holding.items():
+                if self._canHold(bag_name, x): 
+                    target = bag_name
+                    return bag_name
+            return None
+
+        try:
+            target = self.holding[target]
+        except KeyError:
+            raise KeyError("Tried to add to a non-existent bag, {}.".format(bag_name))
+
         self.holding[target].add(x)
-        self.updateHoldingList()
+        #self.updateHoldingList()
         return
         
     def remove(self, x, target="main"):
@@ -79,10 +97,9 @@ class Inventory():
         return None
         
     def __iter__(self):
-        returned = []
-        for x in self.holding.values(): returned.extend(list(x))
-
-        return returned 
+        for bag in self.holding.values():
+            for item in bag:
+                yield item
 
     def __str__(self):
         if not self:

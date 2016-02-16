@@ -67,7 +67,6 @@ class Module():
                 "end": mdata.get("end", '')
                 }
 
-
     def help(self, arg):
         """ Returns some information about player commands. """
         pass
@@ -418,8 +417,6 @@ class Game():
         action = command[0]
         specifics = ' '.join(command[1:])
 
-        # Hard coding of some actions like take, examine.
-        ## Could theoretically be rolled into the Action class as well.
         if action in self.special_actions:
             if V: print("Special action being run.")
             self._specialAct(action, specifics)
@@ -431,10 +428,13 @@ class Game():
 
         else:
             print("Non-action. Why are we here?")
+            raise RuntimeError("I'm freakin' out, man! Check Game._act!")
         return
 
     def _specialAct(self, action, specifics):
-        # TODO: Docstring.
+        """ A hard coding of some more complicated actions.
+
+            ... is this necessary? """
         if action == "take":
             specifics = self._itemNametoItem(specifics)
             ## elif specifics in self.inventory.holding:
@@ -500,7 +500,7 @@ class Game():
         if args == "pass": return
         else: getattr(self, '_'+args[0])(*args[1])
 
-    def _add(self, item, container, target = "main"):
+    def _add(self, item, container, target = None):
         """ Adds an Item to a container. """
         item = self._IDtoItem(item)
         if container == '_':

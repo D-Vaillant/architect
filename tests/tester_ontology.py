@@ -208,15 +208,19 @@ class Ontology_InventoryTester(Game_Tester):
     def setUp(self):
         super().setUp()
         self.inv = self.G.inventory
-        self.inv.holding["main"] = set(self.key)
+        self.inv.holding["main"] = {self.key}
 
-    def test_adding(self):
-        self.inv.add(self.bauble)
-        self.assertIn(self.bauble, self.inv.holding["main"])
+    def tearDown(self):
+        super().tearDown()
+        self.inv = None
 
-    def test_contains:(self):
+    def test_contains(self):
         self.assertTrue(self.key in self.inv)
         self.assertFalse(self.door in self.inv)
+
+    def test_adding(self):
+        self.inv.add(self.bauble, target = "main")
+        self.assertIn(self.bauble, self.inv.holding["main"])
 
     def test_listCasting(self):
         self.assertEqual([self.key], list(self.inv))
