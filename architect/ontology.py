@@ -14,9 +14,12 @@ class Inventory():
     
     Implements weight as well. Eventually... """
 
-    def __init__(self, default = OrdDict({"main":set()}), limits = {"main":-1}):
+    def __init__(self, contents = None, limits = {"main":-1}):
         """ Allows for a non-empty initial inventory. """
-        self.holding = default
+        if contents is None:
+            self.holding = OrdDict({"main":set()})
+        else:
+            self.holding = contents
         
         self.updateHoldingList()
         
@@ -102,6 +105,7 @@ class Item():
     """ Class used to represent items or props.
         ITEMS: Can be placed in player inventory and used from there.
         PROPS: Cannot be moved from their position in a room. """
+        
     codes = {
         'id':'id',
         'name':'name',
@@ -144,13 +148,11 @@ class Item():
 
     def setDescription(self, type, text = ""):
         """ Changes type_desc attribute to specified text. """
-        error = False
-        
         if hasattr(self, type+"_desc"):
             setattr(self, type+"_desc", text)
-        else:
-            error = True #if setDescription: error handle.
-        return error
+            return False
+        else: 
+            return True
 
     ### NOTE: This could probably be moved elsewhere. ###
     ### Related: __str__ method for Items. ###
@@ -190,14 +192,15 @@ class Room():
         self.name = roomD.get("name", '')
         
         _ = roomD.get("desc")
-        if type(_) == str:
+        if isinstance(_, str):
             self.entry_desc = [_]
         else:
             self.entry_desc = _ or ["This is a room."]
            
         self.holding = roomD.get("hold", [])
         # Used to catch setting holding to a string instead of a list.
-        if type(self.holding) == 'str': self.holding = [self.holding]
+        if isinstance(self.holding, str): 
+            self.holding = [self.holding]
         ##if d('data'): self.data = []
 
         self.is_visited = False

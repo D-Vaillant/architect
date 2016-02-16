@@ -61,9 +61,17 @@ class Module():
     """ ... holds Rooms. """
     def __init__(self, rdata = {}, mdata = {}):
         self.rooms = rdata
-        self.meta_data = {}
+
+        self.GAME_MSGS = {
+                "beginning": mdata.get("beginning", ''),
+                "end": mdata.get("end", '')
+                }
 
 
+    def help(self, arg):
+        """ Returns some information about player commands. """
+        pass
+        
 class Game():
     cardinals = {'w':0, 's':1, 'n':2, 'e':3}
     special_actions = ['take'] ## Special actions are... weird.
@@ -109,8 +117,7 @@ class Game():
         self.actions = Action.action_processor(adata)
 
 
-        self.inventory = Inventory(M('inventory')) if M('inventory') \
-                                                   else Inventory()
+        self.inventory = Inventory(mdata.get('inventory', None))
 
         self.parser = Parser(self.rooms, self.items,
                              self.actions, self.inventory)
@@ -124,8 +131,8 @@ class Game():
         init_loc = mdata.get('initialRoomName', "initial")
         self.loc = self.rooms[init_loc]
 
-        self.setting_output = ''
-        self.action_output = ''
+        self.static_output = ''
+        self.dynamic_output = ''
 
         # --- Overarching Settings ---
         # Euclidean forces links to be irreflexive and symmetric.
@@ -179,37 +186,40 @@ class Game():
         self.main()
         prompt = ' '
         while (prompt[0] != 'q' and prompt[0] != 'quit'):
+            # Displays game's text output buffer.
             print(self.gets())
-            prompt = input('> ').lower()
 
-            # turns empty strings into a single space
-            # something goes wrong if I don't do this.
+            prompt = input('> ').lower()
             self.prompt_exe(prompt)
+
+            # The while loop complains if I don't do this.
+            if len(prompt) < 1: prompt = ' '
 
     def _room_update(self):
         """ Adds item and setting information to the output buffer. """
+        room_info = self.loc.onEntry() + '\n'
+
         item_info = Item.item_printer(self.loc.holding)
-        setting_info = self.loc.onEntry() + '\n'
         if item_info:
-            setting_info += item_info + '\n'
-        self._puts(setting_info, True)
-        return
+            room_info += item_info + '\n'
+
+        self._puts(room_info, True)
 
     """ Functions involved in passing to GUI_Holder class. """
 
     # TODO: Make sure GUI - Game is firmly split.
-    def _puts(self, input_string, is_setting = False):
+    def _puts(self, input_string, is_static = False):
         """ Adds text to the output buffer. """
-        if is_setting:
-            self.setting_output = input_string
+        if is_static:
+            self.static_output = input_string
         else:
-            self.action_output += input_string + '\n'
+            self.dynamic_output += input_string + '\n'
 
     def gets(self):
         """ Returns text from the output buffer and clears it. """
         self._room_update()
-        returning = self.setting_output + '\n' + self.action_output
-        self.action_output = ''
+        returning = self.static_output + '\n' + self.dynamic_output
+        self.dynamic_output = ''
         return returning
 
 # ------------------------------- User Methods ---------------------------------
@@ -220,8 +230,8 @@ class Game():
         # ["strings", "to", "arrays", "of", "words"]
         i = prompt.lower().split() if prompt else ''
 
-        try:
-            i.gsub
+        # TODO: implement aliases
+        # gsub
 
         # Does nothing if empty command is entered.
         # TODO: Allow thing to be configurable!
@@ -637,5 +647,8 @@ def gui_init():
     return G
 
 if __name__ == "__main__":
-    G = test_init()
+    F = JSON_Reader()
+    F.meta_info['isCLI'] = True
+    G = Game(*F.output())
+
     G.cliMain()
