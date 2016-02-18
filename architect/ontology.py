@@ -30,11 +30,15 @@ class Inventory():
         
         self.name = "Generic Inventory"
  
+    def __getitem__(self, bag_name):
+        try:
+            return self.holding[bag_name]
+        except KeyError:
+            raise KeyError("No bag with that name.")
+
     def __contains__(self, item):
         """ Defines items being "in" Inventory instances. """
-        for x in self.holding.values():
-            if item in x: return True
-        else: return False
+        return any(item in bag for bag in self.holding.values())
     
     def __bool__(self):
         """ Returns True if something is being held. """
@@ -48,7 +52,7 @@ class Inventory():
 
         return self.capacities[bag] >= item.weight
 
-'''
+    '''
     def updateHoldingList(self):
         """ 'Flattens' holding into a cached sum of held items. """
         self.holding_list = []
@@ -66,36 +70,34 @@ class Inventory():
             for bag_name, bag in self.holding.items():
                 if self._canHold(bag_name, x): 
                     target = bag_name
-                    return bag_name
-            return None
+                    break
 
         try:
-            target = self.holding[target]
+            self[target].add(x)
+            return 0
         except KeyError:
-            raise KeyError("Tried to add to a non-existent bag, {}.".format(bag_name))
-
-        self.holding[target].add(x)
-        #self.updateHoldingList()
-        return
+            if target is None:
+                return -1
+            else:
+                raise KeyError("Tried to add to a non-existent bag, {}.".format(bag_name))
         
     def remove(self, x, target="main"):
         """ Used to remove items from the inventory. """
         ## TODO: Implement weight.
         if target is None:
-            target = self.isIn(x)
+            target = self.find(x)
         if target:
             try:
-                self.holding[target].remove(x)
-                self.updateHoldingList()
+                self[target].remove(x)
+                #self.updateHoldingList()
             except KeyError:
                 print("WARNING: Something went wrong.")
         return
         
-    def isIn(self, x, target="all"):
+    def find(self, x):
         """ If x is in a bag, returns the bag. Otherwise, returns None. """
-        if target == "all":
-            for bag_name, bag in self.holding:
-                if x in bag: return bag_name
+        for bag_name, bag in self.holding:
+            if x in bag: return bag_name
         return None
         
     def __iter__(self):
@@ -143,27 +145,29 @@ class Item():
         self.name = itemD.get("name")
         
         self.nickname = itemD.get("nick") or itemD.get("name", "item")
-        # figure this out
+
         self.properties = set(itemD.get('property', {}))
         self.weight = itemD.get("weight", 0)
         self.isProp = ("static" in self.properties)  
-        
+
         self.examine_desc = itemD.get("examine", '')
         self.ground_desc = itemD.get("ground", '')
-        
+
+        # BP code to be run when an Item is picked up
+        # Probably better to make this into an Event.
         self.on_acquire = itemD.get("acquire", "pass")
 
     def setProperty(self, property_input, isAdding = True):
         """ Adds or removes a property from an Item. """
-        error = False
-        
         if isAdding:
             self.properties.add(property_input)
+            return False
         else:
             try:
                 self.properties.remove(property_input)
-            except KeyError: error = True
-        return error #if setProperty: error handle.
+                return False
+            except KeyError:
+                return True
 
     def setDescription(self, type, text = ""):
         """ Changes type_desc attribute to specified text. """
@@ -188,11 +192,6 @@ class Item():
                     out_str = out_str + "\n" + x.ground_desc
             return out_str
         else: return ''    
-    
-    @staticmethod
-    def item_processor(item_dict):
-        """ Returns a Item class dictionary using a Item info dictionary. """
-        return {x:Item(item_dict[x]) for x in item_dict}
 
 class Room():
     """ Room class. """
@@ -211,15 +210,16 @@ class Room():
         self.name = roomD.get("name", '')
         
         _ = roomD.get("desc")
-        if isinstance(_, str):
-            self.entry_desc = [_]
-        else:
-            self.entry_desc = _ or ["This is a room."]
+        # Used to catch lazy setting single-line descriptions
+        # as strings instead of singleton lists.
+        self.entry_desc = [_] if isinstance(_, str) else (_ or 
+                                                          ["This is a room."])
            
         self.holding = roomD.get("hold", [])
         # Used to catch setting holding to a string instead of a list.
         if isinstance(self.holding, str): 
             self.holding = [self.holding]
+
         ##if d('data'): self.data = []
 
         self.is_visited = False
@@ -239,7 +239,7 @@ class Room():
         self.is_visited = True
         out = "\n".join(self.entry_desc)
         return out
-        
+ 
     def link(self, linked_room, dir, isEuclidean = True):
         if isEuclidean and self == linked_room:
             raise TypeError("Euclidean rooms enabled; no loops allowed.")
@@ -270,19 +270,6 @@ class Room():
         string += "] \n"
         
         return string  
-        
-    @staticmethod
-    def room_processor(room_info_dict):
-        """ Takes a Room info dictionary and creates a Room class dictionary.
-
-        If a link info dictionary is provided, runs each Room's
-        link_processor method to set the attribute. """
-        r = {}
-        # Iterates through the dictionary's keys and creates a new Room using
-        # the associated value (a Room info dictionary).
-        for x in room_info_dict:
-            r[x] = Room(room_info_dict[x])
-        return r
 
 class Action:
     codes = {
@@ -392,15 +379,6 @@ class Action:
 
         if verbose: print("Returning {}.".format(val))
         return val or 'pass'
-
-    @staticmethod
-    def action_processor(action_dict):
-        """ ugh """
-        actions = {}
-
-        for i,j in action_dict.items():
-            actions[i] = Action(j)
-        return actions
 
 class Actor:
     """ Parent class for any Player-esque character. """

@@ -112,11 +112,11 @@ class Game():
 
 #---------------------------- Initialization ---------------------------------
 
-    def __init__(self, rdata, tdata, adata, mdata):
-        self.rooms = Room.room_processor(rdata)
-        self.items = Item.item_processor(tdata)
+    def __init__(self, rdata, idata, adata, mdata):
+        self.rooms = {iden:Room(data) for iden, data in rdata.items()}
+        self.items = {iden:Item(data) for iden, data in idata.items()}
         ##self.item_names = {t.name:t.id for t in self.items.values()}
-        self.actions = Action.action_processor(adata)
+        self.actions = {iden:Action(data) for iden, data in adata.items()}
 
 
         self.inventory = Inventory(mdata.get('inventory', None))

@@ -1,7 +1,7 @@
 import unittest, mock
 from collections import OrderedDict
 
-from architect.game import Game
+from architect.game import InvalidBranchError, Game
 from architect.utils import JSON_Reader
 from architect.ontology import Room, Item, Action, Inventory
 
@@ -39,8 +39,7 @@ class Game_EngineMethod_Tester(Game_Tester):
     def test_move_roomXroom(self):
         """ Testing whether Items can be moved between Rooms. """
         self.assertIn(self.bauble, self.initial)
-        self.G._move(self.bauble,
-                         self.initial, self.basement)
+        self.G._move(self.bauble, self.initial, self.basement)
         self.assertIn(self.bauble, self.basement)
         
     def test_move_roomXinv(self):
@@ -53,8 +52,7 @@ class Game_EngineMethod_Tester(Game_Tester):
     def test_move_invXroom(self):
         """ Testing whether we can move Items from Inventories to Rooms. """
         self.G.inventory.add(self.key)
-        self.G._move(self.key, 
-                         self.G.inventory, self.initial)
+        self.G._move(self.key, self.G.inventory, self.initial)
         self.assertIn(self.key, self.initial)
     
     def test_move_errors(self):
@@ -138,8 +136,8 @@ class Game_Prompt_Tester(Game_Tester):
 class Game_ActionSystem_Tester(Game_Tester):
     @mock.patch('builtins.print', autospec=True)
     def test_nonaction(self, mock_print):
-        self.G._act(['ast'])
-        self.assertRaises(RunTimeError, self.G._act, ['ast'])
+        #self.G._act(['ast'])
+        self.assertRaises(InvalidBranchError, self.G._act, ['ast'])
         #mock_print.assert_called_with("Non-action. Why are we here?")
     
     @mock.patch.object(Game, '_specialAct')
