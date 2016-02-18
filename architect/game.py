@@ -312,7 +312,7 @@ class Game():
         """
         val_list = []
         if scope == "held":
-            val_list = self.inventory.holding_list
+            val_list = list(self.inventory)
         elif "held." in scope:
             try:
                 val_list = self.inventory.holding[scope[5:]]
@@ -322,7 +322,7 @@ class Game():
         elif scope == "around":
             val_list = self.loc.holding
         elif scope == "local":
-            val_list = self.loc.holding+self.inventory.holding_list
+            val_list = self.loc.holding+list(self.inventory)
         elif scope == "global":
             val_list = list(self.items.values)
         return val_list

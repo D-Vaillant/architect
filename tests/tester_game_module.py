@@ -138,7 +138,8 @@ class Game_ActionSystem_Tester(Game_Tester):
     @mock.patch('builtins.print', autospec=True)
     def test_nonaction(self, mock_print):
         self.G._act(['ast'])
-        mock_print.assert_called_with("Non-action. Why are we here?")
+        self.assertRaises(RunTimeError, self.G._act, ['ast'])
+        #mock_print.assert_called_with("Non-action. Why are we here?")
     
     @mock.patch.object(Game, '_specialAct')
     def test_actToSpecialAct(self, mock__specialAct):
