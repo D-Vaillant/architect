@@ -48,6 +48,7 @@ class Inventory():
 
         return self.capacities[bag] >= item.weight
 
+'''
     def updateHoldingList(self):
         """ 'Flattens' holding into a cached sum of held items. """
         self.holding_list = []
@@ -56,7 +57,8 @@ class Inventory():
                 print(x)
                 print(self.holding_list)
             self.holding_list.extend(list(x))
-            
+   '''
+
     def add(self, x, target = None):
         """ Adds items to holding[target]. """
         ## TODO: Implement weight.

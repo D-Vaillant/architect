@@ -1,12 +1,10 @@
-import unittest
-import mock
+import unittest, mock
 from collections import OrderedDict
 
 from architect.game import Game
 from architect.utils import JSON_Reader
 from architect.ontology import Room, Item, Action, Inventory
 
-# TODO: Find this guy a nice home.
 class Game_Loader(unittest.TestCase):
     """ Abstract base class that testing units inherit from. """
     def setUp(self):
@@ -114,7 +112,10 @@ class Game_Prompt_Tester(Game_Tester):
         for x in arr:
             with self.subTest(x = x):
                 self.G.prompt_exe('? ' + x)
-                mock__help.assert_called_with(x)
+                mock__help.assert_called_with(1, x)
+            with self.subTest(x = x):
+                self.G.prompt_exe('?? ' + x)
+                mock__help.assert_called_with(2, x)
         
     def test_prompt_exe_empty(self):
         self.assertIsNone(self.G.prompt_exe(""))

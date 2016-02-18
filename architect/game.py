@@ -57,6 +57,9 @@ import re
 # Verbose option.
 V = True
 
+class InvalidBranchError(Exception):
+    pass
+
 class Module():
     """ ... holds Rooms. """
     def __init__(self, rdata = {}, mdata = {}):
@@ -260,8 +263,8 @@ class Game():
 
         # System calls. ? calls help.
         #!! Needs to be worked out.
-        elif i[0] == '?':
-            self._help(i[1:])
+        elif i[0][0] == '?':
+            self._help(i[0].count('?'), "".join(i[1:]))
 
         # Puts Quit message.
         elif i[0] == 'quit' or i[0] == 'q':
@@ -273,7 +276,7 @@ class Game():
 
         return
 
-    def _help(self, arg):
+    def _help(self, magnitude, arg):
         """ Puts help messages. """
         #!! Work needed here.
         if arg:
@@ -289,7 +292,7 @@ class Game():
 
     def _local(self):
         """ Returns a list of Items near the player. """
-        return self.loc.holding+self.inventory.holding_list
+        return self.loc.holding+list(self.inventory)
 
     def _IDtoRoom(self, id):
         """ Returns a Room instance R such that R.id = id. """
@@ -312,19 +315,21 @@ class Game():
         """
         val_list = []
         if scope == "held":
-            val_list = self.inventory.holding_list
+            val_list = list(self.inventory)
         elif "held." in scope:
             try:
-                val_list = self.inventory.holding[scope[5:]]
+                val_list = list(self.inventory.holding[scope[5:]])
             except KeyError:
                 raise KeyError("Tried to access {}, but no bag exists with " +
                                "that name.".format(scope[5:]))
         elif scope == "around":
             val_list = self.loc.holding
         elif scope == "local":
-            val_list = self.loc.holding+self.inventory.holding_list
+            val_list = self.loc.holding+list(self.inventory)
         elif scope == "global":
             val_list = list(self.items.values)
+        else:
+            raise InvalidBranchError("A bad scope was specified.") 
         return val_list
 
     def _IDtoItem(self, id, scope="global"):
@@ -428,7 +433,7 @@ class Game():
 
         else:
             print("Non-action. Why are we here?")
-            raise RuntimeError("I'm freakin' out, man! Check Game._act!")
+            raise InvalidBranchError("I'm freakin' out, man! Check Game._act!")
         return
 
     def _specialAct(self, action, specifics):
