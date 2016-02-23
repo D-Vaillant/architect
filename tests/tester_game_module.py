@@ -118,20 +118,20 @@ class Game_Prompt_Tester(Game_Tester):
     def test_prompt_exe_empty(self):
         self.assertIsNone(self.G.prompt_exe(""))
         
-    @mock.patch.object(Game, '_puts')
-    def test_prompt_exe_error(self, mock__puts):
+    @mock.patch.object(Game, 'puts')
+    def test_prompt_exe_error(self, mock_puts):
         self.G.prompt_exe("asdfas")
-        mock__puts.assert_called_with(self.G.ERROR["exe_pass"])
+        mock_puts.assert_called_with(self.G.ERROR["exe_pass"])
 
-    @mock.patch.object(Game, '_puts')
-    def test_itemNametoItem(self, mock__puts):
+    @mock.patch.object(Game, 'puts')
+    def test_itemNametoItem(self, mock_puts):
         self.G.loc = self.G.rooms['entrance']
         self.assertEqual(self.G._itemNametoItem('worn key'),
                          self.key)
         self.assertEqual(self.G._itemNametoItem('key'),
                          self.key)
         self.G._itemNametoItem('ascvas')
-        mock__puts.assert_called_with(self.G.ERROR["item_not_found"])
+        mock_puts.assert_called_with(self.G.ERROR["item_not_found"])
     
 class Game_ActionSystem_Tester(Game_Tester):
     @mock.patch('builtins.print', autospec=True)
@@ -145,8 +145,8 @@ class Game_ActionSystem_Tester(Game_Tester):
         self.G._act(["take", "rocketship", "moon"])
         mock__specialAct.assert_called_with("take", "rocketship moon")
 
-    @mock.patch.object(Game, '_puts')
-    def test_userAct_invalidAct(self, mock__puts):
+    @mock.patch.object(Game, 'puts')
+    def test_userAct_invalidAct(self, mock_puts):
         act_dict = {("unlock","door"):Game.ACT_MSGS["Input < Min"],
                     ("cry","door")   :Game.ACT_MSGS["Input > Max"],
                     ("unlock",)       :Game.ACT_MSGS["0 < Min"],}
@@ -154,12 +154,12 @@ class Game_ActionSystem_Tester(Game_Tester):
             cmd = list(cmd)
             with self.subTest(cmd=cmd,output=output):
                 self.G._act(cmd)
-                mock__puts.assert_called_with(output)
+                mock_puts.assert_called_with(output)
 
-    @mock.patch.object(Game, '_puts')
-    def test_userAct_exceptionRaise(self, mock__puts):
+    @mock.patch.object(Game, 'puts')
+    def test_userAct_exceptionRaise(self, mock_puts):
         self.G._act("tap florgisborg".split())
-        mock__puts.assert_called_with(Game.ERROR["item_not_found"])
+        mock_puts.assert_called_with(Game.ERROR["item_not_found"])
 
     def test_unaryTester(self):
         prop_dict = {

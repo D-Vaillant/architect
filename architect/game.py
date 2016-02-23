@@ -91,6 +91,7 @@ class Game():
         "room_no_room_found": "WARNING: Incorrect room in Blueprint."
         }
     ACT_MSGS = {
+        0:"Surely that's not right.",
         "Input < Min":"What do you want to do that to?",
         "0 < Min":"You need to do that with something.",
         "Input > Max":"That doesn't make sense."
@@ -178,7 +179,7 @@ class Game():
     def main(self):
         """ Run on game initialization...? """
         """ I feel like this... might not be needed. """
-        self._puts(self.GAME_MSGS['beginning'])
+        self.puts(self.GAME_MSGS['beginning'])
         self._room_update()
         #raise NameError("Game finished.")
         return
@@ -205,12 +206,12 @@ class Game():
         if item_info:
             room_info += item_info + '\n'
 
-        self._puts(room_info, True)
+        self.puts(room_info, True)
 
     """ Functions involved in passing to GUI_Holder class. """
 
     # TODO: Make sure GUI - Game is firmly split.
-    def _puts(self, input_string, is_static = False):
+    def puts(self, input_string, is_static = False):
         """ Adds text to the output buffer. """
         if is_static:
             self.static_output = input_string
@@ -252,7 +253,7 @@ class Game():
             # Prints the contents of the inventory.
             # TODO: When the Actor class is properly integrated and Inventory
             #       is an attribute, make sure to patch this accordingly.
-            self._puts(str(self.inventory))
+            self.puts(str(self.inventory))
 
         # Call _act if an action is entered.
         # All terms for actions are stored as keys 
@@ -268,11 +269,11 @@ class Game():
 
         # Puts Quit message.
         elif i[0] == 'quit' or i[0] == 'q':
-            self._puts(self.GAME_MSGS["quit"])
+            self.puts(self.GAME_MSGS["quit"])
 
         # Puts an error message if an unrecognised command is entered.
         else:
-            self._puts(self.ERROR["exe_pass"])
+            self.puts(self.ERROR["exe_pass"])
 
         return
 
@@ -282,8 +283,8 @@ class Game():
         if arg:
             pass
         else:
-            self._puts("Movement: north, south, east, west")
-            self._puts("Actions: " + ', '.join(
+            self.puts("Movement: north, south, east, west")
+            self.puts("Actions: " + ', '.join(
                                           [a for a,A in self.actions.items() 
                                                      if A.isKnown]))
         return
@@ -354,9 +355,9 @@ class Game():
         if len(search_arr) == 1:
             out = search_arr[0]
         elif len(search_arr):
-            self._puts(self.ERROR["ambiguity"])
+            self.puts(self.ERROR["ambiguity"])
         else:
-            self._puts(self.ERROR["item_not_found"])
+            self.puts(self.ERROR["item_not_found"])
         return out
 
 # ------------------------- User-Engine Interface ------------------------------
@@ -372,7 +373,7 @@ class Game():
         if destination is not None: 
             self.loc = destination 
         else: 
-            self._puts("I can't go that way.")
+            self.puts("I can't go that way.")
 
     # Act: Takes a command.
     # Deprecated by new action system.
@@ -384,32 +385,32 @@ class Game():
         # If no object specified.
         if tmp == '':
             if command[0] == "examine":
-                self._puts(self.loc.on_examine())
-                #self._puts(Item.item_printer([self.items[x]
+                self.puts(self.loc.on_examine())
+                #self.puts(Item.item_printer([self.items[x]
                      for x in self.loc.holding]))
             else:
-                self._puts(self.ERROR["act_item_not_found"])
+                self.puts(self.ERROR["act_item_not_found"])
         # Examining.
         elif command[0] == "examine":
             if tmp == "room":
-                self._puts(self.loc.on_examine())
-                #self._puts(Item.item_printer([self.items[x]
+                self.puts(self.loc.on_examine())
+                #self.puts(Item.item_printer([self.items[x]
                      for x in self.loc.holding]))
             elif tmp in self.loc.holding or tmp in self.inventory.holding:
-                self._puts(self.items[tmp].examine_desc)
-            else: self._puts(self.ERROR["act_item_not_found"])
+                self.puts(self.items[tmp].examine_desc)
+            else: self.puts(self.ERROR["act_item_not_found"])
         # Other actions.
         else:
             if tmp == "room":
-                self._puts(self.ERROR["act_using_rooms"])
+                self.puts(self.ERROR["act_using_rooms"])
             elif tmp in self.loc.holding or tmp in self.inventory.holding:
                 try:
                     for x in self.items[tmp].action_dict[command[0]]:
                         self.blueprint_main(x)
                 except KeyError:
-                    self._puts(self.ERROR["act_not_for_item"])
+                    self.puts(self.ERROR["act_not_for_item"])
             else:
-                self._puts(self.ERROR["act_item_not_found"])
+                self.puts(self.ERROR["act_item_not_found"])
         return
     """
 
@@ -443,15 +444,15 @@ class Game():
         if action == "take":
             specifics = self._itemNametoItem(specifics)
             ## elif specifics in self.inventory.holding:
-            ##     self._puts(self.ERROR["act_already_holding"])
+            ##     self.puts(self.ERROR["act_already_holding"])
             if specifics is not None:
                 if V: print("Taking: ", specifics)
                 if specifics.isProp:
-                    self._puts(self.ERROR["act_taking_prop"])
+                    self.puts(self.ERROR["act_taking_prop"])
                 else:
                     self.inventory.add(specifics)
                     self.loc.holding.remove(specifics)
-                    self._puts("Picked up the " + specifics.name + ".")
+                    self.puts("Picked up the " + specifics.name + ".")
 
     def _userAct(self, action, specifics):
         # TODO: Docstring.
@@ -467,7 +468,7 @@ class Game():
         # If parseString returns a "$! " prefixed string, put
         # an error message.
         if specifics and specifics[:3] == "$! ":
-            self._puts(self.ACT_MSGS[specifics[3:]])
+            self.puts(self.ACT_MSGS[specifics[3:]])
 
         # Turns the parsed string into (hopefully) an array of Item IDs.
         else:
@@ -494,7 +495,7 @@ class Game():
     def _inv(self, command):
         """ Inventory menu commands. """
         if command == "open":
-            self._puts(self.inventory.__str__())
+            self.puts(self.inventory.__str__())
         else: pass
         return
 
@@ -503,9 +504,9 @@ class Game():
 
     def _bpRouter(self, args):
         if args == "pass": return
-        else: getattr(self, '_'+args[0])(*args[1])
+        else: getattr(self, +args[0])(*args[1])
 
-    def _add(self, item, container, target = None):
+    def add(self, item, container, target = None):
         """ Adds an Item to a container. """
         item = self._IDtoItem(item)
         if container == '_':
@@ -515,7 +516,7 @@ class Game():
             container = self._IDtoRoom(container)
             container.add(item)
 
-    def _remove(self, item, container, target = None):
+    def remove(self, item, container, target = None):
         """ Removes an Item from a container. """
         item = self._IDtoItem(item)
         if container == '_':
@@ -525,14 +526,14 @@ class Game():
             container = self._IDtoRoom(container)
             container.remove(item)
 
-    def _link(self, source, dir, dest):
+    def link(self, source, dir, dest):
         dir = self.cardinals[dir.lower()]
         source = self._IDtoRoom(source)
         dest = self._IDtoRoom(dest)
 
         source.link(dest, dir, self.is_euclidean)
 
-    def _move(self, moved_item, source, target):
+    def move(self, moved_item, source, target):
         """ Removes moved_item from source and adds it to target. """
         if moved_item in source:
             try:
@@ -545,17 +546,16 @@ class Game():
                 raise AttributeError("Source lacks remove() method.")
         else:
             raise AttributeError("Item not in source.")
-        return
 
-    def _addProperty(self, item, property):
+    def addProperty(self, item, property):
         item = self._IDtoItem(item)
         item.setProperty(property)
 
-    def _removeProperty(self, item, property):
+    def removeProperty(self, item, property):
         item = self._IDtoItem(item)
         item.setProperty(property, False)
 
-    def _changeItem(self, item, attr, text):
+    def changeItem(self, item, attr, text):
         item = self._IDtoItem(item)
         if '_desc' in attr:
             print("WARNING: You should be calling changeDescription.")
@@ -565,21 +565,27 @@ class Game():
         except AttributeError:
             raise AttributeError("%s is not an item attribute."%attr)
 
-    def _changeDescription(self, object, type, index=0, text=''):
+    def changeDescription(self, object, type, index=0, text=''):
         pass
 
-    def _changeRoom(self, room, attr, text):
+    def changeRoom(self, room, attr, text):
         room = self._IDtoRoom(room)
         try:
             setattr(room, attr, text)
         except AttributeError:
             raise AttributeError("%s is not a room attribute."%attr)
 
-    def _changeInv(self, bag, attr, text):
+    def changeInv(self, bag, attr, text):
         inv = self.inventory()
         bag = inv.structuredHolding[bag]
         # TODO: Implement "add bag", "remove bag", and "change bag limits".
         return
+    
+    def err(self, msg):
+        try:
+            puts(Game.ACT_MSGS[msg])
+        except KeyError:
+            puts(Game.ACT_MSGS[0])
 
 ############ Graveyard of Blueprint Past ###################################
 #

@@ -157,6 +157,9 @@ class Item():
         # Probably better to make this into an Event.
         self.on_acquire = itemD.get("acquire", "pass")
 
+    def is(self, property_):
+        return property_ in self.properties
+
     def setProperty(self, property_input, isAdding = True):
         """ Adds or removes a property from an Item. """
         if isAdding:
@@ -382,13 +385,13 @@ class Action:
 
 class Actor:
     """ Parent class for any Player-esque character. """
-    def __init__(self, id,
+    def __init__(self, id_,
                        name = "Nameless",
                        health = None,
                        attributes = {},
                        isPC = False,
                        carrying = None):
-        self.id = id
+        self.id = id_
         self.name = name
         self.health = health
 

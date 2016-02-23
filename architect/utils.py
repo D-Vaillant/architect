@@ -117,10 +117,12 @@ class JSON_Reader:
     def main(self):
         with open(self.f, 'r') as F:
             p = json.load(F, object_pairs_hook=OrdDict)
-        
         for x in p:
-            getattr(self, x["type"]+"_info").update({x["id"]:x})
-        return
+            try:
+                getattr(self, x["type"]+"_info").update({x["id"]:x})
+            except KeyError:
+                raise KeyError("Found an entry without a type or an id. " +
+                               "Don't forget those!")
         
     def output(self):
         return (self.room_info, self.item_info, 
