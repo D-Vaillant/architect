@@ -101,16 +101,6 @@ class Game():
         "quit": "Game closing."
         }
 
-    special_actions = {
-        "take": Action({
-            "id": "take",
-            "0" : "puts!What are you picking up?",
-            "1" : OrderedDict(
-                {"p:prop":  "puts!That's too big to carry.",
-                 ""      :  "move!%i"})
-            })
-                     }
-
 #---------------------------- Initialization ---------------------------------
 
     def __init__(self, rdata, idata, adata, mdata):
@@ -180,7 +170,7 @@ class Game():
         """ Run on game initialization...? """
         """ I feel like this... might not be needed. """
         self.puts(self.GAME_MSGS['beginning'])
-        self._room_update()
+        self._static_update()
         #raise NameError("Game finished.")
         return
 
@@ -198,29 +188,23 @@ class Game():
             # The while loop complains if I don't do this.
             if len(prompt) < 1: prompt = ' '
 
-    def _room_update(self):
-        """ Adds item and setting information to the output buffer. """
-        room_info = self.loc.onEntry() + '\n'
+# ------------------------------- Output Methods -------------------------------
+    def _static_update(self):
+        """ Adds item and setting information to the static output buffer. """
+        self.static_output = self.loc.onEntry() + '\n'
 
         item_info = Item.item_printer(self.loc.holding)
         if item_info:
-            room_info += item_info + '\n'
-
-        self.puts(room_info, True)
-
-    """ Functions involved in passing to GUI_Holder class. """
+            self.static_output += item_info + '\n'
 
     # TODO: Make sure GUI - Game is firmly split.
-    def puts(self, input_string, is_static = False):
+    def puts(self, input_string):
         """ Adds text to the output buffer. """
-        if is_static:
-            self.static_output = input_string
-        else:
-            self.dynamic_output += input_string + '\n'
+        self.dynamic_output += input_string + '\n'
 
     def gets(self):
         """ Returns text from the output buffer and clears it. """
-        self._room_update()
+        self._static_update()
         returning = self.static_output + '\n' + self.dynamic_output
         self.dynamic_output = ''
         return returning
@@ -374,45 +358,6 @@ class Game():
             self.loc = destination 
         else: 
             self.puts("I can't go that way.")
-
-    # Act: Takes a command.
-    # Deprecated by new action system.
-    """
-    def act(self, command):
-        ''' Action function. '''
-        tmp = ' '.join(command[1:])
-
-        # If no object specified.
-        if tmp == '':
-            if command[0] == "examine":
-                self.puts(self.loc.on_examine())
-                #self.puts(Item.item_printer([self.items[x]
-                     for x in self.loc.holding]))
-            else:
-                self.puts(self.ERROR["act_item_not_found"])
-        # Examining.
-        elif command[0] == "examine":
-            if tmp == "room":
-                self.puts(self.loc.on_examine())
-                #self.puts(Item.item_printer([self.items[x]
-                     for x in self.loc.holding]))
-            elif tmp in self.loc.holding or tmp in self.inventory.holding:
-                self.puts(self.items[tmp].examine_desc)
-            else: self.puts(self.ERROR["act_item_not_found"])
-        # Other actions.
-        else:
-            if tmp == "room":
-                self.puts(self.ERROR["act_using_rooms"])
-            elif tmp in self.loc.holding or tmp in self.inventory.holding:
-                try:
-                    for x in self.items[tmp].action_dict[command[0]]:
-                        self.blueprint_main(x)
-                except KeyError:
-                    self.puts(self.ERROR["act_not_for_item"])
-            else:
-                self.puts(self.ERROR["act_item_not_found"])
-        return
-    """
 
     def _act(self, command):
         # TODO: Write an actual docstring.
@@ -575,6 +520,7 @@ class Game():
         except AttributeError:
             raise AttributeError("%s is not a room attribute."%attr)
 
+    # NOTE: What the hell was this for?
     def changeInv(self, bag, attr, text):
         inv = self.inventory()
         bag = inv.structuredHolding[bag]
@@ -587,68 +533,6 @@ class Game():
         except KeyError:
             puts(Game.ACT_MSGS[0])
 
-############ Graveyard of Blueprint Past ###################################
-#
-#   Implemented aspects are wiped clean here.
-#
-#    def ift_func(self, functional_char, thing_in_question,
-#                 condition):
-#        """ Conditional blueprint processor.
-#
-#        Isolates the condition from the post-functional part and enters an
-#        if-ifelse-else structure to find which condition corresponds to
-#        the Blueprint code.
-#
-#        If condition is true, runs each BP code line found after the >
-#        (separated by }) by calling blueprint_main. Otherwise, runs BP code
-#        found after the <. """
-#
-#        # < divides the "on true" command from the "on false" one.
-#        condition = condition.split('<')
-#        else_condition = condition[1].split('}')
-#        condition = condition[0].split('}')
-#
-#        # At this point condition has the following form:
-#        #          [parameter>mcode0, mcode1, mcode2,...]
-#        # We split up the parameter and the mcode0 part using the >,
-#        # assign parameter to second_thing, and assign mcode0 to condition[0].
-#        then_finder = re.search('>', condition[0])
-#        try:
-#            second_thing = condition[0][:then_finder.span()[0]]
-#            condition[0] = condition[0][then_finder.span()[1]:]
-#        except AttributeError:
-#            raise AttributeError("> not found.")
-#
-#        # Turns second_thing into a class instance.
-#        second_thing = self._alias(second_thing)
-#
-#
-#        ### Redo inventory isHolding checks.
-#        # @: True if thing_in_question is in second_thing, where second_thing
-#        #    must be a room or an inventory (with a "holding" attribute).
-#        if functional_char == '@':
-#            try:
-#                if thing_in_question in second_thing.holding:
-#                    status = True
-#                else:
-#                    status = False
-#            except KeyError:
-#                raise AttributeError("@ error.\n"+ second_thing.name +
-#                                     " has no holding attribute.")
-#
-#        # = : True if thing_in_question is identical with second_thing.
-#        #     Generally used in conjunction with the _ alias.
-#        elif functional_char == '=':
-#            if thing_in_question == second_thing:
-#                status = True
-#            else:
-#                status = False
-#
-#        tmp = condition if status else else_condition
-#        for i in tmp: self.blueprint_main(i)
-#
-#        return
-#
 # ------------------------- Testing -----------------------------------------
 
 def gui_init():

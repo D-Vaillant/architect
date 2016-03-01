@@ -157,7 +157,7 @@ class Item():
         # Probably better to make this into an Event.
         self.on_acquire = itemD.get("acquire", "pass")
 
-    def is(self, property_):
+    def is_(self, property_):
         return property_ in self.properties
 
     def setProperty(self, property_input, isAdding = True):
@@ -274,7 +274,56 @@ class Room():
         
         return string  
 
-class Action:
+class Action():
+    """ The backbone of action functions. Weird. """
+    prep = None 
+    #id_ = None
+
+    def __init__(act, Engine, args = None):
+        """Passes access to the Engine, gives arguments.""" 
+        # Gives the Action a handle on the Engine.
+        # The relation is interesting and subtle. We want actions to be
+        #   able to do what bp_parser is doing: execute some simple commands.
+        #   The Engine might instead be a submodule of Game.
+        act.E = Engine
+        act.nullary = args is None
+        # a goofy way to ensure that only pairs count as binary
+        try:
+            act.binary = True if len(args) == 2 else False
+            act.unary = not act.binary
+        except TypeError:
+            act.unary = not act.nullary
+            act.binary = False
+
+        if act.unary: assert isinstance(args, Item) 
+        elif act.binary:
+            for _ in args: assert isinstance(_, Item)
+
+        act.call(args)
+
+    def call(act, args):
+        """The structure of an Action call."""
+        if act.nullary:
+            act.zero()
+        elif act.unary:
+            act.one(args)
+        elif act.binary:
+            act.two(*args)
+        else:
+            raise Exception("Invalid branch.")
+
+    def zero(act):
+        pass
+
+    def one(act, arg):
+        pass
+
+    def two(act, arg0, arg1):
+        E.err("Input > Max")
+
+
+# not imported so no need to do much here
+class OldAction:
     codes = {
         "id":   "id",
         "zero": "zero_act",
