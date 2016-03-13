@@ -10,7 +10,7 @@ verbose = False
 careful = False
 
 class Inventory():
-    """ Keeps track of items in player's possession.
+    """ Keeps track of items in an Actor's possession.
     
     Implements weight as well. Eventually... """
 
@@ -207,15 +207,15 @@ class Room():
             }
         
     def __init__(self, roomD):
-        self.id = roomD.get("id") 
+        self.id_ = roomD.get("id") 
 
         self.links = roomD.get("links", [None,None,None,None])
         self.name = roomD.get("name", '')
         
-        _ = roomD.get("desc")
+        dsc = roomD.get("desc")
         # Used to catch lazy setting single-line descriptions
         # as strings instead of singleton lists.
-        self.entry_desc = [_] if isinstance(_, str) else (_ or 
+        self.entry_desc = [dsc] if isinstance(dsc, str) else (dsc or 
                                                           ["This is a room."])
            
         self.holding = roomD.get("hold", [])
@@ -260,7 +260,7 @@ class Room():
                   "ID: {1}\n"
                   "Entry message: {2}\n"
                   "Items contained: [").format(self.name,
-                                               self.id,
+                                               self.id_,
                                                self.entry_desc)        
         for x in self.holding:
             try:
@@ -321,6 +321,31 @@ class Action():
     def two(act, arg0, arg1):
         E.err("Input > Max")
 
+class Actor:
+    """ Parent class for any Player-esque character. """
+    def __init__(self, id_,
+                       name = "Nameless",
+                       max_health = -1,
+                       attributes = {},
+                       carrying = None):
+        self.iden = id_
+        self.name = name
+        self.max_health = max_health
+        self.health = self.max_health
+
+    def harm(self, dmg):
+        """Hurts the Actor for `dmg` points."""
+        if self.health < 0:
+            pass # negative health = immune to damage!
+        elif self.health < dmg:
+            self.die()
+        else:
+            self.health -= dmg
+
+    def die(self):
+        pass
+
+        # carrying is either a single item or an array of items
 
 # not imported so no need to do much here
 class OldAction:
@@ -431,19 +456,3 @@ class OldAction:
 
         if verbose: print("Returning {}.".format(val))
         return val or 'pass'
-
-class Actor:
-    """ Parent class for any Player-esque character. """
-    def __init__(self, id_,
-                       name = "Nameless",
-                       health = None,
-                       attributes = {},
-                       isPC = False,
-                       carrying = None):
-        self.id = id_
-        self.name = name
-        self.health = health
-
-class Player(Actor):
-    def __init__(self, id, **kwargs):
-        self.super().__init__(id, kwargs)

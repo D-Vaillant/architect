@@ -279,12 +279,12 @@ class Game():
         """ Returns a list of Items near the player. """
         return self.loc.holding+list(self.inventory)
 
-    def _IDtoRoom(self, id):
+    def _IDtoRoom(self, id_):
         """ Returns a Room instance R such that R.id = id. """
         try:
-            return self.rooms[id]
+            return self.rooms[id_]
         except KeyError:
-            raise KeyError("No room with ID {}.".format(id))
+            raise KeyError("No room with ID {}.".format(id_))
 
     # TODO: Write a test for this.
     def _scopeGetter(self, scope):
@@ -446,7 +446,6 @@ class Game():
 
 # ------------------------------ Engine Methods --------------------------------
 # Used in BP Code implementation.
-
     def _bpRouter(self, args):
         if args == "pass": return
         else: getattr(self, +args[0])(*args[1])
