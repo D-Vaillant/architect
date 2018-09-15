@@ -1,6 +1,2 @@
 # architect
-An engine for text-based games.
-
-Currently in pre-pre-alpha. Lots of scrapping and rescrapping is going to have to be done, and building a testing suite is going to take some time (since I foolishly did not start one as soon as I started the project.)
-
-See Wiki for more details.
+My first major project in Python. It's badly structured and possibly doesn't work. This is left here as a memorial to hours of work lost due to Spaghetti Code and a reminder to myself that it's the big picture and not the lines of code that ultimately gets you.
